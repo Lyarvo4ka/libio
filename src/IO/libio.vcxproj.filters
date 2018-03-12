@@ -53,151 +53,151 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\AbstractRaw.h">
+    <ClInclude Include="..\..\include\IO\AbstractRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\BlockNumber.h">
+    <ClInclude Include="..\..\include\IO\BlockNumber.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\calcRaid5Parity.h">
+    <ClInclude Include="..\..\include\IO\calcRaid5Parity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cdw_raw.h">
+    <ClInclude Include="..\..\include\IO\cdw_raw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ChangeHeader.h">
+    <ClInclude Include="..\..\include\IO\ChangeHeader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\constants.h">
+    <ClInclude Include="..\..\include\IO\constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\dataarray.h">
+    <ClInclude Include="..\..\include\IO\dataarray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\dbf.h">
+    <ClInclude Include="..\..\include\IO\dbf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\djvu_raw.h">
+    <ClInclude Include="..\..\include\IO\djvu_raw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\DVR_raw.h">
+    <ClInclude Include="..\..\include\IO\DVR_raw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Entropy.h">
+    <ClInclude Include="..\..\include\IO\Entropy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\error.h">
+    <ClInclude Include="..\..\include\IO\error.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ext2_raw.h">
+    <ClInclude Include="..\..\include\IO\ext2_raw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Factories.h">
+    <ClInclude Include="..\..\include\IO\Factories.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Finder.h">
+    <ClInclude Include="..\..\include\IO\Finder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\FireBird.h">
+    <ClInclude Include="..\..\include\IO\FireBird.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\func_utils.h">
+    <ClInclude Include="..\..\include\IO\func_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\GoPro.h">
+    <ClInclude Include="..\..\include\IO\GoPro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\HexTexRaw.h">
+    <ClInclude Include="..\..\include\IO\HexTexRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\IODevice.h">
+    <ClInclude Include="..\..\include\IO\IODevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\iofs.h">
+    <ClInclude Include="..\..\include\IO\iofs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\iofunctions.h">
+    <ClInclude Include="..\..\include\IO\iofunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\iolibrary_global.h">
+    <ClInclude Include="..\..\include\IO\iolibrary_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\jpeg.h">
+    <ClInclude Include="..\..\include\IO\jpeg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\keychainraw.h">
+    <ClInclude Include="..\..\include\IO\keychainraw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\log.h">
+    <ClInclude Include="..\..\include\IO\log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\MLV_raw.h">
+    <ClInclude Include="..\..\include\IO\MLV_raw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\MovRaw.h">
+    <ClInclude Include="..\..\include\IO\MovRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\MovRename.h">
+    <ClInclude Include="..\..\include\IO\MovRename.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\pageaddition.h">
+    <ClInclude Include="..\..\include\IO\pageaddition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\PanasonicRaw.h">
+    <ClInclude Include="..\..\include\IO\PanasonicRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\physicaldrive.h">
+    <ClInclude Include="..\..\include\IO\physicaldrive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\QuickTime.h">
+    <ClInclude Include="..\..\include\IO\QuickTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\r3d_raw.h">
+    <ClInclude Include="..\..\include\IO\r3d_raw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\RawAVI.h">
+    <ClInclude Include="..\..\include\IO\RawAVI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\RawIMD.h">
+    <ClInclude Include="..\..\include\IO\RawIMD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\RawMPEG.h">
+    <ClInclude Include="..\..\include\IO\RawMPEG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\RawMTS.h">
+    <ClInclude Include="..\..\include\IO\RawMTS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\RawMXF.h">
+    <ClInclude Include="..\..\include\IO\RawMXF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\RawRIFF.h">
+    <ClInclude Include="..\..\include\IO\RawRIFF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\RemoveInserts.h">
+    <ClInclude Include="..\..\include\IO\RemoveInserts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\SignatureTest.h">
+    <ClInclude Include="..\..\include\IO\SignatureTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\StandartRaw.h">
+    <ClInclude Include="..\..\include\IO\StandartRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\stdafx.h">
+    <ClInclude Include="..\..\include\IO\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\targetver.h">
+    <ClInclude Include="..\..\include\IO\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Temp.h">
+    <ClInclude Include="..\..\include\IO\Temp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Translator.h">
+    <ClInclude Include="..\..\include\IO\Translator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\utility.h">
+    <ClInclude Include="..\..\include\IO\utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\XorAnalyzer.h">
+    <ClInclude Include="..\..\include\IO\XorAnalyzer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

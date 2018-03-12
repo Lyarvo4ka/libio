@@ -1,6 +1,6 @@
 
 #include "pch.h"
-#include "utility.h"
+#include "IO\utility.h"
 
 TEST( UtilityTest, fileNameToOffsetTest)
 {

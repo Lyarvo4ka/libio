@@ -1,4 +1,4 @@
-#include "MovRaw.h"
+#include "IO\MovRaw.h"
 //
 //CanonMovRaw::CanonMovRaw(const std::string & file_name, const std::string & output_folder) 
 //: MovRaw(file_name, output_folder)

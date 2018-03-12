@@ -1,7 +1,7 @@
-#include "factories.h"
-#include "AbstractRaw.h"
-#include "StandartRaw.h"
-#include "QuickTime.h"
+#include "IO\factories.h"
+#include "IO\AbstractRaw.h"
+#include "IO\StandartRaw.h"
+#include "IO\QuickTime.h"
 
 namespace IO
 {

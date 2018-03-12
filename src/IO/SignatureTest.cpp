@@ -1,8 +1,8 @@
-#include "SignatureTest.h"
-#include "constants.h"
+#include "IO\SignatureTest.h"
+#include "IO\constants.h"
 
 #include "boost/filesystem.hpp"
-#include "constants.h"
+#include "IO\constants.h"
 
 void Signture_Testing(const std::string & folder)
 {

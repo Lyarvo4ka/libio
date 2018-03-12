@@ -43,7 +43,7 @@ namespace IO
 
 	};
 }
-void xor_secror(BYTE *source_data, BYTE * target_data, BYTE *sector, DWORD sector_size)
+inline void xor_secror(BYTE *source_data, BYTE * target_data, BYTE *sector, DWORD sector_size)
 {
 	for (DWORD iSector = 0; iSector < sector_size; ++iSector)
 	{
@@ -52,16 +52,16 @@ void xor_secror(BYTE *source_data, BYTE * target_data, BYTE *sector, DWORD secto
 	}
 }
 
-void XorBlockWithSector(BYTE * source_data, BYTE * target_data, BYTE *sector_data, DWORD block_size, DWORD sector_size)
+inline void XorBlockWithSector(BYTE * source_data, BYTE * target_data, BYTE *sector_data, DWORD block_size, DWORD sector_size)
 {
 	for (DWORD sector_offset = 0; sector_offset < block_size; sector_offset += sector_size)
 		xor_secror(source_data + sector_offset, target_data + sector_offset, sector_data, sector_size);
 }
 
 
-#include "constants.h"
-#include "AbstractRaw.h"
-void XorHardDrive(DWORD drive_number, const std::string & target_file, const std::string xor_file_sector)
+#include "IO\constants.h"
+#include "IO\AbstractRaw.h"
+inline void XorHardDrive(DWORD drive_number, const std::string & target_file, const std::string xor_file_sector)
 {
 	std::string drive_path = drivePathFromNumber(drive_number);
 	HANDLE hDrive = INVALID_HANDLE_VALUE;

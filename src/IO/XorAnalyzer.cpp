@@ -1,7 +1,7 @@
-#include "XorAnalyzer.h"
-#include "iofunctions.h"
+#include "IO\XorAnalyzer.h"
+#include "IO\iofunctions.h"
 
-#include "constants.h"
+#include "IO\constants.h"
 
 #include <iostream>
 
@@ -125,8 +125,11 @@ namespace IO
 		for (auto nChunk = 0; nChunk < chunks; ++nChunk)
 		{
 			printf("Start analyzing #%d chunk of %dn\r\n", nChunk, chunks);
-			buffer_size = getChunckBufferSize(chunk_size, nChunk, xor_size);
 			xor_offset = chunk_size * nChunk;
+			if (nChunk == chunks - 1)
+				buffer_size = xor_size - xor_offset;
+			else
+				buffer_size = getChunckBufferSize(chunk_size, nChunk, xor_size);
 			read_offset = xor_offset;
 			ByteCount * pByteCounts = new ByteCount[buffer_size];
 			BYTE * pBuffer = new BYTE[buffer_size];
