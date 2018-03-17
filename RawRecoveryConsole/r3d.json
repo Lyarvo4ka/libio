@@ -1,0 +1,21 @@
+{
+	"r3d":{
+		"header":
+		[
+			{
+			"hexdata":"52454432",
+			"offset": 4
+			}
+		],
+		"footer": 
+		{
+      "hexdata": "52454F",
+      "offset":4,
+      "search_block":4096,
+			"tailsize": 4089
+    },
+		"extension":".r3d",
+		 "maxfilesize": 4294967296
+	}
+	
+}

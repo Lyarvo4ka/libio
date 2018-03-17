@@ -1,0 +1,37 @@
+{
+    "quicktime":{
+		"header":
+          [
+			{
+                "textdata":"ftyp",
+                "offset": 4
+            },
+            {
+                "textdata":"moov",
+                "offset": 4
+            },
+            {
+                "textdata":"mdat",
+                "offset": 4
+            }            
+            
+          ],
+          "extension": ".mov"
+        },
+  	"ZOOMHandyRecorder":{
+		"header":
+		[
+			{
+				"hexdata":"52494646",
+				"offset": 0
+			},
+			{
+				"hexdata":"57415645626578745A",
+				"offset": 8
+			}
+		],
+	"extension":".wav"
+	
+	}
+	
+}

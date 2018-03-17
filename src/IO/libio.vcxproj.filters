@@ -200,5 +200,8 @@
     <ClInclude Include="..\..\include\IO\XorAnalyzer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\IO\ZoomH6Raw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

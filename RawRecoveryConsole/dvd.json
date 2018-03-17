@@ -1,0 +1,39 @@
+{
+ "inf":{
+   "header":
+      [
+        {
+          "hexdata":"D2E8EF20F4EEF0ECE0F2E03A",
+          "offset": 0
+        }
+      ],
+       "extension": ".inf",
+       "maxfilesize": 2048
+ },
+ "txt":{
+   "header":
+      [
+        {
+          "hexdata":"C2F0E5ECFF3A",
+          "offset": 0
+        }
+      ],
+       "extension": ".txt",
+       "maxfilesize": 2048
+ },
+	"wav":{
+		"header":
+		[
+			{
+				"hexdata":"52494646",
+				"offset": 0
+			},
+			{
+				"hexdata":"57415645",
+				"offset": 8
+			}
+		],
+	"extension":".wav"
+  }
+ 
+}

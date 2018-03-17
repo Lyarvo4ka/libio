@@ -82,6 +82,7 @@
     <ClInclude Include="..\..\include\IO\Translator.h" />
     <ClInclude Include="..\..\include\IO\utility.h" />
     <ClInclude Include="..\..\include\IO\XorAnalyzer.h" />
+    <ClInclude Include="..\..\include\IO\ZoomH6Raw.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

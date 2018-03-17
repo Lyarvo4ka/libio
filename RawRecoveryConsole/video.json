@@ -1,0 +1,70 @@
+{
+	"mpeg":{
+		"header":
+		[
+			{
+				"hexdata":"000001BA",
+				"offset": 0
+			}
+		],
+		 "extension": ".mpg"
+		},
+
+	"mts":{
+		"header":
+		[
+			{	
+				"hexdata":"474000100000B01100",
+				"offset":4
+			}
+		],
+			"extension": ".mts"
+		},
+
+    "quicktime":{
+		"header":
+          [
+			{
+                "textdata":"ftyp",
+                "offset": 4
+            },
+            {
+                "textdata":"moov",
+                "offset": 4
+            },
+            {
+                "textdata":"mdat",
+                "offset": 4
+            }            
+            
+          ],
+          "extension": ".mov"
+        },
+	"avi":{
+		"header":
+		[
+			{
+				"hexdata":"52494646",
+				"offset": 0
+			},
+			{
+				"hexdata":"415649204C495354",
+				"offset": 8
+			}
+		],
+	"extension":".avi"
+	
+	},
+	"mxf":{
+		"header":
+		[
+			{
+			"hexdata":"060E2B34020501010D01020101020400",
+			"offset": 0
+			}
+		],
+		"extension":".mxf"
+	
+	}
+	
+}

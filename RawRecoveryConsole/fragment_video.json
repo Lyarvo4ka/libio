@@ -1,0 +1,21 @@
+{    
+"BlackVue":{
+		"header":
+          [
+			{
+                "textdata":"ftyp",
+                "offset": 4
+            },
+            {
+                "textdata":"moov",
+                "offset": 4
+            },
+            {
+                "textdata":"mdat",
+                "offset": 4
+            }            
+            
+          ],
+          "extension": ".mp4"
+        }      
+}

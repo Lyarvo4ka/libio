@@ -437,6 +437,11 @@ namespace IO
 
 	};
 
+	class SpecialAlgorithm
+	{
+	public:
+		virtual uint64_t Execute(const uint64_t start_offset, const path_string target_folder) = 0;
+	};
 
 /*
 	class ZBKRaw

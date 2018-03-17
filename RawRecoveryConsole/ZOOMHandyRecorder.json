@@ -1,0 +1,17 @@
+{
+	"ZOOMHandyRecorder":{
+		"header":
+		[
+			{
+				"hexdata":"52494646",
+				"offset": 0
+			},
+			{
+				"hexdata":"57415645626578745A",
+				"offset": 8
+			}
+		],
+	"extension":".wav"
+	
+	}
+}

@@ -1,0 +1,25 @@
+{        
+"dt":{
+           "header": 
+            [
+              {
+                "hexdata": "31434942446D7046",
+                "offset": 0
+              }
+            ],
+            "maxfilesize":  524288000,
+            "extension": ".dt"
+        },
+"1CD":{
+           "header": 
+            [
+              {
+                "hexdata": "314344424D535638",
+                "offset": 0
+              }
+            ],
+            "maxfilesize":  1073741824,
+            "extension": ".1CD"
+        }
+       
+}

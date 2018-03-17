@@ -1,0 +1,26 @@
+{
+        "zs2":
+        {
+          "header":
+          [
+            {
+                "hexdata":"308203D602010330",
+                "offset": 0
+            }
+          ],
+          "maxfilesize":  986,
+          "extension": ".ZS2"
+        },
+        "pck":
+        {
+          "header":
+          [
+            {
+                "hexdata":"50434B0000000000",
+                "offset": 0
+            }
+          ],
+          "maxfilesize":  3072,
+          "extension": ".pck"
+        }
+}

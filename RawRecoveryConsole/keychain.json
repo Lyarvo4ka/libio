@@ -1,0 +1,34 @@
+{
+        "keychain-db":
+        {
+          "header":
+          [
+            {
+                "hexdata":"6B796368",
+                "offset": 0
+            }
+          ],
+          
+          "extension": ".keychain-db"
+        },
+        
+        "id_rsa":
+        {
+          "header":
+          [
+            {
+                "textdata":"-----BEGIN RSA",
+                "offset": 0
+            }
+          ],
+          "footer": 
+          {
+                "textdata": "-----END RSA",
+                "tailsize": 17
+          },
+          "maxfilesize":  1048576,
+          "extension": ".id_rsa"
+        }
+        
+
+}

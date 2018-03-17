@@ -1,0 +1,14 @@
+{
+  "qt_fragment":
+  { 
+		"header":
+          [
+            {
+                "textdata":"mdat",
+                "offset": 4
+            }            
+            
+          ],
+          "extension": ".mov"
+	}
+}
