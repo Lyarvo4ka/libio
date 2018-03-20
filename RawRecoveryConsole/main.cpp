@@ -82,6 +82,8 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 
 #include "zlib.h"
 
+#include "IO\ZoomH6Raw.h"
+
 int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
@@ -140,7 +142,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 
-		QFile file("qt_fragment.json");
+		QFile file("zoomH6.json");
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			qInfo() << "Error to open file. \"" << file.fileName() << "\"";
@@ -167,6 +169,7 @@ int main(int argc, char *argv[])
 		//uint64_t start_offset = 0x0;
 		uint64_t header_offset = 0;
 		uint32_t counter = 0;
+		//const IO::path_string dst_folder = L"d:\\incoming\\43944\\result\\";
 		while (start_offset < src_device->Size())
 		{
 			auto file_struct = signatureFinder.findHeader(start_offset, header_offset);
@@ -179,7 +182,16 @@ int main(int argc, char *argv[])
 			qInfo() << "Offset : " << header_offset << "(bytes)";
 
 			start_offset = header_offset;
+			IO::ZoomH6Raw zoomH6Raw(src_device);
+			auto bytesWritten = zoomH6Raw.Execute(header_offset, target_folder);
+			if (bytesWritten == 0)
+				break;
+			start_offset += default_sector_size;
 
+
+
+			
+/*
  			auto raw_factory = factory_manager.Lookup(file_struct->getName());
 			IO::RawAlgorithm * raw_algorithm = nullptr;
 			if (!raw_factory)
@@ -261,14 +273,14 @@ int main(int argc, char *argv[])
 					delete raw_algorithm;
 
 				
-
+*/
 			}
 
 
 
 		
 
-
+			qInfo() << "Finished.";
 	}
 	else
 		qInfo() << "Wrong params";
