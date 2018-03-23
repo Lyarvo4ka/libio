@@ -1,26 +1,37 @@
 {
-        "zs2":
+        "zs2_514C":
         {
           "header":
           [
             {
-                "hexdata":"308203D602010330",
+                "hexdata":"514C",
                 "offset": 0
             }
           ],
-          "maxfilesize":  986,
           "extension": ".ZS2"
         },
+        "zs2_3082":
+        {
+          "header":
+          [
+            {
+                "hexdata":"3082",
+                "offset": 0
+            }
+          ],
+          "extension": ".ZS2"
+        }, 
+ 
+        
         "pck":
         {
           "header":
           [
             {
-                "hexdata":"50434B0000000000",
+                "hexdata":"50434B",
                 "offset": 0
             }
           ],
-          "maxfilesize":  3072,
           "extension": ".pck"
         }
 }

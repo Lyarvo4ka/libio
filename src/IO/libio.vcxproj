@@ -64,6 +64,7 @@
     <ClInclude Include="..\..\include\IO\MovRename.h" />
     <ClInclude Include="..\..\include\IO\pageaddition.h" />
     <ClInclude Include="..\..\include\IO\PanasonicRaw.h" />
+    <ClInclude Include="..\..\include\IO\PCKRaw.h" />
     <ClInclude Include="..\..\include\IO\physicaldrive.h" />
     <ClInclude Include="..\..\include\IO\QuickTime.h" />
     <ClInclude Include="..\..\include\IO\r3d_raw.h" />
@@ -83,6 +84,7 @@
     <ClInclude Include="..\..\include\IO\utility.h" />
     <ClInclude Include="..\..\include\IO\XorAnalyzer.h" />
     <ClInclude Include="..\..\include\IO\ZoomH6Raw.h" />
+    <ClInclude Include="..\..\include\IO\ZS2Raw.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
