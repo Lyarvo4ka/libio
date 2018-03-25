@@ -54,29 +54,43 @@ namespace IO
 		return std::make_shared<RiffFile>(filePtr, file_size);
 	}
 
-
+	const uint32_t MAXZOOMFILES = 4;
 	class ZoomFiles
 	{
 		std::vector<RiffFile::Ptr> files_;
+		path_string folder_;
+		path_string extension_ = L".wav";
+		uint32_t maxZoomFiles_ = MAXZOOMFILES;
 	public:
-		//ZoomFiles()
-		//{
-		//}
+		ZoomFiles(const path_string & target_folder)
+			: folder_(target_folder)
+		{
+		}
 		void add_file(FilePtr file, const uint32_t file_size)
 		{
 			files_.emplace_back(makeRiffFile(file, file_size));
 		}
 
-		bool CreateFiles(const path_string & target_folder, const path_string & file_name)
+		FilePtr createFile(const DataArray & data_array, const path_string fileName, const uint32_t fileNumber)
 		{
-			// Create folder "file_name"
-			auto newFolderName = addBackSlash(target_folder) + file_name;
-			if (!fs::create_directory(newFolderName))
-			{
-				LOG_MESSAGE("Error to create directory.");
-				return false;
-			}
-			
+			uint32_t bytesWritten = 0;
+			DataArray data_array(32768);
+
+			riff_header_struct * pRiffHeader = (riff_header_struct *)data_array.data();
+			if (memcmp(pRiffHeader->riff_name, riff_header, riff_header_size) != 0)
+				return nullptr;
+
+			path_string fileName(pRiffHeader->);
+			auto number_name = std::to_wstring(fileNumber);
+			fs::path filePath(folder_);
+			filePath += fileName + L"_" + number_name + extension_;
+			auto file_ptr = makeFilePtr(filePath.generic_wstring());
+			if (!file_ptr->Open(OpenMode::Create))
+				return nullptr;
+
+
+			this.add_file(file_ptr, pRiffHeader->size);
+			return file_ptr;
 		}
 		uint32_t appendFile(const DataArray & data_array, const uint32_t fileNumber)
 		{
@@ -138,9 +152,27 @@ namespace IO
 			device_->setPosition(offset);
 			return device_->ReadData(data_array.data(), data_array.size());
 		}
+		std::string readZoomHeaderAndFolderName(const uint64_t header_offset)
+		{
+			IO::DataArray data_array(this->block_size());
+
+			// must *.hprj
+			auto bytesRead = ReadBlock(data_array, header_offset);
+			if (bytesRead != data_array.size())
+				return std::string();
+
+			if (memcmp(data_array.data(), zoom_h6, zoom_h6_size) != 0)
+			{
+				LOG_MESSAGE("It's not zoom h6 header.");
+				return std::string();;
+			}
+			ZoomH6Header *pZoomHeader = (ZoomH6Header*)data_array.data();
+			std::string folder_name(pZoomHeader->folder_name);
+
+			return folder_name;
+		}
 		uint64_t Execute(const uint64_t start_offset, const path_string target_folder) override
 		{
-			ZoomFiles zoomFiles;
 			const uint32_t MAX_FILES = 4;
 			setBlockSize(32768);
 			if (!device_->isOpen())
@@ -149,17 +181,14 @@ namespace IO
 				return 0;
 			}
 			uint64_t position = start_offset;
-			IO::DataArray data_array(this->block_size());
 
 			// must *.hprj
-			auto bytesRead = ReadBlock(data_array, position);
-			if (memcmp(data_array.data(), zoom_h6, zoom_h6_size) != 0)
-			{
-				LOG_MESSAGE("It's not zoom h6 header.");
+
+			std::string folder_name = readZoomHeaderAndFolderName(position);
+			if (folder_name.empty())
 				return 0;
-			}
-			ZoomH6Header *pZoomHeader = (ZoomH6Header*)data_array.data();
-			std::string folder_name(pZoomHeader->folder_name);
+
+
 			path_string wstr(folder_name.begin(), folder_name.end());
 			auto newFolderName = addBackSlash(target_folder) + wstr;
 			if (!fs::create_directory(newFolderName))
@@ -172,21 +201,21 @@ namespace IO
 			
 			uint64_t bytesWritten = 0;
 
+			IO::DataArray data_array(this->block_size());
+
+			ZoomFiles zoomFiles(folderName);
+
+			
 			for (uint32_t fileNumber = 0; fileNumber < MAX_FILES; ++fileNumber)
 			{
 				bytesRead = ReadBlock(data_array, position);
 				if (bytesRead == 0)
 					break;
-				riff_header_struct * pRiffHeader = (riff_header_struct *)data_array.data();
-				if (memcmp(pRiffHeader->riff_name, riff_header, riff_header_size) != 0)
-					break;
-				auto number_name = std::to_wstring(fileNumber);
-				auto file_ptr = makeFilePtr(addBackSlash(folderName) + fileName + L"_" + number_name + L".wav");
-				if (!file_ptr->Open(OpenMode::Create))
-					return false;
 				
+				auto file = zoomFiles.createFile(data_array, fileName, fileNumber);
+				if (!file)
+					break;
 
-				zoomFiles.add_file(file_ptr, pRiffHeader->size);
 				bytesWritten += zoomFiles.appendFile(data_array, fileNumber);
 
 				position += this->block_size();
