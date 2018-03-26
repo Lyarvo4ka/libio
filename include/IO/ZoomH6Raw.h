@@ -13,6 +13,18 @@ namespace IO
 	2. Потом читаем по 1 кластеру и определяем сколько у нас файлов 2 или 4.
 	3.
 */
+	const char zoom_h6[] = { 0x5A , 0x4F , 0x4F , 0x4D , 0x20 , 0x48 , 0x36 , 0x20 };
+	const uint32_t zoom_h6_size = SIZEOF_ARRAY(zoom_h6);
+
+	const char riff_header[] = { 0x52 , 0x49 , 0x46 , 0x46 };
+	const uint32_t riff_header_size = SIZEOF_ARRAY(riff_header);
+
+	struct ZoomH6Header
+	{
+		char header_text[22];
+		char folder_name[11];
+	};
+
 	namespace fs = std::experimental::filesystem;//boost::filesystem;
 	class RiffFile
 	{
@@ -74,13 +86,11 @@ namespace IO
 		FilePtr createFile(const DataArray & data_array, const path_string fileName, const uint32_t fileNumber)
 		{
 			uint32_t bytesWritten = 0;
-			DataArray data_array(32768);
 
 			riff_header_struct * pRiffHeader = (riff_header_struct *)data_array.data();
 			if (memcmp(pRiffHeader->riff_name, riff_header, riff_header_size) != 0)
 				return nullptr;
 
-			path_string fileName(pRiffHeader->);
 			auto number_name = std::to_wstring(fileNumber);
 			fs::path filePath(folder_);
 			filePath += fileName + L"_" + number_name + extension_;
@@ -89,7 +99,7 @@ namespace IO
 				return nullptr;
 
 
-			this.add_file(file_ptr, pRiffHeader->size);
+			this->add_file(file_ptr, pRiffHeader->size);
 			return file_ptr;
 		}
 		uint32_t appendFile(const DataArray & data_array, const uint32_t fileNumber)
@@ -115,17 +125,7 @@ namespace IO
 		}
 	};
 
-	const char zoom_h6[] = { 0x5A , 0x4F , 0x4F , 0x4D , 0x20 , 0x48 , 0x36 , 0x20 };
-	const uint32_t zoom_h6_size = SIZEOF_ARRAY(zoom_h6);
 
-	const char riff_header[] = { 0x52 , 0x49 , 0x46 , 0x46 };
-	const uint32_t riff_header_size = SIZEOF_ARRAY(riff_header);
-
-	struct ZoomH6Header
-	{
-		char header_text[22];
-		char folder_name[11];
-	};
 
 	class ZoomH6Raw
 		: public SpecialAlgorithm
@@ -156,11 +156,11 @@ namespace IO
 		{
 			IO::DataArray data_array(this->block_size());
 
-			// must *.hprj
 			auto bytesRead = ReadBlock(data_array, header_offset);
 			if (bytesRead != data_array.size())
 				return std::string();
 
+			// must *.hprj
 			if (memcmp(data_array.data(), zoom_h6, zoom_h6_size) != 0)
 			{
 				LOG_MESSAGE("It's not zoom h6 header.");
@@ -171,48 +171,35 @@ namespace IO
 
 			return folder_name;
 		}
-		uint64_t Execute(const uint64_t start_offset, const path_string target_folder) override
+		path_string createFolder(const path_string & folder_name, const path_string & new_folder)
 		{
-			const uint32_t MAX_FILES = 4;
-			setBlockSize(32768);
-			if (!device_->isOpen())
+			fs::path folder_path(folder_name);
+			folder_path += new_folder;
+			std::error_code ec;
+			if (!fs::create_directory(folder_path, ec))
 			{
-				LOG_MESSAGE("Error device isn't opened.");
-				return 0;
+				LOG_MESSAGE(L"Error to create directory " + folder_path.generic_wstring());
+				return path_string();
 			}
+
+			return folder_path;
+
+		}
+		ZoomFiles createZoomFiles(const uint64_t start_offset, const path_string & zoom_folder, const path_string & zoomFileName)
+		{
+			ZoomFiles zoomFiles(zoom_folder);
+			uint32_t bytesRead = 0;
+			uint32_t bytesWritten = 0;
+			DataArray data_array(this->block_size());
 			uint64_t position = start_offset;
 
-			// must *.hprj
-
-			std::string folder_name = readZoomHeaderAndFolderName(position);
-			if (folder_name.empty())
-				return 0;
-
-
-			path_string wstr(folder_name.begin(), folder_name.end());
-			auto newFolderName = addBackSlash(target_folder) + wstr;
-			if (!fs::create_directory(newFolderName))
-				return 0;
-			path_string folderName = newFolderName;
-			path_string fileName = wstr;
-
-			position += this->block_size();
-			uint32_t fileCount = 0;
-			
-			uint64_t bytesWritten = 0;
-
-			IO::DataArray data_array(this->block_size());
-
-			ZoomFiles zoomFiles(folderName);
-
-			
-			for (uint32_t fileNumber = 0; fileNumber < MAX_FILES; ++fileNumber)
+			for (uint32_t fileNumber = 0; fileNumber < MAXZOOMFILES; ++fileNumber)
 			{
 				bytesRead = ReadBlock(data_array, position);
 				if (bytesRead == 0)
 					break;
-				
-				auto file = zoomFiles.createFile(data_array, fileName, fileNumber);
+
+				auto file = zoomFiles.createFile(data_array, zoomFileName, fileNumber);
 				if (!file)
 					break;
 
@@ -220,14 +207,20 @@ namespace IO
 
 				position += this->block_size();
 			}
-
-
+			return zoomFiles;
+		}
+		uint64_t saveZoomFiles(const uint64_t start_offset, ZoomFiles & zoomFiles)
+		{
+			DataArray data_array(this->block_size());
+			uint32_t bytesRead = 0;
+			uint32_t bytesWritten = 0;
 			uint32_t fileCounter = 0;
+			uint64_t position = start_offset;
 			while (true)
 			{
 				if (zoomFiles.isAllReady())
 					break;
-
+				// 2 clusters in first file consecutive 
 				if (fileCounter == 0)
 				{
 					for (auto i = 0; i < 2; ++i)
@@ -252,6 +245,40 @@ namespace IO
 					fileCounter = 0;
 
 			}
+
+		}
+		uint64_t Execute(const uint64_t start_offset, const path_string target_folder) override
+		{
+
+			setBlockSize(32768);
+			if (!device_->isOpen())
+			{
+				LOG_MESSAGE("Error device isn't opened.");
+				return 0;
+			}
+			uint64_t position = start_offset;
+
+			// must *.hprj
+
+			std::string zoomSubFolder = readZoomHeaderAndFolderName(position);
+			if (zoomSubFolder.empty())
+				return 0;
+
+			path_string zoomFileName = toWString(zoomSubFolder);
+			path_string zoomFolderPath = createFolder(target_folder, zoomFileName);
+			if (zoomFolderPath.empty())
+				return 0;
+
+			position += this->block_size();
+			uint32_t fileCount = 0;
+
+			auto zoomFiles = createZoomFiles(position, zoomFolderPath, zoomFileName);
+			if (zoomFiles.count() == 0)
+				return 0;
+
+			uint64_t bytesWritten = zoomFiles.count() * this->block_size();
+			position += bytesWritten;
+			bytesWritten += saveZoomFiles(position, zoomFiles);
 			return bytesWritten;
 
 		 }
