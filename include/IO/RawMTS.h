@@ -44,6 +44,7 @@ namespace IO
 			uint32_t iFrame = 0;
 
 			bool bEnd = false;
+			uint32_t bytesWritten = 0;
 
 			while (offset < this->getSize())
 			{
@@ -61,7 +62,13 @@ namespace IO
 						break;
 					}
 				}
-				appendToFile(target_file, offset, iFrame);
+				if (iFrame == 0)
+				{
+					break;
+				}
+				bytesWritten = appendToFile(target_file, offset, iFrame);
+				if (bytesWritten == 0)
+					break;
 
 				if (bEnd)
 					break;

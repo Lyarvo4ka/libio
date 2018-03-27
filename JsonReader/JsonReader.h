@@ -112,6 +112,11 @@ void ReadFooter(const QJsonObject footer_object, SignatureHandle & footer)
 void ReadJsonFIle(const QByteArray & byte_data, QList<JsonFileStruct> & parsedResult)
 {
 	QJsonDocument json_doc = QJsonDocument::fromJson(byte_data);
+	if (json_doc.isNull())
+	{
+		qInfo() << "Error to parse json file.";
+		return;
+	}
 
 	auto root = json_doc.object();
 	auto signatureKeys = root.keys();

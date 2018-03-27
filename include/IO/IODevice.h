@@ -210,8 +210,12 @@ namespace IO
 
 			if (!::WriteFile(hFile_, data, write_size, &bytes_written, NULL))
 			{
+				auto dwLastError = ::GetLastError();
 				auto err = ErrorHandler::get();
 				err->showMessage(Error::getDiskOrFileError(Error::DeviceErrors::kWriteData, "file"));
+				//ERROR_DISK_FULL
+				err->showMessage(err->getMessage(dwLastError));
+
 				return 0;
 			}
 			size_ += bytes_written;

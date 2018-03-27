@@ -140,6 +140,24 @@ namespace IO
 			printf(messageText.c_str());
 			printf("\n");
 		}
+		std::wstring getMessage(uint32_t errorCode)
+		{
+			std::wstring errMsg;
+			DWORD dwFlg = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+
+			LPWSTR lpMsgBuf = 0;
+			if (FormatMessageW(dwFlg, 0, errorCode, 0, (LPWSTR)& lpMsgBuf, 0, NULL))
+				errMsg = lpMsgBuf;
+
+			//				UnicodeConverter::toUTF8(lpMsgBuf, errMsg);
+			//#else
+			//			LPTSTR lpMsgBuf = 0;
+			//			if (FormatMessageA(dwFlg, 0, errorCode, 0, (LPTSTR)& lpMsgBuf, 0, NULL))
+			//				errMsg = lpMsgBuf;
+			//#endif
+			LocalFree(lpMsgBuf);
+			return errMsg;
+		}
 
 
 	};
@@ -206,24 +224,6 @@ namespace IO
 	uint32_t last() const
 	{
 	return ::GetLastError();
-	}
-	std::wstring Error::getMessage(uint32_t errorCode)
-	{
-	std::wstring errMsg;
-	DWORD dwFlg = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
-
-	LPWSTR lpMsgBuf = 0;
-	if (FormatMessageW(dwFlg, 0, errorCode, 0, (LPWSTR)& lpMsgBuf, 0, NULL))
-	errMsg = lpMsgBuf;
-
-	//				UnicodeConverter::toUTF8(lpMsgBuf, errMsg);
-	//#else
-	//			LPTSTR lpMsgBuf = 0;
-	//			if (FormatMessageA(dwFlg, 0, errorCode, 0, (LPTSTR)& lpMsgBuf, 0, NULL))
-	//				errMsg = lpMsgBuf;
-	//#endif
-	LocalFree(lpMsgBuf);
-	return errMsg;
 	}
 	};
 	*/

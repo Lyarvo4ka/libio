@@ -67,9 +67,9 @@ void initKeysFactoryManager(IO::RawFactoryManager & factory_manager)
 
 void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
-	initKeysFactoryManager(factory_manager);
+	//initKeysFactoryManager(factory_manager);
 	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
-	//initVideoFactoryManager(factory_manager);
+	initVideoFactoryManager(factory_manager);
 	//initAudioFactoryManager(factory_manager);
 
 
@@ -120,6 +120,11 @@ int main(int argc, char *argv[])
 
 			auto drive_list = IO::ReadPhysicalDrives();
 			auto physical_drive = drive_list.find_by_number(drive_number);
+			if (!physical_drive)
+			{
+				qInfo() << "Error open physical drive #" << drive_number;
+				return -1;
+			}
 			start_offset *= physical_drive->getBytesPerSector();
 			if (physical_drive)
 			{
@@ -194,6 +199,10 @@ int main(int argc, char *argv[])
 			qInfo() << "Offset : " << header_offset << "(bytes)";
 
 			start_offset = header_offset;
+			/*
+				if (type ==special) find in other base factory			
+			*/
+
 			//IO::ZoomH6Raw zoomH6Raw(src_device);
 			//auto bytesWritten = zoomH6Raw.Execute(header_offset, target_folder);
 			//if (bytesWritten == 0)
@@ -232,7 +241,7 @@ int main(int argc, char *argv[])
 						if ( target_size == 0)
 						{
 							qInfo() << "Error to save file. Exit." ;
-							//break;
+							break;
 
 						}
 						auto dst_size = dst_file->Size();

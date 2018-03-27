@@ -413,19 +413,14 @@ namespace IO
 				setPosition(read_pos);
 				bytes_read = ReadData(buffer->data(), bytes_to_write);
 				if (bytes_read == 0)
-				{
-					printf("Error read drive\r\n");
-					return cur_pos;
-				}
+					return 0;
+
 				read_pos += bytes_read;
 
 				write_file.setPosition(target_offset);
 				bytes_written = write_file.WriteData(buffer->data(), bytes_read);
 				if (bytes_written == 0)
-				{
-					printf("Error write to file\r\n");
-					return cur_pos;
-				}
+					return 0;
 
 				target_offset += bytes_written;
 				cur_pos += bytes_written;
