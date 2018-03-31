@@ -209,5 +209,8 @@
     <ClInclude Include="..\..\include\IO\PCKRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\IO\ImageWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

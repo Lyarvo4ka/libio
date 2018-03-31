@@ -52,6 +52,7 @@
     <ClInclude Include="..\..\include\IO\func_utils.h" />
     <ClInclude Include="..\..\include\IO\GoPro.h" />
     <ClInclude Include="..\..\include\IO\HexTexRaw.h" />
+    <ClInclude Include="..\..\include\IO\ImageWriter.h" />
     <ClInclude Include="..\..\include\IO\IODevice.h" />
     <ClInclude Include="..\..\include\IO\iofs.h" />
     <ClInclude Include="..\..\include\IO\iofunctions.h" />
