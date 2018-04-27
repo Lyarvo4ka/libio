@@ -406,6 +406,9 @@ namespace IO
 			return true;
 		else if (memcmp(qt_header, IO::s_mdat, size) == 0)
 			return true;
+		else if (memcmp(qt_header, IO::s_wide, size) == 0)
+			return true;
+
 
 		return false;
 	}

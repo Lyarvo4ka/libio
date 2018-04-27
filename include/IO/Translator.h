@@ -11,10 +11,41 @@ namespace IO
 		uint32_t marker;
 	};
 #pragma pack()
+//
+struct DumpPage
+{
+	DumpPage(uint32_t page_size, uint32_t service_size)
+		: pageSize(page_size)
+		, serviceSize(service_size)
+	{
+		dumpSize = page_size + service_size;
+	}
+	uint32_t pageSize;
+	uint32_t serviceSize;
+	uint32_t dumpSize;
+	uint32_t markerOffset;
+};
+
+struct ImagePage
+{
+	ImagePage(const uint32_t image_page_size)
+		: imageData(image_page_size)
+	{
+
+	}
+	DataArray imageData;
+	uint32_t start_pos = 0;
+	uint32_t count = 0;
+};
 
 	class NumberTranslator
 	{
 	public:
+		ImagePage calcPagesTogether(const DataArray & dumpData , const uint32_t start_pos )
+		{
+			//for (uint32_t iPage = 0 ; iPage < dumpData.size() ; iPage += )
+			return ImagePage(0);
+		}
 		bool saveToFile(File src_file, IODevicePtr dst)
 		{
 			const uint32_t PAGE_SIZE = 4096;
