@@ -1,0 +1,14 @@
+{
+  "qt_canon":
+  { 
+		"header":
+          [
+            {
+                "textdata":"ftyp",
+                "offset": 4
+            }            
+            
+          ],
+          "extension": ".mov"
+	}
+}

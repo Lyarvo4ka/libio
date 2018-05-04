@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "pch.h"
-#include "QuickTime.h"
+#include "IO\QuickTime.h"
 
 
 IO::DataArray::Ptr createTeastDataArrayPtr(const uint32_t size, const uint8_t test_val)

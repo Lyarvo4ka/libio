@@ -814,7 +814,7 @@ namespace IO
 		}
 		uint64_t SaveRawFile(File & target_file, const uint64_t start_offset) override
 		{
-			const uint32_t fullFileSizeOffset = 2084;
+			const uint32_t fullFileSizeOffset = 2214;
 
 			// 1. Читаем header.
 			qt_block_t qtBlock = qt_block_t();

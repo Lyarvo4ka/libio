@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "QuickTime.h"
+#include "IO\QuickTime.h"
 #include "mockfile.h"
 
 const uint32_t cftyp_size = 10;

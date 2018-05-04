@@ -54,14 +54,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="utilitytest.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\libio.vcxproj">
-      <Project>{a3400ee0-87c5-4fcc-a551-359cdea8c97e}</Project>
-    </ProjectReference>
+    <ClCompile Include="zbktest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IO\libio.vcxproj">
+      <Project>{a3400ee0-87c5-4fcc-a551-359cdea8c97e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

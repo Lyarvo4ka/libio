@@ -84,6 +84,7 @@
     <ClInclude Include="..\..\include\IO\Translator.h" />
     <ClInclude Include="..\..\include\IO\utility.h" />
     <ClInclude Include="..\..\include\IO\XorAnalyzer.h" />
+    <ClInclude Include="..\..\include\IO\zbk_medoc.h" />
     <ClInclude Include="..\..\include\IO\ZoomH6Raw.h" />
     <ClInclude Include="..\..\include\IO\ZS2Raw.h" />
   </ItemGroup>

@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 
-		QFile file("zoomH6.json");
+		QFile file("zbk.json");
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			qInfo() << "Error to open file. \"" << file.fileName() << "\"";
@@ -179,7 +179,8 @@ int main(int argc, char *argv[])
 			headerBase->addFileFormat(toFileStruct(theFileStruct));
 
 		IO::RawFactoryManager factory_manager;
-		initFactoryMananger(factory_manager);
+		//initFactoryMananger(factory_manager);
+		//factory_manager.Register("qt_canon", std::make_unique<IO::Canon80D_FragmentRawFactory>());
 
 		IO::SignatureFinder signatureFinder(src_device, headerBase);
 
@@ -220,7 +221,7 @@ int main(int argc, char *argv[])
 				IO::StandartRaw * standard_raw = new IO::StandartRaw(src_device);
 				standard_raw->setMaxFileSize(file_struct->getMaxFileSize());
 				standard_raw->setFooter(file_struct->getFooter(), file_struct->getFooterTailEndSize());
-				standard_raw->setFooterOffsetSearchBlock(4, 4096);
+				//standard_raw->setFooterOffsetSearchBlock(4, 4096);
 
 				raw_algorithm = standard_raw;
 				
@@ -241,7 +242,7 @@ int main(int argc, char *argv[])
 						if ( target_size == 0)
 						{
 							qInfo() << "Error to save file. Exit." ;
-							break;
+							//break;
 
 						}
 						auto dst_size = dst_file->Size();
