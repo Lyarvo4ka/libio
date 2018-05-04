@@ -1,14 +1,23 @@
 #pragma once
 
 #include <stdint.h>
+#include <string>
+#include <sstream>
+#include <iomanip>
 
 namespace IO
 {
-	bool is_between(const uint32_t from_val, const uint32_t to_val , const uint32_t theValue)
+	inline bool is_between(const uint32_t from_val, const uint32_t to_val , const uint32_t theValue)
 	{
 		if (theValue >= from_val && theValue <= to_val)
 			return true;
 		return false;
+	}
+	inline std::string toString(const uint32_t int_val, const uint32_t fill_count)
+	{
+		std::stringstream ss;
+		ss << std::setw(fill_count) << std::setfill('0') << int_val;
+		return ss.str();
 	}
 #pragma pack( push, 1)
 	struct zbk_DateTime
@@ -51,6 +60,25 @@ namespace IO
 
 			return false;
 		}
+
+		std::string to_string()
+		{
+			std::string strResult;
+			if (isVaid())
+			{
+				auto s_year = toString(year, 4);
+				auto s_month = toString(month, 2);
+				auto s_day = toString(day, 2);
+				auto s_hour = toString(hour, 2);
+				auto s_sec = toString(sec,2);
+
+				strResult = s_year + '-' + s_month + '-' + s_day + '-' + s_hour + '-' + s_sec;
+			}
+			return strResult;
+		}
 	};
 #pragma pack(pop)
+
+	
+
 }

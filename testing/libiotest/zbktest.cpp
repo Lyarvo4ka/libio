@@ -69,6 +69,15 @@ TEST(ZbkTest, testIsValid)
 	IO::zbk_DateTime badDateMonth = { 24,13,1986,15,00 };
 	EXPECT_FALSE(badDateDay.isVaid());
 
+	IO::zbk_DateTime badDateYear = { 24,4,1111,15,00 };
+	EXPECT_FALSE(badDateYear.isVaid());
+
+	IO::zbk_DateTime badDateHour = { 24,4,1986,25,00 };
+	EXPECT_FALSE(badDateHour.isVaid());
+
+	IO::zbk_DateTime badDateSec = { 24,4,1986,18,61 };
+	EXPECT_FALSE(badDateSec.isVaid());
+
 	IO::zbk_DateTime goodDate = { 24,4,1986,15,00 };
 	EXPECT_TRUE(goodDate.isVaid());
 
