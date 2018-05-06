@@ -1,12 +1,17 @@
 #pragma once
 
+#include "IO\constants.h"
 #include <stdint.h>
 #include <string>
 #include <sstream>
 #include <iomanip>
 
+#include "IO\IODevice.h"
+#include "IO\Finder.h"
+
 namespace IO
 {
+
 	inline bool is_between(const uint32_t from_val, const uint32_t to_val , const uint32_t theValue)
 	{
 		if (theValue >= from_val && theValue <= to_val)
@@ -78,6 +83,57 @@ namespace IO
 		}
 	};
 #pragma pack(pop)
+
+	class ZBKAnalyzer
+	{
+		std::string str_date_;
+	public:
+		void analize(const path_string & fileName)
+		{
+			File file(fileName);
+			if (!file.Open(OpenMode::OpenRead))
+				return;
+
+			DataArray data_array(1024);
+			auto bytesRead = file.ReadData(data_array);
+			if (bytesRead == 0)
+				return;
+
+			const uint32_t struct_offset = 0;
+
+			zbk_DateTime * zbkDateTime = (zbk_DateTime *)(data_array.data() + struct_offset);
+			str_date_ = zbkDateTime->to_string();
+			if (str_date_.empty())
+				return;
+		}
+		std::string getDateString() const
+		{
+			return str_date_;
+		}
+	};
+
+	void renameToDateTime(const path_string & src_folder, const path_string & dst_folder)
+	{
+		const path_string zbk_ext = L".zbk";
+		Finder finder;
+		finder.add_extension(zbk_ext);
+		finder.FindFiles(src_folder);
+
+		uint32_t counter = 0 ;
+
+		for (auto src_file : finder.getFiles())
+		{
+			ZBKAnalyzer zbk_analizer;
+			zbk_analizer.analize(src_file);
+			auto str_date = zbk_analizer.getDateString();
+			if (str_date.empty())
+				continue;
+			path_string wStrDate(str_date.begin(), str_date.end());
+			auto numberStr = toString(counter++, 5);
+			path_string wCounter(numberStr.begin() , numberStr.begin());
+			auto new_file_name = dst_folder + wStrDate + wCounter;
+		}
+	}
 
 	
 
