@@ -99,7 +99,7 @@ namespace IO
 			if (bytesRead == 0)
 				return;
 
-			const uint32_t struct_offset = 0;
+			const uint32_t struct_offset = 16;
 
 			zbk_DateTime * zbkDateTime = (zbk_DateTime *)(data_array.data() + struct_offset);
 			str_date_ = zbkDateTime->to_string();
@@ -130,8 +130,16 @@ namespace IO
 				continue;
 			path_string wStrDate(str_date.begin(), str_date.end());
 			auto numberStr = toString(counter++, 5);
-			path_string wCounter(numberStr.begin() , numberStr.begin());
-			auto new_file_name = dst_folder + wStrDate + wCounter;
+			path_string wCounter(numberStr.begin() , numberStr.end());
+			auto new_file_name = dst_folder + wStrDate + L"_"+ wCounter + L".zbk";
+			try
+			{
+				boost::filesystem::rename(src_file, new_file_name);
+			}
+			catch (const boost::filesystem::filesystem_error& e)
+			{
+				std::cout << "Error: " << e.what() << std::endl;
+			}
 		}
 	}
 
