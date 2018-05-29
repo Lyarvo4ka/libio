@@ -63,6 +63,7 @@
     <ClInclude Include="..\..\include\IO\MLV_raw.h" />
     <ClInclude Include="..\..\include\IO\MovRaw.h" />
     <ClInclude Include="..\..\include\IO\MovRename.h" />
+    <ClInclude Include="..\..\include\IO\OneC.h" />
     <ClInclude Include="..\..\include\IO\pageaddition.h" />
     <ClInclude Include="..\..\include\IO\PanasonicRaw.h" />
     <ClInclude Include="..\..\include\IO\PCKRaw.h" />
@@ -93,7 +94,7 @@
     <ProjectGuid>{A3400EE0-87C5-4FCC-A551-359CDEA8C97E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libio</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

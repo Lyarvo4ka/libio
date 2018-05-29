@@ -215,5 +215,8 @@
     <ClInclude Include="..\..\include\IO\zbk_medoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\IO\OneC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

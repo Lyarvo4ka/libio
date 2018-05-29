@@ -98,6 +98,7 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 
 int main(int argc, char *argv[])
 {
+
 	QCoreApplication a(argc, argv);
 	IO::IODevicePtr src_device = nullptr;
 	

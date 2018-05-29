@@ -1,0 +1,36 @@
+{    
+"zip":
+  {
+    "algorithmName" : "zip",
+    "header": 
+    [
+      {
+        "hexdata": "504B0304",
+        "offset": 0
+      }
+    ],
+    
+    "footer": 
+    {
+      "hexdata": "504B0506",
+       "tailsize": 18
+    }
+  },
+"msoffice2007":
+  {
+    "algorithmName" : "zip",
+    "header": 
+    [
+      {
+        "hexdata": "504B0304",
+        "offset": 0
+      }
+    ],
+    
+    "footer": 
+    {
+      "hexdata": "504B0506",
+       "tailsize": 18
+    }
+  },  
+}
