@@ -433,6 +433,7 @@ namespace IO
 	struct DataEntropy
 	{
 		double entropy;
+		int numberNulls_;
 		DataArray::Ptr data_array;
 	};
 
@@ -465,6 +466,7 @@ namespace IO
 	class ESER_YDXJ_QtRaw
 		: public QuickTimeRaw
 	{
+		const uint32_t cluster_size_ = 32768;
 	public:
 		ESER_YDXJ_QtRaw(IODevicePtr device)
 			: QuickTimeRaw(device)
@@ -472,116 +474,270 @@ namespace IO
 
 		}
 
+		uint64_t cluster_size() const
+		{
+			return cluster_size_;
+		}
+		uint64_t getClusterNumber(uint64_t offset)
+		{
+			return offset / cluster_size_;
+		}
+		std::string ClusterNumberNullsToString(const uint64_t cluster_number, const uint32_t number_nulls)
+		{
+			std::string write_string;
+		
+			try
+			{
+				write_string = boost::lexical_cast<std::string>(cluster_number) + "\t";
+				write_string += (boost::lexical_cast<std::string>(number_nulls));
+			}
+			catch (boost::bad_lexical_cast & ex)
+			{
+				
+			}
+			return write_string;
+
+		}
+		void logNumberNulls(File & log_file, const uint64_t cluster_number, const uint32_t number_nulls)
+		{
+			if (log_file.isOpen())
+			{
+				auto str = ClusterNumberNullsToString(cluster_number, number_nulls);
+				if (!str.empty())
+				{
+					str += +"\n";
+					log_file.WriteData((ByteArray)str.data(), str.size());
+				}
+			}
+		}
+		void logEndLine(File & log_file)
+		{
+			if (log_file.isOpen())
+			{
+				std::string end_line = "\n";
+				log_file.WriteData((ByteArray)end_line.data(), end_line.size());
+			}
+		}
+
+		uint64_t saveEndFile(File & target_file , uint32_t moov_offset , uint64_t offset , uint64_t file_size)
+		{
+			uint32_t moov_pos = moov_offset - sizeof(s_moov) + 1;
+			appendToFile(target_file, offset - cluster_size(), moov_pos);
+			file_size += moov_pos;
+
+			uint64_t moov_position = offset - cluster_size() + moov_pos;
+			qt_block_t qt_block = { 0 };
+
+			setPosition(moov_position);
+			ReadData((ByteArray)&qt_block, qt_block_struct_size);
+			if (isQuickTime(qt_block))
+			{
+				toBE32((uint32_t &)qt_block.block_size);
+
+				appendToFile(target_file, moov_position, qt_block.block_size);
+				file_size += qt_block.block_size;
+			}
+			return file_size;
+
+		}
+
 		uint64_t SaveRawFile(File & target_file, const uint64_t start_offset) override
 		{
-			const uint32_t cluster_size = 32768;
-			const double entropy_border = 7.9927;
+
+			const double entropy_border = 7.99292;
+			const uint32_t nulls_border = 187;
 
 			uint64_t offset = start_offset;
 			uint64_t file_size = 0;
 			uint32_t cluster_number = 0;
 
+			path_string log_file_name = target_file.getFileName() + L".txt";
+			File log_file(log_file_name);
+			if (!log_file.Open(OpenMode::Create))
+				return 0;
+
 			for (auto i = 0; i < 11; ++i)
 			{
-				auto cluster_data = IO::makeDataArray(cluster_size);
+				auto cluster_data = IO::makeDataArray(cluster_size());
 				setPosition(offset);
+				cluster_number = getClusterNumber(offset - start_offset);
 				if (!ReadData(cluster_data->data(), cluster_data->size()))
 				{
-					printf("Error read cluster %I64d\n", offset / cluster_size);
+					printf("Error read cluster %I64d\n", cluster_number);
 					break;
 				}
-				appendToFile(target_file, offset, cluster_size);
-				++cluster_number;
-				offset += cluster_size;
+				appendToFile(target_file, offset, cluster_size());
+				uint32_t null_count = calc_nulls(cluster_data->data(), cluster_data->size());
+
+				logNumberNulls(log_file, cluster_number, null_count);
+				offset += cluster_size();
 			}
 
+
+			cluster_number = getClusterNumber(offset - start_offset);
 			std::unique_ptr<DataEntropy> prev = std::make_unique<DataEntropy>();
-			prev->data_array = IO::makeDataArray(cluster_size);
+			prev->data_array = IO::makeDataArray(cluster_size());
 			setPosition(offset);
 			ReadData(prev->data_array->data(), prev->data_array->size());
+			prev->numberNulls_ = calc_nulls(prev->data_array->data(), prev->data_array->size());
 			prev->entropy = calcEntropy(prev->data_array->data(), prev->data_array->size());
-			appendToFile(target_file, offset, cluster_size);
-			offset += cluster_size;
+			appendToFile(target_file, offset, cluster_size());
+			logNumberNulls(log_file, cluster_number, prev->numberNulls_);
+			offset += cluster_size();
 
 
 			//uint64_t curr_offset = offset;
+			cluster_number = getClusterNumber(offset - start_offset);
 			std::unique_ptr<DataEntropy> curr = std::make_unique<DataEntropy>();
-			curr->data_array = IO::makeDataArray(cluster_size);
+			curr->data_array = IO::makeDataArray(cluster_size());
 			setPosition(offset);
 			ReadData(curr->data_array->data(), curr->data_array->size());
-			offset += cluster_size;
+			offset += cluster_size();
 			curr->entropy = calcEntropy(curr->data_array->data(), curr->data_array->size());
-//			appendToFile(target_file, offset, cluster_size);
+			curr->numberNulls_ = calc_nulls(curr->data_array->data(), curr->data_array->size());
+			logNumberNulls(log_file, cluster_number, curr->numberNulls_);
+			//appendToFile(target_file, offset, cluster_size);
 
 			uint32_t nCount = 0;
 			uint32_t moov_offset = 0;
 
 			uint32_t number_nulls = 0;
+			uint32_t skip_count = 0;
 
 			while (true)
 			{
+				cluster_number = getClusterNumber(offset - start_offset);
+//				cluster_number = 2;
 				std::unique_ptr<DataEntropy> next = std::make_unique<DataEntropy>();
-				next->data_array = IO::makeDataArray(cluster_size);
+				next->data_array = IO::makeDataArray(cluster_size());
 				setPosition(offset);
 				if (!ReadData(next->data_array->data(), next->data_array->size()))
 				{
-					printf("Error read cluster %I64d\n", offset / cluster_size);
+					printf("Error read cluster %I64d\n", cluster_number);
 					break;
 				}
 				next->entropy = calcEntropy(next->data_array->data(), next->data_array->size());
+				next->numberNulls_ = calc_nulls(next->data_array->data(), next->data_array->size());
 
-				
+				//logNumberNulls(log_file, cluster_number, curr->numberNulls_);
+
+				//nCount = 0;
+				//if (prev->entropy > entropy_border)
+				//	++nCount;
+				//if (curr->entropy > entropy_border)
+				//	++nCount;
+				//if (next->entropy > entropy_border)
+				//	++nCount;
 
 				nCount = 0;
-				if (prev->entropy > entropy_border)
+				if (prev->numberNulls_ < nulls_border)
 					++nCount;
-				if (curr->entropy > entropy_border)
+				if (curr->numberNulls_ < nulls_border)
 					++nCount;
-				if (next->entropy > entropy_border)
+				if (next->numberNulls_ < nulls_border)
 					++nCount;
 
-				//number_nulls = calc_nulls(next->data_array->data(), next->data_array->size());
-				//nCount = 0;
-				//if (number_nulls < 280)
-				//	nCount = 2;
-				
 
-				if (!findMOOV(curr->data_array->data(), curr->data_array->size(), moov_offset))
+				if (nCount < 2)
+				{
+					++skip_count;
+					if (skip_count > 1)
+					{
+						skip_count = 0;
+						// skiping other 14 - cluster
+						offset = offset + 14 * cluster_size();
+
+						cluster_number = getClusterNumber(offset - start_offset);
+						prev = std::make_unique<DataEntropy>();
+						prev->data_array = IO::makeDataArray(cluster_size());
+						setPosition(offset);
+						ReadData(prev->data_array->data(), prev->data_array->size());
+						prev->numberNulls_ = calc_nulls(prev->data_array->data(), prev->data_array->size());
+						prev->entropy = calcEntropy(prev->data_array->data(), prev->data_array->size());
+						if (findMOOV(prev->data_array->data(), prev->data_array->size(), moov_offset))
+						{
+							return saveEndFile(target_file, moov_offset, offset, file_size);
+						}
+						appendToFile(target_file, offset, cluster_size());
+
+						offset += cluster_size();
+
+						cluster_number = getClusterNumber(offset - start_offset);
+						curr = std::make_unique<DataEntropy>();
+						curr->data_array = IO::makeDataArray(cluster_size());
+						setPosition(offset);
+						ReadData(curr->data_array->data(), curr->data_array->size());
+						curr->entropy = calcEntropy(curr->data_array->data(), curr->data_array->size());
+						curr->numberNulls_ = calc_nulls(curr->data_array->data(), curr->data_array->size());
+						if (findMOOV(curr->data_array->data(), curr->data_array->size(), moov_offset))
+						{
+							return saveEndFile(target_file, moov_offset, offset, file_size);
+						}
+						offset += cluster_size();
+						continue;
+					}
+				}
+
+
+			
+				bool foundResult = findMOOV(curr->data_array->data(), curr->data_array->size(), moov_offset);
+				int k = 1;
+				k = 0;
+				if (!foundResult)
 				{ 
 					if (nCount >= 2)
-						appendToFile(target_file, offset - cluster_size, cluster_size);
+					{
+						appendToFile(target_file, offset - cluster_size(), cluster_size());
+						//if (skip_count > 0)
+						//{
+						//	auto continues_clusters = boost::lexical_cast<std::string>(skip_count);
+						//	std::string str_skip = "\n\n\n" + continues_clusters + "\t -skiped" + "\n\n\n";
+						//	log_file.WriteData((ByteArray)str_skip.data(), str_skip.size());
+						//	skip_count = 0;
+						//}
+					}
 					else
 					{
+						//++skip_count;
 						printf("skip cluster #%d\r\n", cluster_number);
+						std::string str_skip = "\t -skiped";
+						log_file.WriteData((ByteArray)str_skip.data(), str_skip.size());
 					}
 				}
 				else
 				{
-					uint32_t moov_pos = moov_offset - sizeof(s_moov) + 1 ;
-					appendToFile(target_file, offset - cluster_size, moov_pos);
-					file_size += moov_pos;
+					return saveEndFile(target_file, moov_offset, offset, file_size);
+					//uint32_t moov_pos = moov_offset - sizeof(s_moov) + 1 ;
+					//appendToFile(target_file, offset - cluster_size(), moov_pos);
+					//file_size += moov_pos;
 
-					uint64_t moov_offset = offset - cluster_size + moov_pos;
-					qt_block_t qt_block = { 0 };
+					//uint64_t moov_offset = offset - cluster_size() + moov_pos;
+					//qt_block_t qt_block = { 0 };
 
-					setPosition(moov_offset);
-					ReadData((ByteArray)&qt_block, qt_block_struct_size);
-					if (isQuickTime(qt_block) )
-					{
-						toBE32((uint32_t &)qt_block.block_size);
+					//setPosition(moov_offset);
+					//ReadData((ByteArray)&qt_block, qt_block_struct_size);
+					//if (isQuickTime(qt_block) )
+					//{
+					//	toBE32((uint32_t &)qt_block.block_size);
 
-						appendToFile(target_file, moov_offset, qt_block.block_size);
-						file_size += qt_block.block_size;
-					}
-					return file_size;
+					//	appendToFile(target_file, moov_offset, qt_block.block_size);
+					//	file_size += qt_block.block_size;
+					//}
+					//return file_size;
 
 				}
+				logEndLine(log_file);
+				auto write_str = ClusterNumberNullsToString(cluster_number, next->numberNulls_);
+				log_file.WriteData((ByteArray)write_str.data(), write_str.size());
+
 				prev = std::move(curr);
 				curr = std::move(next);
 
+
+
 				++cluster_number;
-				offset += cluster_size;
-				file_size += cluster_size;
+				offset += cluster_size();
+				file_size += cluster_size();
 			}
 			return file_size;
 

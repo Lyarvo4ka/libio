@@ -69,9 +69,9 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
 	//initKeysFactoryManager(factory_manager);
 	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
-	initVideoFactoryManager(factory_manager);
+	//initVideoFactoryManager(factory_manager);
 	//initAudioFactoryManager(factory_manager);
-
+	factory_manager.Register("ESER_YDXJ", std::make_unique<IO::ESER_YDXJ_QtRawFactory>());
 
 	//factory_manager.Register("keychain-db", std::make_unique<IO::KeychainRawFactory>());
 
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 
-		QFile file("zbk.json");
+		QFile file("ESER_YDXJ.json");
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			qInfo() << "Error to open file. \"" << file.fileName() << "\"";
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 			headerBase->addFileFormat(toFileStruct(theFileStruct));
 
 		IO::RawFactoryManager factory_manager;
-		//initFactoryMananger(factory_manager);
+		initFactoryMananger(factory_manager);
 		//factory_manager.Register("qt_canon", std::make_unique<IO::Canon80D_FragmentRawFactory>());
 
 		IO::SignatureFinder signatureFinder(src_device, headerBase);
