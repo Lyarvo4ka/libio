@@ -1,0 +1,18 @@
+{
+	"pln":{
+		"header":
+		[
+			{
+			"hexdata":"57575E",
+			"offset": 0
+			},			
+      {
+			"hexdata":"575747",
+			"offset": 0
+			}
+		],
+		"extension":".pln",
+    "maxfilesize":104857600
+	}
+	
+}

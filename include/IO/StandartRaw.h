@@ -96,6 +96,8 @@ namespace IO
 			uint32_t sizeToRead = getBlockSize() + calcToSectorSize(footer_data->size());
 			auto buffer = makeDataArray(sizeToRead);
 
+			uint32_t footer_start = 0;
+
 			while (offset <this->getSize())
 			{
 				sizeToRead = calcBlockSize(offset, this->getSize(), sizeToRead);
@@ -109,7 +111,12 @@ namespace IO
 					break;
 				}
 
-				if (findFooter(*buffer.get(), bytes_read, *footer_data, footer_pos))
+				if (offset == start_offset)
+					footer_start = getSectorSize();
+				else
+					footer_start = 0;
+
+				if (findFooter(*buffer.get(), bytes_read , *footer_data, footer_pos , footer_start))
 				{
 					uint32_t sizeToWrite = footer_pos + footer_data->size() + tailSize_;
 					target_file.setPosition(written_size);
@@ -165,11 +172,11 @@ namespace IO
 			return true;
 		}
 
-		bool findFooter(const DataArray &data_array, uint32_t data_size, const DataArray & footer_data, uint32_t & footer_pos)
+		bool findFooter(const DataArray &data_array, uint32_t data_size, const DataArray & footer_data, uint32_t & footer_pos , const uint32_t & footer_start = 0)
 		{
 			if (search_block_ == 0)
 			{
-				for (footer_pos = 0; footer_pos < data_size - footer_data.size(); ++footer_pos)
+				for (footer_pos = footer_start; footer_pos < data_size - footer_data.size(); ++footer_pos)
 				{
 					if (memcmp(data_array.data() + footer_pos, footer_data.data(), footer_data.size()) == 0)
 					{

@@ -30,6 +30,7 @@
 #include "IO\PCKRaw.h"
 #include "IO\ZS2Raw.h"
 #include "IO\ZoomH6Raw.h"
+#include "IO\RawPLN.h"
 
 
 const int param_count = 6;
@@ -71,7 +72,9 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
 	//initVideoFactoryManager(factory_manager);
 	//initAudioFactoryManager(factory_manager);
-	factory_manager.Register("ESER_YDXJ", std::make_unique<IO::ESER_YDXJ_QtRawFactory>());
+	//factory_manager.Register("ESER_YDXJ", std::make_unique<IO::ESER_YDXJ_QtRawFactory>());
+
+	factory_manager.Register("pln", std::make_unique<IO::PLNRawFactory>());
 
 	//factory_manager.Register("keychain-db", std::make_unique<IO::KeychainRawFactory>());
 
@@ -160,7 +163,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 
-		QFile file("ESER_YDXJ.json");
+		QFile file("pln.json");
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			qInfo() << "Error to open file. \"" << file.fileName() << "\"";
@@ -230,6 +233,8 @@ int main(int argc, char *argv[])
 			else
 			{
 				raw_algorithm = raw_factory->createRawAlgorithm(src_device);
+				IO::StandartRaw * tmpPtr = dynamic_cast<IO::StandartRaw *>(raw_algorithm);
+				tmpPtr->setMaxFileSize(file_struct->getMaxFileSize());
 			}
 				
 				if (raw_algorithm->Specify(header_offset))

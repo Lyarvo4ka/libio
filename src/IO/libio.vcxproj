@@ -75,6 +75,7 @@
     <ClInclude Include="..\..\include\IO\RawMPEG.h" />
     <ClInclude Include="..\..\include\IO\RawMTS.h" />
     <ClInclude Include="..\..\include\IO\RawMXF.h" />
+    <ClInclude Include="..\..\include\IO\RawPLN.h" />
     <ClInclude Include="..\..\include\IO\RawRIFF.h" />
     <ClInclude Include="..\..\include\IO\RemoveInserts.h" />
     <ClInclude Include="..\..\include\IO\SignatureTest.h" />
