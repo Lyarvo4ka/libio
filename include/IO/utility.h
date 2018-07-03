@@ -522,4 +522,64 @@ namespace IO
 	{
 		return alingToValue(offset, sector_size);
 	}
+
+	inline void replaceBadsFromOtherFile(const path_string & withBads_name, const path_string & withoutBads_name, const path_string & target_name)
+	{
+		File withBads_file(withBads_name);
+		if (!withBads_file.Open(OpenMode::OpenRead))
+			return;
+
+		File withoutBads_file(withoutBads_name);
+		if (!withoutBads_file.Open(OpenMode::OpenRead))
+			return ;
+
+		File target_file(target_name);
+		if (!target_file.Open(OpenMode::Create))
+			return;
+
+		uint32_t bytesReadwithBads = 0;
+		uint32_t bytesReadwithoutBads = 0;
+		uint32_t bytesWritten = 0;
+
+		DataArray data1(default_block_size);
+		DataArray data2(default_block_size);
+		DataArray target_data(default_block_size);
+
+		bool bEndWithOutBads = false;
+
+
+		while (true)
+		{
+			bytesReadwithBads = withBads_file.ReadData(data1);
+			if (bytesReadwithBads == 0)
+				break;
+
+			if (!bEndWithOutBads)
+			{
+				bytesReadwithoutBads = withoutBads_file.ReadData(data2);
+				if (bytesReadwithoutBads == 0)
+					bEndWithOutBads = true;
+
+				uint32_t cmp_bytes = bytesReadwithBads;
+				if (bytesReadwithoutBads < cmp_bytes)
+					cmp_bytes = bytesReadwithoutBads;
+
+				for (uint32_t iSector = 0; iSector < cmp_bytes; iSector += default_sector_size)
+				{
+					if (memcmp(data1.data() + iSector, Signatures::bad_sector_marker, Signatures::bad_sector_marker_size) == 0)
+						memcpy(data1.data() + iSector, data2.data() + iSector, default_sector_size);
+				}
+				//Signatures::bad_sector_marker
+			}
+			else
+			{
+
+			}
+
+			memcpy(target_data.data(), data1.data(), bytesReadwithBads);
+			target_file.WriteData(target_data.data(), bytesReadwithBads);
+
+		}
+
+	}
 };
