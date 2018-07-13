@@ -122,7 +122,7 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 	{
 		const uint32_t twelve_blocks = 12;
 	private:
-		IODevice *device_;
+		IODevice * device_;
 		std::vector<HeaderInfoPtr> headers_;
 		uint32_t block_size_;
 		uint32_t blocks_count_;
@@ -414,11 +414,11 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			}
 
 
-			auto psd_header_info = std::make_shared<HeaderInfo_t>();
-			psd_header_info->header = Signatures::psd_header;
-			psd_header_info->header_size = Signatures::psd_header_size;
-			psd_header_info->ext = L".psd";
-			this->addHeaderInfo(psd_header_info);
+			//auto psd_header_info = std::make_shared<HeaderInfo_t>();
+			//psd_header_info->header = Signatures::psd_header;
+			//psd_header_info->header_size = Signatures::psd_header_size;
+			//psd_header_info->ext = L".psd";
+			//this->addHeaderInfo(psd_header_info);
 
 			//auto cdr_header_info = std::make_shared<HeaderInfo_t>();
 			//cdr_header_info->header = Signatures::cdr_header;
@@ -426,52 +426,52 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			//cdr_header_info->ext = L".cdr";
 			//this->addHeaderInfo(cdr_header_info);
 
-			auto jpg_header_info = std::make_shared<HeaderInfo_t>();
-			jpg_header_info->header = Signatures::jpg_header;
-			jpg_header_info->header_size = Signatures::jpg_header_size;
-			jpg_header_info->ext = L".jpg";
-			this->addHeaderInfo(jpg_header_info);
+			//auto jpg_header_info = std::make_shared<HeaderInfo_t>();
+			//jpg_header_info->header = Signatures::jpg_header;
+			//jpg_header_info->header_size = Signatures::jpg_header_size;
+			//jpg_header_info->ext = L".jpg";
+			//this->addHeaderInfo(jpg_header_info);
 
-			auto tif_header_info = std::make_shared<HeaderInfo_t>();
-			tif_header_info->header = Signatures::tif_header;
-			tif_header_info->header_size = Signatures::tif_header_size;
-			tif_header_info->ext = L".tif";
-			this->addHeaderInfo(tif_header_info);
+			//auto tif_header_info = std::make_shared<HeaderInfo_t>();
+			//tif_header_info->header = Signatures::tif_header;
+			//tif_header_info->header_size = Signatures::tif_header_size;
+			//tif_header_info->ext = L".tif";
+			//this->addHeaderInfo(tif_header_info);
 
-			auto tif2_header_info = std::make_shared<HeaderInfo_t>();
-			tif2_header_info->header = Signatures::tif2_header;
-			tif2_header_info->header_size = Signatures::tif2_header_size;
-			tif2_header_info->ext = L".tif";
-			this->addHeaderInfo(tif2_header_info);
+			//auto tif2_header_info = std::make_shared<HeaderInfo_t>();
+			//tif2_header_info->header = Signatures::tif2_header;
+			//tif2_header_info->header_size = Signatures::tif2_header_size;
+			//tif2_header_info->ext = L".tif";
+			//this->addHeaderInfo(tif2_header_info);
 
-			const uint8_t mpg_header[] = { 0x00 , 0x00 , 0x01 , 0xBA };
-			const uint32_t mpg_header_size = SIZEOF_ARRAY(mpg_header);
+			//const uint8_t mpg_header[] = { 0x00 , 0x00 , 0x01 , 0xBA };
+			//const uint32_t mpg_header_size = SIZEOF_ARRAY(mpg_header);
 
-			auto mpg_header_info = std::make_shared<HeaderInfo_t>();
-			mpg_header_info->header = mpg_header;
-			mpg_header_info->header_size = mpg_header_size;
-			mpg_header_info->ext = L".mpg";
-			this->addHeaderInfo(mpg_header_info);
+			//auto mpg_header_info = std::make_shared<HeaderInfo_t>();
+			//mpg_header_info->header = mpg_header;
+			//mpg_header_info->header_size = mpg_header_size;
+			//mpg_header_info->ext = L".mpg";
+			//this->addHeaderInfo(mpg_header_info);
 
-			const uint8_t qt_ftyp[] = { 0x66 , 0x74 , 0x79 , 0x70 };
-			const uint32_t qt_ftyp_size = SIZEOF_ARRAY(qt_ftyp);
-			const uint32_t qt_ftyp_offset = 4;
+			//const uint8_t qt_ftyp[] = { 0x66 , 0x74 , 0x79 , 0x70 };
+			//const uint32_t qt_ftyp_size = SIZEOF_ARRAY(qt_ftyp);
+			//const uint32_t qt_ftyp_offset = 4;
 
-			auto qt_header_info = std::make_shared<HeaderInfo_t>();
-			qt_header_info->header = qt_ftyp;
-			qt_header_info->header_size = qt_ftyp_size;
-			qt_header_info->header_offset = qt_ftyp_offset;
-			qt_header_info->ext = L".mov";
-			this->addHeaderInfo(qt_header_info);
+			//auto qt_header_info = std::make_shared<HeaderInfo_t>();
+			//qt_header_info->header = qt_ftyp;
+			//qt_header_info->header_size = qt_ftyp_size;
+			//qt_header_info->header_offset = qt_ftyp_offset;
+			//qt_header_info->ext = L".mov";
+			//this->addHeaderInfo(qt_header_info);
 
-			const uint8_t avi_header[] = { 0x52 , 0x49 , 0x46 , 0x46 };
-			const uint32_t avi_header_size = SIZEOF_ARRAY(avi_header);
+			//const uint8_t avi_header[] = { 0x52 , 0x49 , 0x46 , 0x46 };
+			//const uint32_t avi_header_size = SIZEOF_ARRAY(avi_header);
 
-			auto avi_header_info = std::make_shared<HeaderInfo_t>();
-			avi_header_info->header = avi_header;
-			avi_header_info->header_size = avi_header_size;
-			avi_header_info->ext = L".avi";
-			this->addHeaderInfo(avi_header_info);
+			//auto avi_header_info = std::make_shared<HeaderInfo_t>();
+			//avi_header_info->header = avi_header;
+			//avi_header_info->header_size = avi_header_size;
+			//avi_header_info->ext = L".avi";
+			//this->addHeaderInfo(avi_header_info);
 
 
 
@@ -482,17 +482,17 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			//ai_header_info->ext = L".ai";
 			//this->addHeaderInfo(ai_header_info);
 
-			//auto office_2007_header_info = std::make_shared<HeaderInfo_t>();
-			//office_2007_header_info->header = Signatures::office_2007_header;
-			//office_2007_header_info->header_size = Signatures::office_2007_header_size;
-			//office_2007_header_info->ext = L".zip";
-			//this->addHeaderInfo(office_2007_header_info);
+			auto office_2007_header_info = std::make_shared<HeaderInfo_t>();
+			office_2007_header_info->header = Signatures::office_2007_header;
+			office_2007_header_info->header_size = Signatures::office_2007_header_size;
+			office_2007_header_info->ext = L".zip";
+			this->addHeaderInfo(office_2007_header_info);
 
-			//auto office_2003_header_info = std::make_shared<HeaderInfo_t>();
-			//office_2003_header_info->header = Signatures::office_2003_header;
-			//office_2003_header_info->header_size = Signatures::office_2003_header_size;
-			//office_2003_header_info->ext = L".msdoc";
-			//this->addHeaderInfo(office_2003_header_info);
+			auto office_2003_header_info = std::make_shared<HeaderInfo_t>();
+			office_2003_header_info->header = Signatures::office_2003_header;
+			office_2003_header_info->header_size = Signatures::office_2003_header_size;
+			office_2003_header_info->ext = L".msdoc";
+			this->addHeaderInfo(office_2003_header_info);
 
 			//auto pdf_header_info = std::make_shared<HeaderInfo_t>();
 			//pdf_header_info->header = Signatures::pdf_header;
@@ -501,7 +501,7 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			//this->addHeaderInfo(pdf_header_info);
 
 			ext2_super_block super_block = { 0 };
-			if (!read_superblock(&super_block, 0x3FBC0400))
+			if (!read_superblock(&super_block, 0))
 				return;
 
 			if (isSuperblock(&super_block))
@@ -512,8 +512,8 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			blocks_count_ = super_block.s_blocks_count;
 			//blocks_count_ = 0xE8A0DAE;
 			// super_block offset = 0x40001000
-			uint64_t offset = 0x3FBC0400;
-			partition_offset_ = 0x40001000;
+			uint64_t offset = 0;
+			partition_offset_ = 0;
 			uint64_t header_offset = 0;
 			uint64_t tmp_offset = 0;
 			uint32_t counter = 0;

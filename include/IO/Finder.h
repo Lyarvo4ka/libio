@@ -62,6 +62,80 @@ namespace IO
 	
 	}
 
+	inline void removeNullsAlignedToSector(const path_string & file_path, uint32_t sizeToTest = default_block_size)
+	{
+		File file(file_path);
+		if (!file.Open(OpenMode::OpenWrite))
+		{
+			wprintf_s(L"Error open file.\n");
+			return;
+		}
+		//sizeToTest = default_block_size;
+		auto file_size = file.Size();
+
+		DataArray buffer(sizeToTest);
+
+		uint32_t lastBlock = sizeToTest;
+		if (file_size < sizeToTest)
+			return;
+
+		file.setPosition(file_size - lastBlock);
+		auto bytesRead = file.ReadData(buffer.data(), lastBlock);
+		if (bytesRead == lastBlock)
+		{
+			int not_null = NotNullPosFromEnd(buffer.data(), lastBlock);
+			uint64_t new_size = file_size - not_null;
+			new_size /= default_sector_size;
+			new_size++;
+			new_size *= default_sector_size;
+
+			file.setSize(new_size);
+			wprintf_s(L"FIle size has been changed %s.\n", file_path.c_str());
+		}
+
+
+	}
+
+	inline void removeNullsFromEndZipFile(const path_string & file_path, uint32_t sizeToTest = default_block_size)
+	{
+		File file(file_path);
+		if (!file.Open(OpenMode::OpenWrite))
+		{
+			wprintf_s(L"Error open file.\n");
+			return;
+		}
+		//sizeToTest = default_block_size;
+		auto file_size = file.Size();
+
+		DataArray buffer(sizeToTest);
+
+		uint32_t lastBlock = sizeToTest;
+		if (file_size < sizeToTest)
+			return;
+
+
+
+		const uint8_t end_zip_signature[] = { 0x50, 0x4B , 0x05 , 0x06 };
+		const uint32_t sizeEndSign = 4;
+
+		file.setPosition(file_size - lastBlock);
+		auto bytesRead = file.ReadData(buffer.data(), lastBlock);
+		if (bytesRead == lastBlock)
+		{
+			for (int i = bytesRead - sizeEndSign; i >= 0 ; --i)
+			{
+				if (memcmp(buffer.data() + i, end_zip_signature, sizeEndSign) == 0)
+				{
+					uint32_t save_size = sizeToTest - i ;
+					uint64_t new_size = file_size - save_size + 22;
+					file.setSize(new_size);
+					wprintf_s(L"FIle size has been changed %s.\n", file_path.c_str());
+				}
+			}
+		}
+
+	}
+
 	class Finder
 	{
 	private:
