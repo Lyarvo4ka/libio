@@ -26,6 +26,39 @@ void connectToDatabase(const QString & driverName, const QString & serverInstanc
 {
 
 }
+#include <QSqlDriver>
+
+class MSSQLDB
+{
+	QSqlDatabase db_;
+public:
+	MSSQLDB() {}
+	~MSSQLDB() {}
+
+	QString prepareConnectString(const QString &  databaseName, const QString &  password , 
+			const QString &  host,const QString &  user)
+	{
+		QString connectString = "DRIVER = { SQL Server };";
+		connectString.append("SERVERNODE=" + host + ";");
+		connectString.append("UID=" + user + ";");
+		connectString.append("PWD=" + password + ";");
+
+		return connectString;
+	}
+
+	//bool open(const QString &  databaseName, const QString &  user,
+	//	const QString &  password , const QString &  host )
+	//{
+	//	db_ = QSqlDatabase::addDatabase("QODBC");
+
+	//	auto connectString = prepareConnectString(databaseName, host, user, password);
+	//	db_.setDatabaseName(connectString);
+	//	
+	//	return db_.open();
+	//}
+
+};
+
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +66,7 @@ int main(int argc, char *argv[])
 
 	QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
 	
-	//db.setDatabaseName("Driver={SQL Server};Server=WIN-BD5OT7T92EA\\MSSQL_2008;Database=db2010_backup;");
+	//db.setDatabaseName("Driver=SQL Server;Server=WIN-BD5OT7T92EA\\MSSQL_2008;Database=db2010_backup;");
 	//db.setDatabaseName("Driver={SQL Server};");
 
 	db.setDatabaseName("Driver={SQL Server};Database=db2010_backup");
