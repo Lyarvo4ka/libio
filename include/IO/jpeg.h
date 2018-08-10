@@ -257,7 +257,7 @@ namespace IO
 			auto cinfo_ptr = jpgPtr_->getDecompressStruct();
 			
 			auto err_ptr = cinfo_ptr->err;
-			//err_ptr->trace_level = 3;
+			err_ptr->trace_level = 3;
 
 			/* set source buffer */
 			jpeg_mem_src(cinfo_ptr, data_array.data(), data_array.size());
@@ -296,7 +296,7 @@ namespace IO
 					//cinfo.output_scanline = cinfo.output_height;
 					int k = 0;
 					k = 1;
-					//break;
+					break;
 				}
 
 				scanline_count++;

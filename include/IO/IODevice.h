@@ -65,6 +65,19 @@ namespace IO
 			Close();
 		}
 
+		bool OpenRead()
+		{
+			return Open(OpenMode::OpenRead);
+		}
+		bool OpenWrite()
+		{
+			return Open(OpenMode::OpenRead);
+		}
+		bool OpenCreate()
+		{
+			return Open(OpenMode::Create);
+		}
+
 		bool Open( OpenMode openMode) override
 		{
 			uint32_t win_open_mode = 0;

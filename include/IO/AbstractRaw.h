@@ -341,6 +341,12 @@ namespace IO
 		}
 	};
 
+	class FileAnalyzer
+	{
+	public:
+		virtual void Analyze(const IO::path_string & file_name) = 0;
+	};
+
 	class DefaultRaw : public RawAlgorithm
 	{
 	private:
@@ -438,179 +444,7 @@ namespace IO
 		virtual uint64_t Execute(const uint64_t start_offset, const path_string target_folder) = 0;
 	};
 
-/*
-	class ZBKRaw
-		: public RawAlgorithm
-	{
-	private:
-		IODevicePtr device_;
-		uint32_t block_size_ = default_block_size;
-		uint32_t sector_size_ = default_sector_size;
-	public:
-		ZBKRaw(IODevicePtr device)
-			:device_(device)
-		{
 
-		}
-		void setBlockSize(const uint32_t block_size)
-		{
-			this->block_size_ = block_size;
-		}
-		uint32_t getBlockSize() const
-		{
-			return block_size_;
-		}
-		void setSectorSize(const uint32_t sector_size)
-		{
-			this->sector_size_ = sector_size;
-		}
-		uint32_t getSectorSize() const
-		{
-			return sector_size_;
-		}
-		HeaderPtr findHeaderAndOffset(const uint64_t start_offset, uint64_t & header_offset)
-		{
-			uint32_t bytes_read = 0;
-			Buffer buffer(block_size_);
-			
-			uint32_t header_size = zbk_header_size;
-			uint32_t signature_offset = 2;
-
-			uint32_t footer_size = zbk_footer_size;
-			uint32_t add_footer_size = 22;
-			auto header_ptr = HeaderFactory((const ByteArray)&zbk_header[0], header_size);
-			header_ptr->setHeaderOffset(signature_offset);
-			header_ptr->setFooter((const ByteArray)&zbk_footer, footer_size);
-			header_ptr->setAddFooterSize(add_footer_size);
-			header_ptr->setMaxFileSize(0x12C00000);
-
-
-			uint64_t offset = start_offset;
-			
-
-			while (true)
-			{
-				device_->setPosition(offset);
-				bytes_read = device_->ReadData(buffer.data, block_size_);
-				if (bytes_read == 0)
-				{
-					printf("Error read drive\r\n");
-					break;
-				}
-
-				for (uint32_t iSector = 0; iSector < bytes_read; iSector += sector_size_)
-				{
-					if (header_ptr->isHeader(buffer.data+ iSector))
-					{
-						header_offset = offset;
-						header_offset += iSector;
-						return header_ptr;
-					}
-				}
-				offset += bytes_read;
-			}
-			return nullptr;
-		}
-		uint64_t SaveRawFile(HeaderPtr &header_ptr, const uint64_t header_offset , const path_string & target_name) override
-		{
-			File target_file(target_name);
-			if (!target_file.Open(OpenMode::Create))
-			{
-				wprintf(L"Error create file\n");
-			}
-
-			Buffer buffer(block_size_);
-			uint32_t bytes_read = 0;
-			uint64_t offset = header_offset;
-			uint32_t footer_pos = 0;
-			uint64_t target_size = 0;
-
-			while (true)
-			{
-				device_->setPosition(offset);
-				bytes_read = device_->ReadData(buffer.data, block_size_);
-				if (bytes_read == 0)
-				{
-					printf("Error read drive\r\n");
-					break;
-				}
-
-				if (header_ptr->isFooter(buffer.data, bytes_read, footer_pos))
-				{
-					uint32_t write_size = footer_pos + header_ptr->getAddFooterSize();
-					if (target_file.WriteData(buffer.data, write_size) == 0)
-					{
-						printf("Error write to file\r\n");
-						break;
-					}
-					target_size += write_size;
-					return target_size;
-				}
-				else
-				{
-					if (target_file.WriteData(buffer.data, bytes_read) == 0)
-					{
-						printf("Error write to file\r\n");
-						break;
-					}
-				}
-
-				target_size += bytes_read;
-				if (target_size > header_ptr->getMaxFileSize())
-					return target_size;
-
-				offset += bytes_read;
-			}
-
-
-			return 0;
-		}
-
-		void execute(const path_string &target_folder) 
-		{
-			if (!device_->Open(OpenMode::OpenRead))
-			{
-				wprintf(L"Error to open.\n");	// ????????
-				return;
-			}
-
-			uint64_t offset = (uint64_t)0x0;
-			uint64_t header_offset = 0;
-			uint32_t counter = 0;
-			while (true)
-			{
-
-				if (auto header_ptr = findHeaderAndOffset(offset, header_offset))
-				{
-
-					auto target_file = toFullPath(target_folder, counter++, L".zbk");
-					uint64_t file_size = SaveRawFile(header_ptr, header_offset, target_file);
-					//if (file_size != 0)
-					//{
-					//	header_offset += file_size;
-					//	header_offset /= sector_size_;
-					//	header_offset *= sector_size_;
-					//	offset = header_offset;
-					//}
-					offset = header_offset;
-
-
-				}
-				else
-				{
-					wprintf(L"Not Found Header\n");
-					break;
-				}
-
-				offset += sector_size_;
-
-			}
-
-		}
-
-	};
-
-*/
 };
 
 

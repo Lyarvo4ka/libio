@@ -1,0 +1,33 @@
+{
+  "avi": {
+    "algorithmName": "avi",
+    "header": [
+      {
+        "hexdata": "52494646",
+        "offset": 0
+      },
+      {
+        "hexdata": "415649204C495354",
+        "offset": 8
+      }
+    ],
+    "extension": ".avi"
+
+
+  },
+  "wav": {
+    "header": [
+      {
+        "hexdata": "52494646",
+        "offset": 0
+      },
+      {
+        "hexdata": "57415645",
+        "offset": 8
+      }
+    ],
+    "extension": ".wav"
+
+
+  }
+}

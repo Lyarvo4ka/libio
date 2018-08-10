@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\IO\AbstractRaw.h" />
+    <ClInclude Include="..\..\include\IO\acronis.h" />
     <ClInclude Include="..\..\include\IO\BlockNumber.h" />
     <ClInclude Include="..\..\include\IO\calcRaid5Parity.h" />
     <ClInclude Include="..\..\include\IO\cdw_raw.h" />
