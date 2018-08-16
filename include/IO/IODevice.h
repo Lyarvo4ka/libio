@@ -71,7 +71,7 @@ namespace IO
 		}
 		bool OpenWrite()
 		{
-			return Open(OpenMode::OpenRead);
+			return Open(OpenMode::OpenWrite);
 		}
 		bool OpenCreate()
 		{
