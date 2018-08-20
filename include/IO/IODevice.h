@@ -1,6 +1,7 @@
 #pragma once
 #include "physicaldrive.h"
 #include <string>
+#include <string_view>
 #include "dataarray.h"
 #include "error.h"
 
@@ -23,6 +24,27 @@ namespace IO
 		if (multiple_by == 0)
 			return false;
 		return (number % multiple_by == 0);
+	}
+
+	const std::string_view file_txt = "file";
+	const std::string_view disk_txt = "disk";
+	const std::string_view unknown_txt = "unknown";
+	enum class DeviceType
+	{
+		kFile ,
+		kDisk 
+	};
+
+	static const std::string_view DeviceTypeToString(DeviceType device_type)
+	{
+		switch (device_type)
+		{
+		case DeviceType::kFile:	return file_txt;
+		case DeviceType::kDisk: return disk_txt;
+				
+		default:
+			return unknown_txt;
+		}
 	}
 
 
@@ -104,19 +126,19 @@ namespace IO
 			if (hFile_ != INVALID_HANDLE_VALUE)
 			{
 				bOpen_ = true;
-				LARGE_INTEGER liSize = { 0 }; 
-				::GetFileSizeEx(hFile_, &liSize);
-				size_ = liSize.QuadPart;
+				auto error_status = readFileSize(size_);
+				if (!error_status.isOK())
+					throw Error::IOErrorException(error_status);
+				
 			}
 			else
 			{
 				bOpen_ = false;
-				auto err = ErrorHandler::get();
-				DWORD dwError = ::GetLastError();
-				//Error error();
-				auto openmode_error = Error::OpenModeToError(openMode);
-				auto error_string = Error::getDiskOrFileError(openmode_error, "file");
-				err->showMessage(error_string);
+				DWORD lastError = ::GetLastError();
+				auto status_code = Error::OpenModeToError(openMode);
+				auto error_string = Error::getDiskOrFileError(status_code, "file");
+				Error::IOStatus error_status(status_code, error_string, lastError);
+				throw Error::IOErrorException(error_status);
 
 				//printf(error_string.c_str());
 				//***********************
@@ -137,6 +159,7 @@ namespace IO
 
 			return bOpen_;
 		}
+
 		
 		void Close() override
 		{
@@ -161,54 +184,55 @@ namespace IO
 			::SetFilePointerEx(hFile_, liPos, NULL, FILE_BEGIN);
 		};
 
-		uint32_t ReadData(ByteArray data, uint32_t read_size) override
-		{
-			if (data == nullptr)
-				return 0;
-			if (read_size == 0)
-				return 0;
-
-			DWORD bytes_read = 0;
-
-
-			if (!::ReadFile(hFile_, data, read_size, &bytes_read, NULL))
-			{
-				auto err = ErrorHandler::get();
-				err->showMessage(Error::getDiskOrFileError(Error::DeviceErrors::kReadData, "file"));
-				auto dwError = ::GetLastError();
-				return 0;
-			}
-			return bytes_read;
-		};
-
-		uint32_t ReadData(DataArray & data_array)
+		Error::IOStatus ReadData(ByteArray data, uint32_t read_size , DWORD & bytes_read) noexcept
 		{
 			auto transfer_size = default_block_size;
 
-			DWORD bytes_read = 0;
 			uint32_t data_pos = 0;
 			uint32_t bytes_to_read = 0;
-			while (data_pos < data_array.size())
+			while (data_pos < read_size)
 			{
-				bytes_to_read = calcBlockSize(data_pos, data_array.size(), transfer_size);
+				bytes_to_read = calcBlockSize(data_pos, read_size, transfer_size);
 				setPosition(position_);
-				if (!::ReadFile(hFile_, data_array.data() + data_pos, bytes_to_read, &bytes_read, NULL))
+				auto readResult = ::ReadFile(hFile_, data + data_pos, bytes_to_read, &bytes_read, NULL));
+				if (!readResult || (bytes_read == 0))
 				{
-					auto err = ErrorHandler::get();
-					err->showMessage(Error::getDiskOrFileError(Error::DeviceErrors::kReadData, "file"));
-					return 0;
+					auto error_message = Error::getDiskOrFileError(Error::IOErrorsType::kReadData, "file");
+					auto lastError = ::GetLastError();
+					Error::IOStatus error_status(Error::IOErrorsType::kReadData, error_message, lastError);
+					return error_status;
 				}
-				if (bytes_read == 0)
-				{
-					auto err = ErrorHandler::get();
-					err->showMessage(Error::getDiskOrFileError(Error::DeviceErrors::kReadData, "file"));
-					return 0;
-				}
+
 				data_pos += bytes_read;
 				position_ += bytes_read;
 			}
 			bytes_read = data_pos;
-			return bytes_read;
+			return Error::IOStatus::OK();
+
+		}
+
+		uint32_t ReadData(ByteArray data, uint32_t read_size) override
+		{
+			assert(data != nullptr);
+			assert(read_size >= 0);
+
+			DWORD bytes_read = 0;
+
+			auto error_status = ReadData(data, read_size, bytes_read);
+			if (error_status.isOK())
+				return bytes_read;
+			
+			throw Error::IOErrorException(error_status);
+		};
+
+		uint32_t ReadData(DataArray & data_array)
+		{
+			DWORD bytes_read = 0;
+			auto error_status = ReadData(data_array.data(), data_array.size(), bytes_read);
+			if (error_status.isOK())
+				return bytes_read;
+
+			throw Error::IOErrorException(error_status);
 		}
 
 		uint32_t WriteData(ByteArray data, uint32_t write_size) override
@@ -225,7 +249,7 @@ namespace IO
 			{
 				auto dwLastError = ::GetLastError();
 				auto err = ErrorHandler::get();
-				err->showMessage(Error::getDiskOrFileError(Error::DeviceErrors::kWriteData, "file"));
+				err->showMessage(Error::getDiskOrFileError(Error::IOErrorsType::kWriteData, "file"));
 				//ERROR_DISK_FULL
 				err->showMessage(err->getMessage(dwLastError));
 
@@ -239,16 +263,31 @@ namespace IO
 		{
 			return size_;
 		}
-		void setSize(uint64_t new_size)
+		
+		Error::IOStatus setFileSize(uint64_t new_size) noexcept
 		{
 			if (size_ != new_size)
 			{
 				size_ = new_size;
-				LARGE_INTEGER li = { 0 };
+				LARGE_INTEGER li = LARGE_INTEGER();
 				li.QuadPart = size_;
 				::SetFilePointerEx(hFile_, li, NULL, FILE_BEGIN);
-				::SetEndOfFile(hFile_);
+				auto bResult = ::SetEndOfFile(hFile_);
+				if (!bResult)
+				{
+					auto error_string = Error::getDiskOrFileError(Error::IOErrorsType::kSetFileSize, "file");
+					Error::IOStatus error_status(Error::IOErrorsType::kSetFileSize, error_string, ::GetLastError());
+					return error_status;
+				}
 			}
+			return Error::IOStatus::OK();
+		}
+
+		void setSize(uint64_t new_size)
+		{
+			auto result = setFileSize(new_size);
+			if (!result.isOK())
+				throw Error::IOErrorException(result);
 		}
 		void setFileName(const path_string new_filename)
 		{
@@ -259,6 +298,19 @@ namespace IO
 		{
 			return file_name_;
 		}
+		Error::IOStatus readFileSize(uint64_t & file_size)
+		{
+			LARGE_INTEGER liSize = { 0 };
+			if (!::GetFileSizeEx(hFile_, &liSize))
+			{
+				DWORD lastError = ::GetLastError();
+				auto error_string = Error::getDiskOrFileError(Error::IOErrorsType::kGetFileSize, "file");
+				return Error::IOStatus(Error::IOErrorsType::kGetFileSize, error_string, lastError);
+			}
+			size_ = liSize.QuadPart;
+			return Error::IOStatus();
+		}
+
 	};
 
 	using FilePtr = std::shared_ptr<File>;

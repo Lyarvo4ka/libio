@@ -10,12 +10,12 @@
 
 namespace IO
 {
-	inline path_string toWString(const std::string & oneByteString)
-	{
-		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-		return converter.from_bytes(oneByteString);
+	//inline path_string toWString(const std::string & oneByteString)
+	//{
+	//	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	//	return converter.from_bytes(oneByteString);
 
-	}
+	//}
 	inline path_string addBackSlash(const path_string & path_str)
 	{
 		path_string new_string(path_str);

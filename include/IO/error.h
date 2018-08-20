@@ -6,6 +6,8 @@
 
 namespace IO
 {
+	
+
 
 	namespace Error
 	{
@@ -14,53 +16,153 @@ namespace IO
 		const std::string Create_str = "Error creating file.";
 		const std::string ReadData_str = "Error reading from file.";
 		const std::string WriteData_str = "Error writing to file.";
+		const std::string GetFileSize_str = "Error to get file size.";
 		const std::string Unknown_str = "Unknown error";
 
-		enum class DeviceErrors
+		enum class IOErrorsType
 		{
-			kOpenRead = 1,
+			OK = 0,
+			kOpenRead ,
 			kOpenWrite,
 			kCreate,
 			kReadData,
 			kWriteData,
+			kGetFileSize,
+			kSetFileSize,
 			kUnknown
 
 		};
 
-		inline DeviceErrors OpenModeToError(IO::OpenMode open_mode)
+		inline IOErrorsType OpenModeToError(IO::OpenMode open_mode)
 		{
 			switch (open_mode)
 			{
 			case IO::OpenMode::OpenRead:
-				return DeviceErrors::kOpenRead;
+				return IOErrorsType::kOpenRead;
 			case IO::OpenMode::OpenWrite:
-				return DeviceErrors::kOpenWrite;
+				return IOErrorsType::kOpenWrite;
 			case IO::OpenMode::Create:
-				return DeviceErrors::kCreate;
+				return IOErrorsType::kCreate;
 			default:
-				return DeviceErrors::kUnknown;
+				return IOErrorsType::kUnknown;
 			}
 		}
 
-		static inline std::string getDiskOrFileError(const DeviceErrors error, const std::string & sourceName)
+		static inline std::string getDiskOrFileError(const IOErrorsType error, const std::string & sourceName)
 		{
 			std::string resString;
 			switch (error)
 			{
-			case DeviceErrors::kOpenRead:
+			case IOErrorsType::kOpenRead:
 				return "Error opening the " + sourceName + " for reading.";
-			case DeviceErrors::kOpenWrite:
+			case IOErrorsType::kOpenWrite:
 				return "Error opening " + sourceName + " for writing.";
-			case DeviceErrors::kCreate:
+			case IOErrorsType::kCreate:
 				return "Error creating " + sourceName;
-			case DeviceErrors::kReadData:
+			case IOErrorsType::kReadData:
 				return "Error reading from " + sourceName;
-			case DeviceErrors::kWriteData:
+			case IOErrorsType::kWriteData:
 				return "Error writing to " + sourceName;
+			case IOErrorsType::kGetFileSize:
+				return "Error to get file size from " + sourceName;
+			case IOErrorsType::kSetFileSize:
+				return "Erro to set file size to " + sourceName;
 			default:
 				return Unknown_str;
 			}
 		}
+
+		static std::string LastErrorMessage(uint32_t lastError)
+		{
+			std::string errMsg;
+			DWORD dwFlg = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+
+			LPSTR lpMsgBuf = 0;
+			if (FormatMessageA(dwFlg, 0, lastError, 0, (LPSTR)& lpMsgBuf, 0, NULL))
+				errMsg = lpMsgBuf;
+
+			//				UnicodeConverter::toUTF8(lpMsgBuf, errMsg);
+			//#else
+			//			LPTSTR lpMsgBuf = 0;
+			//			if (FormatMessageA(dwFlg, 0, errorCode, 0, (LPTSTR)& lpMsgBuf, 0, NULL))
+			//				errMsg = lpMsgBuf;
+			//#endif
+			LocalFree(lpMsgBuf);
+			return errMsg;
+		}
+
+
+		class IOStatus
+		{
+		private:
+			IOErrorsType error_code_ = IOErrorsType::OK;
+			uint32_t last_error_  = 0;
+			std::string error_message_;
+
+
+		public:
+			IOStatus(IOErrorsType error_code, const std::string & error_message , const uint32_t last_error)
+				: error_code_(error_code)
+				, last_error_(last_error)
+				, error_message_(error_message)
+			{
+			}
+
+			IOStatus(IOErrorsType error_code, uint32_t last_error)
+				: error_code_(error_code)
+				, last_error_(last_error)
+			{
+			}
+			IOStatus()
+			{
+
+			}
+			static IOStatus OK()
+			{
+				return IOStatus();
+			}
+			bool isOK()
+			{
+				return error_code_ == IOErrorsType::OK;
+			}
+			IOErrorsType code() const
+			{
+				return error_code_;
+			}
+			void setLastError(uint32_t last_error)
+			{
+				last_error_ = last_error;
+			}
+			uint32_t lastError() const
+			{
+				return last_error_;
+			}
+			std::string error_message() const
+			{
+				return error_message_;
+			}
+		};
+
+		class IOErrorException
+			: public std::exception
+		{
+		private :
+			IOStatus error_status_;
+		public:
+			IOErrorException(IOStatus error_status)
+				:error_status_(error_status)
+			{
+
+			}
+			const char* what() const override
+			{
+				auto fullTextError = error_status_.error_message() + LastErrorMessage(error_status_.lastError());
+				return fullTextError.c_str();
+			}
+		};
+
+
+
 	}
 	template <class S>
 	class SingletonHolder
@@ -184,50 +286,6 @@ namespace IO
 	//	"trace"
 
 	//);
-
-	/*
-	class Error
-	{
-	private:
-	uint32_t error_code_ = 0;
-	path_string error_message_;
-	ErrorLevel error_level_ = defaulErrorLevel();
-
-	public:
-	Error(uint32_t last_error)
-	: error_code_(last_error)
-	{
-	error_message_ = getMessage(error_code_);
-	}
-	Error(const path_string & error_message)
-	{
-	error_message_ = error_message;
-	}
-	Error(const path_string & error_message , uint32_t last_error)
-	: error_code_(last_error)
-	{
-	error_message_ = error_message;
-	}
-	void setErrorCode(uint32_t error_code)
-	{
-	error_code_ = error_code;
-	}
-	uint32_t getErrorCode() const
-	{
-	return error_code_;
-	}
-	path_string error_message() const
-	{
-	return error_message_;
-	}
-
-	uint32_t last() const
-	{
-	return ::GetLastError();
-	}
-	};
-	*/
-
 
 
 }
