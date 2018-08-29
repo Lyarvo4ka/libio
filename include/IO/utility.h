@@ -4,18 +4,21 @@
 #include "IODevice.h"
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <locale>
 #include <codecvt>
+#include <iostream>
 //#include <boost\variant\variant.hpp>
 
 namespace IO
 {
-	//inline path_string toWString(const std::string & oneByteString)
-	//{
-	//	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	//	return converter.from_bytes(oneByteString);
+	inline path_string toWString(const std::string & oneByteString)
+	{
+		return path_string(oneByteString.begin(), oneByteString.end());
+		//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		//return converter.from_bytes(oneByteString);
 
-	//}
+	}
 	inline path_string addBackSlash(const path_string & path_str)
 	{
 		path_string new_string(path_str);
@@ -23,6 +26,19 @@ namespace IO
 			new_string.push_back(back_slash);
 
 		return new_string;
+	}
+
+	inline std::string intToString(const uint32_t int_val)
+	{
+		try
+		{
+			return boost::lexical_cast<std::string>(int_val);
+		}
+		catch (boost::bad_lexical_cast & ex)
+		{
+			std::cout << "cought error " << ex.what();
+		}
+		return "";
 	}
 
 	inline bool createFoldersFromPath(const path_string & path)
@@ -257,6 +273,11 @@ namespace IO
 		}
 		return counter;
 	}
+	inline uint32_t calc_nulls(const DataArray & data_array)
+	{
+		return calc_nulls(data_array.data(), data_array.size());
+	}
+
 
 	inline void RenameMP4_date(const IO::path_string & filePath)
 	{

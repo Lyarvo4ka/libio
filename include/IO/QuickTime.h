@@ -84,6 +84,25 @@ namespace IO
 		return (memcmp(qt_block.block_type, keyword_name, qt_keyword_size) == 0);
 	}
 
+	inline bool findTextTnBlock(const DataArray & data_array, std::string_view textToFind, uint32_t & position)
+	{
+
+		for (uint32_t pos = 0; pos < data_array.size() - textToFind.length(); ++pos)
+		{
+			if (memcmp(data_array.data() + pos, textToFind.data(), textToFind.length()) == 0)
+			{
+				position = pos;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	inline bool findMOOV_signature(const DataArray & data_array, uint32_t & position)
+	{
+		return findTextTnBlock(data_array, s_moov, position);
+	}
+
 
 	class QtHandle
 	{
@@ -468,6 +487,16 @@ namespace IO
 		},
 
 	*/
+	// stco
+	struct ChunkOffsetAtom
+	{
+		uint32_t atom_size;
+		uint8_t	 atom_type[qt_keyword_size];
+		uint8_t	version;
+		uint8_t flags[3];
+		uint32_t number_entries;
+	};
+
 	class ESER_YDXJ_QtRaw
 		: public QuickTimeRaw
 	{
@@ -479,7 +508,7 @@ namespace IO
 
 		}
 
-		uint64_t cluster_size() const
+		uint32_t cluster_size() const
 		{
 			return cluster_size_;
 		}
@@ -498,7 +527,7 @@ namespace IO
 			}
 			catch (boost::bad_lexical_cast & ex)
 			{
-				
+				std::cout << "cought error " << ex.what();
 			}
 			return write_string;
 
@@ -511,7 +540,7 @@ namespace IO
 				if (!str.empty())
 				{
 					str += +"\n";
-					log_file.WriteData((ByteArray)str.data(), str.size());
+					log_file.WriteData((ByteArray)str.data(), (uint32_t)str.size());
 				}
 			}
 		}
@@ -520,7 +549,7 @@ namespace IO
 			if (log_file.isOpen())
 			{
 				std::string end_line = "\n";
-				log_file.WriteData((ByteArray)end_line.data(), end_line.size());
+				log_file.WriteData((ByteArray)end_line.data(), (uint32_t)end_line.size());
 			}
 		}
 
@@ -554,7 +583,7 @@ namespace IO
 
 			uint64_t offset = start_offset;
 			uint64_t file_size = 0;
-			uint32_t cluster_number = 0;
+			uint64_t cluster_number = 0;
 
 			path_string log_file_name = target_file.getFileName() + L".txt";
 			File log_file(log_file_name);
@@ -563,7 +592,7 @@ namespace IO
 
 			for (auto i = 0; i < 11; ++i)
 			{
-				auto cluster_data = IO::makeDataArray(cluster_size());
+				auto cluster_data = IO::makeDataArray((uint32_t)cluster_size());
 				setPosition(offset);
 				cluster_number = getClusterNumber(offset - start_offset);
 				if (!ReadData(cluster_data->data(), cluster_data->size()))
@@ -704,9 +733,9 @@ namespace IO
 					else
 					{
 						//++skip_count;
-						printf("skip cluster #%d\r\n", cluster_number);
+						printf("skip cluster #%I64d\r\n", cluster_number);
 						std::string str_skip = "\t -skiped";
-						log_file.WriteData((ByteArray)str_skip.data(), str_skip.size());
+						log_file.WriteData((ByteArray)str_skip.data(),(uint32_t) str_skip.size());
 					}
 				}
 				else
@@ -733,7 +762,7 @@ namespace IO
 				}
 				logEndLine(log_file);
 				auto write_str = ClusterNumberNullsToString(cluster_number, next->numberNulls_);
-				log_file.WriteData((ByteArray)write_str.data(), write_str.size());
+				log_file.WriteData((ByteArray)write_str.data(), (uint32_t)write_str.size());
 
 				prev = std::move(curr);
 				curr = std::move(next);

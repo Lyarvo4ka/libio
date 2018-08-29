@@ -15,151 +15,141 @@ namespace IO
 
 
 	*/
+	struct NullsInCluster
+	{
+		uint32_t cluster_number;
+		uint32_t number_nulls;
+	};
+	class GoProFile
+	{
+		std::vector<uint32_t> clusterMap_;
+		DataArray::Ptr endChunk_;
+		DataArray::Ptr moovData_;
+	public:
+		void addNumberNulls(const uint32_t cluster_number, const uint32_t number_nulls)
+		{
+			clusterMap_.push_back(number_nulls);
+		}
+		void setEndChunk(DataArray::Ptr end_chunk)
+		{
+			endChunk_ = std::move(end_chunk);
+		}
+		void setMoovData(DataArray::Ptr moov_data)
+		{
+			moovData_ = std::move(moov_data);
+		}
+
+
+	};
+
+	std::string clusterNullsToSstring(const uint32_t cluster_number, const uint32_t number_nulls)
+	{
+		auto cluster_str = std::to_string(cluster_number);
+		auto number_nulls_str = std::to_string(number_nulls);
+
+		return  cluster_str + " \t" + number_nulls_str;
+	}
+
 	class GoProRaw
 		: public QuickTimeRaw
 	{
 		const uint32_t GP_CLUSTER_SIZE = 32768;
 		const uint32_t GP_LRV_SKIP_COUNT = 16;
 	private:
-		uint32_t cluster_size_ = GP_CLUSTER_SIZE;
-		std::list<EntropyCluster> listEntopies_;
-		FTYP_start ftyp_start_;
+		uint32_t nulls_border_ = 187;
+
 	public:
 		GoProRaw(IODevicePtr device)
 			: QuickTimeRaw(device)
-		{}
-		uint64_t SaveRawFile(File & target_file, const uint64_t start_offset) override
 		{
-			const double entropy_border = 7.993;
-
-			if (!target_file.isOpen())
-			{
-				if (!target_file.Open(OpenMode::Create))
-					return 0;
-			}
-
-			if (!ftyp_start_.bFound)
-			{
-				printf("Not found ftyp start header.");
-				return 0;
-			}
-
-			uint64_t written_size = save_QT_header(target_file, ftyp_start_.offset);
+			setBlockSize(GP_CLUSTER_SIZE);
+		}
+		GoProFile SaveTempFile(File & temp_file, File & txt_file , const uint64_t start_offset)
+		{
 			uint64_t offset = start_offset;
 
-			auto iter = listEntopies_.begin();
-			auto tmpIter = listEntopies_.begin();
-			uint32_t counter = 0;
-			uint32_t numCmp = GP_LRV_SKIP_COUNT;
-			while (iter != listEntopies_.end())
-			{
-				if (iter->entropy < entropy_border)
-				{
-					printf("# %I64d %lf\r\n", iter->cluster_offset / cluster_size_, iter->entropy);
-					numCmp = GP_LRV_SKIP_COUNT - 1;
-					counter = 0;
-					++counter;
+			const auto cluster_size = this->getBlockSize();
 
-					tmpIter = iter;
-					++tmpIter;
-					while (tmpIter != listEntopies_.end())
-					{
-						printf(" # %I64d %lf\r\n", tmpIter->cluster_offset / cluster_size_, tmpIter->entropy);
-						--numCmp;
-						if (tmpIter->entropy < entropy_border)
-							++counter;
-						++tmpIter;
-						if (numCmp == 0)
-							break;
-					}
+			uint32_t bytesRead = 0;
 
-					if (counter > 10)
-					{
-						uint64_t start = iter->cluster_offset / cluster_size_;
-						uint64_t end = tmpIter->cluster_offset / cluster_size_;
-						printf("\r\n\r\n");
-						printf("%I64d - skip\r\n", start);
-						printf("%I64d - count\r\n", end - start);
-						iter = tmpIter;
-						continue;
-					}
-					written_size += appendToFile(target_file, iter->cluster_offset, cluster_size_);
-				}
-				else
-				{
-					//setPosition(iter->cluster_offset);
-					written_size += appendToFile(target_file, iter->cluster_offset, cluster_size_);
-				}
-				++iter;
-			}
+			DataArray data_array(cluster_size);
 
+			uint32_t number_nulls = 0;
+			//uint32_t cluster_number = 0;
 
+			std::vector<uint32_t> cluster_map;
+			uint32_t moov_pos = 0;
 
-			return written_size;
-		}
-		uint32_t save_QT_header(File & target_file, const uint64_t start_offset)	// save only ftyp and moov
-		{
-			uint32_t write_size = 0;
-			ListQtBlock listQtBlocks;
-			readQtAtoms(start_offset, listQtBlocks);
-			if (listQtBlocks.size() > 2)
-			{
-				auto iter = listQtBlocks.begin();
-				auto qt_block = *iter;
-				if (cmp_keyword(qt_block, s_ftyp))
-				{
-					write_size = qt_block.block_size;
-					++iter;
-					qt_block = *iter;
-					if (cmp_keyword(qt_block, s_moov))
-					{
-						write_size += qt_block.block_size + qt_block_struct_size;
-						return appendToFile(target_file, start_offset, write_size);
-					}
-				}
-			}
-			return 0;
-		}
-		bool isFTYP_keyword(const qt_block_t & qtBlock) const
-		{
-			return (memcmp(qtBlock.block_type, s_ftyp, qt_keyword_size) == 0);
-		}
-		bool Specify(const uint64_t start_offset) override
-		{
-			uint32_t bytes_read = 0;
-			uint64_t offset = start_offset;
-			DataArray data_cluster(cluster_size_);
+			GoProFile gpFile;
+			uint32_t cluster = 0;
+			std::string_view endLine = "\n";
 
-			qt_block_t * pQtBlock = nullptr;
-
-			//1. read cluster
-			//2. calc entropy
-			//3. add to table
 			while (offset < this->getSize())
 			{
 				setPosition(offset);
-				bytes_read = this->ReadData(data_cluster.data(), data_cluster.size());
-				if (bytes_read == 0)
+				bytesRead = ReadData(data_array);
+
+				if (findMOOV_signature(data_array, moov_pos))
+				{
+					uint32_t qt_block_pos = moov_pos;
+					if (moov_pos > qt_keyword_size) 
+						qt_block_pos = moov_pos - qt_keyword_size;
+
+					auto endData = makeDataArray(qt_block_pos);
+					memcpy(endData->data(), data_array.data(), qt_block_pos);
+					gpFile.setEndChunk(std::move(endData));
+
+					qt_block_t * moov_block = (qt_block_t *)(data_array.data() + qt_block_pos);
+					auto moov_block_size = moov_block->block_size;
+					toBE32(moov_block_size);
+
+					DataArray::Ptr moov_data = makeDataArray(moov_block_size);
+					uint64_t moov_offset = offset + qt_block_pos;
+					setPosition(moov_offset);
+					ReadData(moov_data->data(), moov_data->size());
+					gpFile.setMoovData(std::move(moov_data));
+
 					break;
-
-				pQtBlock = (qt_block_t *)data_cluster.data();
-
-				if (isFTYP_keyword(*pQtBlock))
-				{
-					ftyp_start_.bFound = true;
-					ftyp_start_.offset = offset;
-					return true;
 				}
-				if (memcmp(data_cluster.data(), jpg_signature, SIZEOF_ARRAY(jpg_signature)) != 0)
-				{
-					EntropyCluster entropy_cluster(offset, calcEntropy(data_cluster.data(), data_cluster.size()));
-					listEntopies_.push_back(entropy_cluster);
-				}
+				temp_file.WriteData(data_array.data(), data_array.size());
+				number_nulls = calc_nulls(data_array);
+				gpFile.addNumberNulls(0, number_nulls);
 
-				offset += cluster_size_;
+				auto str_toWrite = clusterNullsToSstring(cluster , number_nulls);
+				txt_file.WriteText(str_toWrite);
+				if (number_nulls > nulls_border_)
+					txt_file.WriteText(" -skipped");
+				txt_file.WriteText(endLine);
+
+				++cluster;
+				offset += bytesRead;
 			}
 
-			return false;
+			return gpFile;
+		}
+
+		uint64_t SaveRawFile(File & target_file, const uint64_t start_offset) override
+		{
+			// 1. Saving to temp file 
+			// 2. Calculate to each cluster number of nulls
+			auto temp_file_name = target_file.getFileName() + L".temp";
+			File tempFile(temp_file_name);
+			tempFile.OpenCreate();
+
+			auto txt_file_name = target_file.getFileName() + L".txt";
+			File txtFile(txt_file_name);
+			txtFile.OpenCreate();
+
+			auto gpFile = SaveTempFile(tempFile, txtFile, start_offset);
+
+			int k = 1;
+			k = 2;
+
+			return 0;
+		}
+		bool Specify(const uint64_t start_offset) override
+		{
+			return true;
 		}
 
 	};

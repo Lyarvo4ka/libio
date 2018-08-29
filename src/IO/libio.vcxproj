@@ -23,6 +23,7 @@
     <ClCompile Include="Entropy.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="factories.cpp" />
+    <ClCompile Include="iodevicecpp.cpp" />
     <ClCompile Include="iofs.cpp" />
     <ClCompile Include="iofunctions.cpp" />
     <ClCompile Include="IOLibrary.cpp" />

@@ -621,7 +621,7 @@ namespace IO
 		}
 		uint32_t getSize() const
 		{
-			return drive_list_.size();
+			return (uint32_t)drive_list_.size();
 		}
 
 		void sort()

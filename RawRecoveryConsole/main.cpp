@@ -31,6 +31,7 @@
 #include "IO\ZS2Raw.h"
 #include "IO\ZoomH6Raw.h"
 #include "IO\RawPLN.h"
+#include "IO\GoPro.h"
 
 
 const int param_count = 6;
@@ -72,9 +73,9 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
 	//initVideoFactoryManager(factory_manager);
 	//initAudioFactoryManager(factory_manager);
-	//factory_manager.Register("ESER_YDXJ", std::make_unique<IO::ESER_YDXJ_QtRawFactory>());
+	factory_manager.Register("go_pro", std::make_unique<IO::GoProRawFactory>());
 
-	factory_manager.Register("pln", std::make_unique<IO::PLNRawFactory>());
+	//factory_manager.Register("pln", std::make_unique<IO::PLNRawFactory>());
 
 	//factory_manager.Register("keychain-db", std::make_unique<IO::KeychainRawFactory>());
 
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 
-		QFile file("zip_office2007.json");
+		QFile file("go_pro.json");
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			qInfo() << "Error to open file. \"" << file.fileName() << "\"";
@@ -269,6 +270,7 @@ int main(int argc, char *argv[])
 							// remove file
 							IO::path_string new_fileName = target_file + L".bad_file";
 							boost::filesystem::rename(target_file, new_fileName);
+							qInfo() << "Renamed to .bad_file";
 							//{
 							//	qInfo() << "File" << target_file.c_str() << "was removed." << endl;
 							//}

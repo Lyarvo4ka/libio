@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <string_view>
+
 #include "IO\QuickTime.h"
 #include "mockfile.h"
 
@@ -95,7 +97,7 @@ TEST(QuickTimeTest, readQtAtom)
 	EXPECT_EQ(mdat_handle.offset(), mdat_offset);
 }
 
-TEST_F(QuickTtmeFMM, readAllQtAtomsTest)
+/*TEST_F(QuickTtmeFMM, readAllQtAtomsTest)
 {
 	using namespace IO;
 	QuickTimeRaw qt_raw(testFile_);
@@ -111,8 +113,7 @@ TEST_F(QuickTtmeFMM, readAllQtAtomsTest)
 	auto mdat_handle = qtList.front();
 	EXPECT_TRUE(cmp_keyword(*mdat_handle.getBlock(), IO::s_mdat));
 
-}
-
+}*/
 
 TEST(QuickTimeTest, findQtKeywordTest)
 {
@@ -142,4 +143,31 @@ TEST(QuickTimeTest, findQtKeywordTest)
 	const std::string wrong_keyword = "wrong keyword";
 	auto qt_handle2 = fragmentRaw.findQtKeyword(0, wrong_keyword);
 	EXPECT_FALSE(qt_handle2.isValid());
+}
+
+TEST(func_test, findTextInBlockTest)
+{
+	std::string expected = "text";
+	const uint32_t expected_pos = 10;
+	IO::DataArray data_array(16);
+	memcpy(data_array.data() + expected_pos, expected.data(), expected.length());
+	uint32_t pos = 0;
+	auto bFound = IO::findTextTnBlock(data_array, expected, pos);
+	EXPECT_TRUE(bFound);
+	EXPECT_TRUE(expected_pos == pos);
+
+	std::string wrong_str = "wrong";
+	bFound = IO::findTextTnBlock(data_array, wrong_str, pos);
+	EXPECT_FALSE(bFound);
+}
+
+TEST(func_test, findMOOV_signatureTest)
+{
+	const uint32_t expected_pos = 10;
+	IO::DataArray data_array(16);
+	memcpy(data_array.data() + expected_pos, "moov",4);
+	uint32_t pos = 0;
+	auto bFound = IO::findMOOV_signature(data_array, pos);
+	EXPECT_TRUE(bFound);
+	EXPECT_TRUE(expected_pos == pos);
 }

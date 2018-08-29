@@ -184,7 +184,7 @@ namespace IO
 			::SetFilePointerEx(hFile_, liPos, NULL, FILE_BEGIN);
 		};
 
-		Error::IOStatus ReadData(ByteArray data, uint32_t read_size , DWORD & bytes_read) noexcept
+		Error::IOStatus ReadData(ByteArray data, uint32_t read_size , DWORD & bytes_read) 
 		{
 			auto transfer_size = default_block_size;
 
@@ -194,7 +194,7 @@ namespace IO
 			{
 				bytes_to_read = calcBlockSize(data_pos, read_size, transfer_size);
 				setPosition(position_);
-				auto readResult = ::ReadFile(hFile_, data + data_pos, bytes_to_read, &bytes_read, NULL));
+				auto readResult = ::ReadFile(hFile_, data + data_pos, bytes_to_read, &bytes_read, NULL);
 				if (!readResult || (bytes_read == 0))
 				{
 					auto error_message = Error::getDiskOrFileError(Error::IOErrorsType::kReadData, "file");
@@ -221,8 +221,8 @@ namespace IO
 			auto error_status = ReadData(data, read_size, bytes_read);
 			if (error_status.isOK())
 				return bytes_read;
-			
-			throw Error::IOErrorException(error_status);
+			return 0;
+			//throw Error::IOErrorException(error_status);
 		};
 
 		uint32_t ReadData(DataArray & data_array)
@@ -233,6 +233,11 @@ namespace IO
 				return bytes_read;
 
 			throw Error::IOErrorException(error_status);
+		}
+
+		uint32_t WriteText(const std::string_view text_data)
+		{
+			return WriteData((ByteArray)text_data.data(), static_cast<uint32_t>(text_data.length()));
 		}
 
 		uint32_t WriteData(ByteArray data, uint32_t write_size) override
@@ -264,7 +269,7 @@ namespace IO
 			return size_;
 		}
 		
-		Error::IOStatus setFileSize(uint64_t new_size) noexcept
+		Error::IOStatus setFileSize(uint64_t new_size) 
 		{
 			if (size_ != new_size)
 			{

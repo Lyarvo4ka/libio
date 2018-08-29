@@ -379,6 +379,10 @@ namespace IO
 		{
 			return device_->ReadData(data, size);
 		}
+		uint32_t ReadData(DataArray & data_array)
+		{
+			return device_->ReadData(data_array.data(), data_array.size());
+		}
 		void setPosition(uint64_t offset)
 		{
 			device_->setPosition(offset);

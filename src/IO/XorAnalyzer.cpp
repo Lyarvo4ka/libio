@@ -16,7 +16,7 @@ namespace IO
 
 	int chunksPrerBlock(ULONGLONG block_size)
 	{
-		return block_size / BS::GB;
+		return (int)(block_size / BS::GB);
 	}
 
 
@@ -44,7 +44,7 @@ namespace IO
 	{
 		BYTE popularByte = 0;
 		WORD dwMax = bytes_[0];
-		for (size_t i = 1; i < BYTE_SIZE; ++i)
+		for (BYTE i = 1; i < BYTE_SIZE; ++i)
 		{
 			if (bytes_[i] > dwMax)
 			{
@@ -144,7 +144,7 @@ namespace IO
 
 				if (IO::isBlockNot00andFF(pBuffer, bytesRead))
 				{
-					for (int nByte = 0; nByte < bytesRead; ++nByte)
+					for (DWORD nByte = 0; nByte < bytesRead; ++nByte)
 						pByteCounts[nByte].add(pBuffer[nByte]);
 				}
 

@@ -107,7 +107,7 @@ void BlockNumber::WriteBank(DWORD bank_number)
 	bool bResult = false;
 
 	LONGLONG bank_offset = 0;
-	for (int iBank = 0; iBank < bank_number; ++iBank)
+	for (DWORD iBank = 0; iBank < bank_number; ++iBank)
 	{
 		bank_offset += BankSizeTable[iBank];
 	}

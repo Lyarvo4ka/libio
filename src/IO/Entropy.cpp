@@ -60,7 +60,7 @@ namespace IO
 			std::string write_string(boost::lexical_cast<std::string>(entropy));
 			write_string.append("\r\n");
 
-			IO::write_block(hWrite, (BYTE*)write_string.data(), write_string.size(), byteWritten);
+			IO::write_block(hWrite, (BYTE*)write_string.data(),(DWORD) write_string.size(), byteWritten);
 			++cluster_number;
 		}
 
@@ -101,7 +101,7 @@ namespace IO
 			std::string write_string(boost::lexical_cast<std::string>(entropy));
 			write_string.append("\r\n");
 
-			entrory_file.WriteData((IO::ByteArray)write_string.data(), write_string.size());
+			entrory_file.WriteData((IO::ByteArray)write_string.data(), (DWORD)write_string.size());
 			++cluster_number;
 		}
 		return true;
@@ -141,7 +141,7 @@ namespace IO
 			std::string write_string(boost::lexical_cast<std::string>(number_nulls));
 			write_string.append("\r\n");
 
-			entrory_file.WriteData((IO::ByteArray)write_string.data(), write_string.size());
+			entrory_file.WriteData((IO::ByteArray)write_string.data(),(DWORD) write_string.size());
 			++cluster_number;
 		}
 		return true;

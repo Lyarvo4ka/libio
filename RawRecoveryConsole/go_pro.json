@@ -3,12 +3,12 @@
 		"header":
           [
 			      {
-                "hexdata":"0000000209100000002006000D8099D0",
-                "offset": 0
+                "textdata":"ftyp",
+                "offset": 4
             }         
             
           ],
-          "extension": ".mov"
+          "extension": ".mp4"
         }
 	
 }
