@@ -2,30 +2,40 @@
 
 #include "QuickTime.h"
 
+#include <string>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
-//using namespace IO;
+#include <experimental/filesystem>
+
 namespace IO
 {
 
-	/*
-		Восстановление фрагментированных видео файлов для GoPro.
-		Сначала идет видео большого расширения потом 16 кластеров маленького.
-		Для кажного кластера считаем энтопию до заголовка QT.
-		Удаляем 16 кластеров которе меньше граници заданной энтропии.
-
-
-	*/
 	struct NullsInCluster
 	{
 		uint32_t cluster_number;
 		uint32_t number_nulls;
+
 	};
+
+	const uint32_t default_nulls_boder = 187;
+	const uint32_t default_number_together = 16;
+
 	class GoProFile
 	{
 		std::vector<uint32_t> clusterMap_;
 		DataArray::Ptr endChunk_;
 		DataArray::Ptr moovData_;
+		uint32_t number_together_ = default_number_together;
+		bool lowQuality_ = false;
+		bool valid_ = false;
+		uint32_t nulls_border_ = default_nulls_boder;
 	public:
+		void setCluserMap(std::vector<uint32_t> cluster_map)
+		{
+			clusterMap_ = cluster_map;
+		}
 		void addNumberNulls(const uint32_t cluster_number, const uint32_t number_nulls)
 		{
 			clusterMap_.push_back(number_nulls);
@@ -38,6 +48,108 @@ namespace IO
 		{
 			moovData_ = std::move(moov_data);
 		}
+		bool isLowQuality() const
+		{
+			return lowQuality_;
+		}
+		void setNullsBorder(const uint32_t nulls_border)
+		{
+			nulls_border_ = nulls_border;
+		}
+		bool isValid() const
+		{
+			return valid_;
+		}
+		void analyzeToLowQuility()
+		{
+			uint32_t lowQualityCount = 0;
+			for (uint32_t i = 0; i < number_together_; ++i)
+			{
+				if (clusterMap_.at(i) > nulls_border_)
+					++lowQualityCount;
+			}
+
+			if (lowQualityCount > 10)
+			{
+				lowQuality_ = true;
+				return;
+			}
+		}
+
+		uint32_t calcNumberToSkip(std::vector<uint32_t>::reverse_iterator iter)
+		{
+			uint32_t prev = *iter;
+			++iter;
+			uint32_t curr = *iter;
+			++iter;
+			uint32_t next = 0;
+
+			uint32_t toCheck = number_together_ - 3;///????
+			// check 16 together values
+			uint32_t window_size = 0;
+			uint32_t skip_count = 1;	///????
+
+			while (iter != clusterMap_.rend())
+			{
+				if (toCheck == 0)
+					break;
+
+				next = *iter;
+				window_size = 0;
+
+				if (prev > nulls_border_)
+					++window_size;
+				if (curr > nulls_border_)
+					++window_size;
+				if (next > nulls_border_)
+					++window_size;
+
+				if (window_size >= 2)
+				{
+					++skip_count;
+					// to skip
+				}
+				else
+					break;
+
+				prev = curr;
+				curr = next;
+
+				++iter;
+				--toCheck;
+			}
+	
+			return skip_count;
+		}
+		std::vector<uint32_t>::reverse_iterator  findFromEnd()
+		{
+			 //Start from end to analyze number together
+			return std::find_if(clusterMap_.rbegin(), clusterMap_.rend(), [=](const uint32_t nulls_val) {
+				return nulls_val > nulls_border_;
+			});
+		}
+		void analyze( )
+		{
+			valid_ = false;
+			auto number_clusters = clusterMap_.size();
+			// if first 16 clusters is less then border then skip file
+			if (number_clusters < number_together_)
+				return;
+
+			analyzeToLowQuility();
+			if (isLowQuality())
+				return;
+
+			// Start from end to analyze number together
+			//auto lastIter = std::find_if(clusterMap_.rbegin(), clusterMap_.rend(), [=](const uint32_t nulls_val) {
+			//	return nulls_val > nulls_border_;
+			//});
+			//if (lastIter == clusterMap_.end())
+			//	return;
+
+			//auto pos = std::distance(clusterMap_.begin(), lastIter);
+
+		}
 
 
 	};
@@ -49,6 +161,9 @@ namespace IO
 
 		return  cluster_str + " \t" + number_nulls_str;
 	}
+
+
+namespace fs = std::experimental::filesystem;
 
 	class GoProRaw
 		: public QuickTimeRaw
@@ -141,6 +256,15 @@ namespace IO
 			txtFile.OpenCreate();
 
 			auto gpFile = SaveTempFile(tempFile, txtFile, start_offset);
+			gpFile.analyze();
+			if (gpFile.isLowQuality())
+			{
+				tempFile.Close();
+				fs::remove(tempFile.getFileName());
+				txtFile.Close();
+				fs::remove(txtFile.getFileName());
+				return 0;
+			}
 
 			int k = 1;
 			k = 2;
@@ -165,143 +289,5 @@ namespace IO
 	};
 
 
-	//class GoPro
-
-	//{
-	//	const uint16_t val_0x4750 = 0x5047;
-	//	const uint8_t jpg_sing[3] = { 0xFF, 0xD8 , 0xFF };
-	//private:
-	//	IODevice * device_;
-	//	uint32_t cluster_size_;
-	//public:
-	//	GoPro(IODevice * device)
-	//		: device_(device)
-	//		, cluster_size_(0)
-	//	{
-
-	//	}
-	//	~GoPro()
-	//	{
-	//		if (device_)
-	//		{
-	//			delete device_;
-	//			device_ = nullptr;
-	//		}
-	//	}
-	//	void setClusterSize(const uint32_t cluster_size)
-	//	{
-	//		this->cluster_size_ = cluster_size;
-	//	}
-	//	bool ReadCluster(const uint32_t number, Buffer * buffer)
-	//	{
-	//		if (!buffer)
-	//			return false;
-	//		uint64_t offset = (uint64_t)number * (uint64_t)cluster_size_;
-	//		if (offset >= device_->Size())
-	//			return false;
-
-	//		device_->setPosition(offset);
-	//		auto bytes_read = device_->ReadData(buffer->data, buffer->data_size);
-	//		if (bytes_read != cluster_size_)
-	//			return false;
-	//		return true;
-	//	}
-	//	uint32_t SaveFile_WithoutLRV(const uint32_t cluster_number, path_string target_name)
-	//	{
-	//		File write_file(target_name);
-	//		if (!write_file.Open(OpenMode::Create))
-	//		{
-	//			wprintf(L"Error create file.\n");
-	//			return cluster_number;
-	//		}
-
-	//		const uint32_t max_count = 6;
-
-	//		uint32_t number = cluster_number;
-	//		Buffer buffer(this->cluster_size_);
-	//		if (!ReadCluster(number++, &buffer))
-	//			return number;
-
-	//		write_file.WriteData(buffer.data, buffer.data_size);
-
-	//		while (ReadCluster(number, &buffer))
-	//		{
-	//			//if (!isQuickTimeHeader((qt_block_t *) buffer.data) )
-	//			//{
-	//			//	if (memcmp(buffer.data, jpg_sing, 3) == 0)
-	//			//		break;
-
-	//			//	if (calc0x4750(&buffer) < max_count)
-	//			//		write_file.WriteData(buffer.data, buffer.data_size);
-	//			//}
-	//			//else
-	//			//wprintf_s(L"Found new qt_header\n");
-
-	//			++number;
-	//		}
-	//		return number;
-	//	}
-	//	uint32_t calc0x4750(const Buffer * buffer)
-	//	{
-	//		uint32_t val_pos = 0;
-	//		uint32_t counter = 0;
-	//		while (val_pos < buffer->data_size - 1)
-	//		{
-	//			uint16_t* buff_val = (uint16_t*)(buffer->data + val_pos);
-	//			if (*buff_val == val_0x4750)
-	//				++counter;
-
-	//			++val_pos;
-	//		}
-	//		return counter;
-	//	}
-	//	void execute(const path_string & folder)
-	//	{
-	//		if (!device_->Open(OpenMode::OpenRead))
-	//		{
-	//			wprintf(L"Error open.\n");
-	//			return;
-	//		}
-	//		if (cluster_size_ == 0)
-	//		{
-	//			wprintf(L"Cluster size is 0");
-	//			return;
-	//		}
-
-	//		uint32_t counter = 0;
-
-	//		uint32_t cluster_number = 508916;
-	//		Buffer buffer(cluster_size_);
-	//		while (ReadCluster(cluster_number, &buffer))
-	//		{
-	//			qt_block_t * pQt_block = (qt_block_t *)buffer.data;
-	//			//if (isQuickTimeHeader(pQt_block))
-	//			{
-	//				path_string target_name = toFullPath(folder, counter++, L".mp4");
-
-	//				/*cluster_number =*/ SaveFile_WithoutLRV(cluster_number, target_name);
-
-	//			}
-	//			++cluster_number;
-	//		}
-
-	//	}
-
-	//};
 };
 
-//namespace IO
-//{
-//	class GoPro2_raw
-//	{
-//	private:
-//		IODevice device_;
-//
-//		GoPro2_raw(IODevice * device)
-//			:device_(device)
-//		{
-//		}
-//
-//
-//	};
-//};

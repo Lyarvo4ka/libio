@@ -4,7 +4,7 @@
 #include <windows.h>
 
 #include <vector>
-using std::vector;
+//using std::vector;
 
 #pragma warning(disable:4251)
 namespace IO

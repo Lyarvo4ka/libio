@@ -2,7 +2,7 @@
 #include "pch.h"
 #include "IO\utility.h"
 #include <string>
-#include "IO\GoPro.h"
+
 
 TEST( UtilityTest, fileNameToOffsetTest)
 {
@@ -12,16 +12,7 @@ TEST( UtilityTest, fileNameToOffsetTest)
 
 }
 
-TEST(UtilityTest, toStringTest)
-{
-	uint32_t int_val = 0;
-	auto str = std::to_string(int_val);
-	auto result = IO::clusterNullsToSstring(0, 1);
 
-	int k = 1;
-	k = 2;
-
-}
 
 //TEST(UtilityTest, testAcronis_decompress)
 //{
