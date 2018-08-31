@@ -19,12 +19,19 @@ namespace IO
 
 	};
 
+	struct StartAmountSkip
+	{
+		uint32_t start_pos;
+		uint32_t amount_skip;
+	};
+
 	const uint32_t default_nulls_boder = 187;
 	const uint32_t default_number_together = 16;
 
 	class GoProFile
 	{
 		std::vector<uint32_t> clusterMap_;
+		std::vector<bool> bitmap_;
 		DataArray::Ptr endChunk_;
 		DataArray::Ptr moovData_;
 		uint32_t number_together_ = default_number_together;
@@ -43,6 +50,10 @@ namespace IO
 		void setEndChunk(DataArray::Ptr end_chunk)
 		{
 			endChunk_ = std::move(end_chunk);
+		}
+		DataArray * getMoovData() const
+		{
+			return moovData_.get();
 		}
 		void setMoovData(DataArray::Ptr moov_data)
 		{
@@ -75,26 +86,33 @@ namespace IO
 				return;
 			}
 		}
-
-		uint32_t calcNumberToSkip(std::vector<uint32_t>::reverse_iterator iter)
+		std::vector<bool> getBitMap() const
 		{
-			uint32_t prev = *iter;
-			++iter;
-			uint32_t curr = *iter;
-			++iter;
+			return bitmap_;
+		}
+		// <<<<<<<<<<<<<<<
+		bool findBackwardNumberOf(const uint32_t start, uint32_t & number_of)
+		{
+			const uint32_t WindowSize = 3;
+			if (start < WindowSize)
+				return false;
+			uint32_t amountTo = start -1;
+			uint32_t curr_pos = start;
+
+			uint32_t prev = clusterMap_[curr_pos--];
+			uint32_t curr = clusterMap_[curr_pos];
 			uint32_t next = 0;
 
-			uint32_t toCheck = number_together_ - 3;///????
-			// check 16 together values
+			uint32_t toCheck = number_together_ - 1;///????
 			uint32_t window_size = 0;
 			uint32_t skip_count = 1;	///????
 
-			while (iter != clusterMap_.rend())
+			for (uint32_t i = 0; i < amountTo; ++i)
 			{
 				if (toCheck == 0)
 					break;
 
-				next = *iter;
+				next = clusterMap_[--curr_pos];
 				window_size = 0;
 
 				if (prev > nulls_border_)
@@ -115,19 +133,29 @@ namespace IO
 				prev = curr;
 				curr = next;
 
-				++iter;
 				--toCheck;
 			}
-	
-			return skip_count;
+
+
+			number_of = skip_count;
+			return true;
 		}
-		std::vector<uint32_t>::reverse_iterator  findFromEnd()
+
+		bool findFromEnd(const uint32_t start , uint32_t & found_pos)
 		{
 			 //Start from end to analyze number together
-			return std::find_if(clusterMap_.rbegin(), clusterMap_.rend(), [=](const uint32_t nulls_val) {
+			auto rPos = clusterMap_.size() -1 - start;
+			auto findIter = std::find_if(clusterMap_.rbegin() + rPos, clusterMap_.rend(), [=](const uint32_t nulls_val) {
 				return nulls_val > nulls_border_;
-			});
+			}); 
+			if (findIter == clusterMap_.rend())
+				return false;
+			found_pos = clusterMap_.size() -1 - std::distance(clusterMap_.rbegin(), findIter);
+			return true;
+
 		}
+
+
 		void analyze( )
 		{
 			valid_ = false;
@@ -140,14 +168,27 @@ namespace IO
 			if (isLowQuality())
 				return;
 
-			// Start from end to analyze number together
-			//auto lastIter = std::find_if(clusterMap_.rbegin(), clusterMap_.rend(), [=](const uint32_t nulls_val) {
-			//	return nulls_val > nulls_border_;
-			//});
-			//if (lastIter == clusterMap_.end())
-			//	return;
-
-			//auto pos = std::distance(clusterMap_.begin(), lastIter);
+			uint32_t pos = 0;
+			bitmap_.resize(clusterMap_.size(), true);
+			auto bFound = findFromEnd(clusterMap_.size() - 1, pos);
+			if (!bFound)
+				return;
+			uint32_t number_of = 0;
+			auto bResult = findBackwardNumberOf(pos, number_of);
+			if (bResult)
+				if (number_of > 1)
+					for (auto i = 0; i < number_of; ++i)
+						bitmap_[pos  + 1- number_of + i] = false;
+			//pos = pos - number_of - 1;
+			do
+			{
+				pos = pos - number_of;
+				bResult = findBackwardNumberOf(pos, number_of);
+				if (bResult)
+					if (number_of>1)
+						for ( auto i = 0 ; i < number_together_ ; ++i)
+							bitmap_[pos - number_together_ + i] = false;
+			} while (bResult);
 
 		}
 
@@ -265,6 +306,44 @@ namespace fs = std::experimental::filesystem;
 				fs::remove(txtFile.getFileName());
 				return 0;
 			}
+
+			uint64_t src_pos = 0;
+			
+
+			DataArray data_array(getBlockSize());
+			auto bitmap = gpFile.getBitMap();
+			for (auto iCluster = 0; iCluster < bitmap.size(); ++iCluster)
+			{
+				if (bitmap[iCluster] )
+				{
+					src_pos = iCluster * getBlockSize();
+					tempFile.setPosition(src_pos);
+					tempFile.ReadData(data_array);
+					target_file.WriteData(data_array.data() , data_array.size());
+				}
+			}
+			target_file.Close();
+			auto target_ptr = makeFilePtr(target_file.getFileName());
+			target_ptr->OpenWrite();
+			QuickTimeRaw qt_raw(target_ptr);
+			target_file.OpenWrite();
+			auto ftypAtom = qt_raw.readQtAtom(0);
+			if (ftypAtom.isValid())
+			{
+				auto mdatAtom = qt_raw.readQtAtom(ftypAtom.size());
+				if (mdatAtom.isValid())
+				{
+					auto moov_pos = ftypAtom.size() + mdatAtom.size();
+					target_ptr->setPosition(moov_pos);
+					target_ptr->WriteData(gpFile.getMoovData()->data(), gpFile.getMoovData()->size());
+
+				
+				}
+			}
+				
+
+
+
 
 			int k = 1;
 			k = 2;
