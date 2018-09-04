@@ -25,7 +25,7 @@ namespace IO
 		uint32_t amount_skip;
 	};
 
-	const uint32_t default_nulls_boder = 187;
+	const uint32_t default_nulls_boder = 220;//187;
 	const uint32_t default_number_together = 16;
 
 	class GoProFile
@@ -50,6 +50,10 @@ namespace IO
 		void setEndChunk(DataArray::Ptr end_chunk)
 		{
 			endChunk_ = std::move(end_chunk);
+		}
+		DataArray * getEndChunk() const
+		{
+			return endChunk_.get();
 		}
 		DataArray * getMoovData() const
 		{
@@ -155,8 +159,22 @@ namespace IO
 
 		}
 
+		std::vector<uint32_t>::iterator findFromStart(const uint32_t start)
+		{
+			auto findIter = std::find_if(clusterMap_.begin() + start, clusterMap_.end(), [=](const uint32_t nulls_val) {
+				return nulls_val > nulls_border_;
+			});
+			return findIter;
+		}
+		uint32_t countOfSixteen(std::vector<uint32_t>::iterator startIter)
+		{
+			return std::count_if(startIter, startIter + number_together_, [=](const uint32_t nulls_val) {
+				return nulls_val > nulls_border_;
+			});
+			return 0;
+		}
 
-		void analyze( )
+		void analyze()
 		{
 			valid_ = false;
 			auto number_clusters = clusterMap_.size();
@@ -170,26 +188,54 @@ namespace IO
 
 			uint32_t pos = 0;
 			bitmap_.resize(clusterMap_.size(), true);
-			auto bFound = findFromEnd(clusterMap_.size() - 1, pos);
-			if (!bFound)
-				return;
-			uint32_t number_of = 0;
-			auto bResult = findBackwardNumberOf(pos, number_of);
-			if (bResult)
-				if (number_of > 1)
-					for (auto i = 0; i < number_of; ++i)
-						bitmap_[pos  + 1- number_of + i] = false;
-			//pos = pos - number_of - 1;
-			do
-			{
-				pos = pos - number_of;
-				bResult = findBackwardNumberOf(pos, number_of);
-				if (bResult)
-					if (number_of>1)
-						for ( auto i = 0 ; i < number_together_ ; ++i)
-							bitmap_[pos - number_together_ + i] = false;
-			} while (bResult);
 
+			const uint32_t countLimit = 10;
+
+			uint32_t posToFind = number_together_;
+			while (true)
+			{
+				auto findIter = findFromStart(posToFind);
+				if (findIter == clusterMap_.end())
+					break;
+
+
+				auto pos = std::distance(clusterMap_.begin(), findIter);
+				if (pos + number_together_ >= clusterMap_.size())
+					break;
+
+
+
+				auto nCount = countOfSixteen(findIter);
+				posToFind = pos + 1;
+				auto nextIter = findFromStart(posToFind);
+				auto distSize = std::distance(findIter, nextIter);
+				if (distSize < number_together_)
+				{
+					auto next_pos = std::distance(clusterMap_.begin(), nextIter);
+					if (next_pos + number_together_ >= clusterMap_.size())
+						break;
+
+					auto nCountNext = countOfSixteen(nextIter);
+					if (nCountNext > nCount)
+					{
+						posToFind = next_pos;
+						continue;
+					}
+				}
+
+				if (nCount >= countLimit)
+				{
+					
+					for (auto i = 0; i < number_together_; ++i)
+					{
+						bitmap_[pos + i] = false;
+					}
+					posToFind += number_together_;
+				}
+
+				if (posToFind >= clusterMap_.size())
+					break;
+			}
 		}
 
 
@@ -212,7 +258,7 @@ namespace fs = std::experimental::filesystem;
 		const uint32_t GP_CLUSTER_SIZE = 32768;
 		const uint32_t GP_LRV_SKIP_COUNT = 16;
 	private:
-		uint32_t nulls_border_ = 187;
+		uint32_t nulls_border_ = 200;//187
 
 	public:
 		GoProRaw(IODevicePtr device)
@@ -312,6 +358,7 @@ namespace fs = std::experimental::filesystem;
 
 			DataArray data_array(getBlockSize());
 			auto bitmap = gpFile.getBitMap();
+			uint64_t file_size = 0;
 			for (auto iCluster = 0; iCluster < bitmap.size(); ++iCluster)
 			{
 				if (bitmap[iCluster] )
@@ -320,6 +367,7 @@ namespace fs = std::experimental::filesystem;
 					tempFile.setPosition(src_pos);
 					tempFile.ReadData(data_array);
 					target_file.WriteData(data_array.data() , data_array.size());
+					file_size += getBlockSize();
 				}
 			}
 			target_file.Close();
@@ -336,8 +384,12 @@ namespace fs = std::experimental::filesystem;
 					auto moov_pos = ftypAtom.size() + mdatAtom.size();
 					target_ptr->setPosition(moov_pos);
 					target_ptr->WriteData(gpFile.getMoovData()->data(), gpFile.getMoovData()->size());
+					file_size += gpFile.getMoovData()->size();
 
-				
+
+					target_ptr->setPosition(moov_pos - gpFile.getEndChunk()->size());
+					target_ptr->WriteData(gpFile.getEndChunk()->data(), gpFile.getEndChunk()->size());
+					file_size += gpFile.getEndChunk()->size();
 				}
 			}
 				
@@ -348,7 +400,7 @@ namespace fs = std::experimental::filesystem;
 			int k = 1;
 			k = 2;
 
-			return 0;
+			return file_size;
 		}
 		bool Specify(const uint64_t start_offset) override
 		{

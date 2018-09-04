@@ -34,6 +34,8 @@ namespace IO
 	const char s_uuid[] = "uuid";
 	const char s_meta[] = "meta";
 
+	const std::string_view stco_table_name = "stco";
+
 
 	const int qt_keyword_size = 4;
 
@@ -84,12 +86,19 @@ namespace IO
 		return (memcmp(qt_block.block_type, keyword_name, qt_keyword_size) == 0);
 	}
 
-	inline bool findTextTnBlock(const DataArray & data_array, std::string_view textToFind, uint32_t & position)
-	{
+	enum class SearchDirection {kForward , kBackward};
 
+	inline bool findTextTnBlock(const DataArray & data_array, std::string_view textToFind, uint32_t & position , SearchDirection searchDirection = SearchDirection::kForward)
+	{
+		uint32_t temp_pos = 0;
 		for (uint32_t pos = 0; pos < data_array.size() - textToFind.length(); ++pos)
 		{
-			if (memcmp(data_array.data() + pos, textToFind.data(), textToFind.length()) == 0)
+			if (searchDirection == SearchDirection::kForward) 
+				temp_pos = pos;
+			else
+				temp_pos = data_array.size() - textToFind.length() - pos;
+
+			if (memcmp(data_array.data() + temp_pos, textToFind.data(), textToFind.length()) == 0)
 			{
 				position = pos;
 				return true;
@@ -98,11 +107,120 @@ namespace IO
 		return false;
 	}
 
+	inline bool findTextTnBlockFromEnd(const DataArray & data_array, std::string_view textToFind, uint32_t & position)
+	{
+		return findTextTnBlock(data_array, textToFind, position, SearchDirection::kBackward);
+	}
+
+
 	inline bool findMOOV_signature(const DataArray & data_array, uint32_t & position)
 	{
 		return findTextTnBlock(data_array, s_moov, position);
 	}
 
+	#pragma pack(1)
+	struct STCO_Table
+	{
+		qt_block_t stco_block;
+		uint8_t version;
+		uint8_t flags[3];
+		uint32_t number_of_endries;
+	};
+	#pragma pack()
+
+	inline void createMarkerMapSTCO(const path_string & fileName , const uint32_t cluster_size )
+	{
+		const std::string_view gp_keyword = "GP";
+
+		auto txt_file_name = fileName + L".txt";
+		File txt_file(txt_file_name);
+		txt_file.OpenCreate();
+
+		File qtFile(fileName);
+		qtFile.OpenRead();
+
+		DataArray cluster_data(cluster_size);
+
+		auto num_clusters = qtFile.Size() / cluster_size;
+
+		uint64_t offset = qtFile.Size() - cluster_size;
+		uint32_t bytesRead = 0;
+		uint32_t table_pos = 0;
+		bool bFoundTable = false;
+
+		while (true)
+		{
+			qtFile.setPosition(offset);
+			bytesRead = qtFile.ReadData(cluster_data);
+			if (findTextTnBlockFromEnd(cluster_data, stco_table_name, table_pos))
+			{
+				table_pos = offset + cluster_size - table_pos - 4 ;
+				bFoundTable = true;
+				break;
+			}
+
+			if (offset <= cluster_size)
+				break;
+			offset -= cluster_size;
+		}
+		if (!bFoundTable)
+			return;
+
+		// read table
+		if (table_pos < qt_keyword_size)
+			return;
+
+		qtFile.setPosition(table_pos - qt_keyword_size);
+
+		qt_block_t stco_block = { 0 };
+		qtFile.ReadData((ByteArray)&stco_block, sizeof(qt_block_t));
+		toBE32(stco_block.block_size);
+
+		DataArray stco_data(stco_block.block_size);
+		qtFile.setPosition(table_pos - qt_keyword_size);
+		qtFile.ReadData(stco_data);
+
+		STCO_Table * pSCTO_Table = (STCO_Table * )stco_data.data();
+		uint32_t * posPointer = (uint32_t *)(stco_data.data() + sizeof(STCO_Table));
+
+		auto numberOf = pSCTO_Table->number_of_endries;
+
+		toBE32(numberOf);
+
+		DataArray two_bytes(2);
+
+		std::vector<bool> clusters(num_clusters + 1, false);
+
+		uint32_t cur_pos = 0;
+		for (auto i = 0; i < numberOf; ++i)
+		{
+			cur_pos = posPointer[i];
+			toBE32(cur_pos);
+			if (cur_pos < qtFile.Size())
+			{
+				qtFile.setPosition(cur_pos);
+				qtFile.ReadData(two_bytes);
+				if (memcmp(two_bytes.data(), gp_keyword.data(), two_bytes.size()) == 0)
+				{
+					clusters[cur_pos / cluster_size] = true; 
+				}
+			}
+		}
+
+		for (auto i = 0; i < clusters.size(); ++i)
+		{
+			std::string write_str = std::to_string(i) + " \t";
+			if (clusters[i] == true)
+				write_str += " --GP marker";
+			write_str += "\n";
+			txt_file.WriteText(write_str);
+		}
+
+		//std::vector<uint32_t> markerMap()
+		
+
+
+	}
 
 	class QtHandle
 	{
