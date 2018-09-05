@@ -25,8 +25,9 @@ namespace IO
 		uint32_t amount_skip;
 	};
 
-	const uint32_t default_nulls_boder = 220;//187;
+	const uint32_t default_nulls_boder = 230;//187;
 	const uint32_t default_number_together = 16;
+	const uint32_t GP_TOGHER_LIMIT = 5;
 
 	class GoProFile
 	{
@@ -173,6 +174,19 @@ namespace IO
 			});
 			return 0;
 		}
+		uint32_t countOfSixteen(const size_t position)
+		{
+			uint32_t number_of = 0;
+			for (uint32_t i = 0; i < number_together_; ++i)
+			{
+				if (clusterMap_[position + i] > nulls_border_)
+					++number_of;
+			}
+			return number_of;
+			//return std::count_if(clusterMap_.begin() + position , clusterMap_.begin() + position + number_together_, [=](const uint32_t nulls_val) {
+			//	return nulls_val > nulls_border_;
+			//});
+		}
 
 		void analyze()
 		{
@@ -189,53 +203,75 @@ namespace IO
 			uint32_t pos = 0;
 			bitmap_.resize(clusterMap_.size(), true);
 
-			const uint32_t countLimit = 10;
+			const uint32_t countLimit = GP_TOGHER_LIMIT;
 
-			uint32_t posToFind = number_together_;
-			while (true)
+			for (size_t iCluster = 1; iCluster < clusterMap_.size(); ++iCluster)
 			{
-				auto findIter = findFromStart(posToFind);
-				if (findIter == clusterMap_.end())
-					break;
-
-
-				auto pos = std::distance(clusterMap_.begin(), findIter);
-				if (pos + number_together_ >= clusterMap_.size())
-					break;
-
-
-
-				auto nCount = countOfSixteen(findIter);
-				posToFind = pos + 1;
-				auto nextIter = findFromStart(posToFind);
-				auto distSize = std::distance(findIter, nextIter);
-				if (distSize < number_together_)
+				if (iCluster == 560)
 				{
-					auto next_pos = std::distance(clusterMap_.begin(), nextIter);
-					if (next_pos + number_together_ >= clusterMap_.size())
+					int k = 1;
+					k = 1;
+				}
+				if ((iCluster % number_together_ )== 0)
+				{
+					if (iCluster + number_together_ > clusterMap_.size())
 						break;
-
-					auto nCountNext = countOfSixteen(nextIter);
-					if (nCountNext > nCount)
+					auto number_of = countOfSixteen(iCluster);
+					if (number_of >= countLimit)
 					{
-						posToFind = next_pos;
-						continue;
+						for (auto i = 0; i < number_together_; ++i)
+							bitmap_[iCluster + i] = false;
+						iCluster += number_together_ - 1;
 					}
 				}
 
-				if (nCount >= countLimit)
-				{
-					
-					for (auto i = 0; i < number_together_; ++i)
-					{
-						bitmap_[pos + i] = false;
-					}
-					posToFind += number_together_;
-				}
-
-				if (posToFind >= clusterMap_.size())
-					break;
 			}
+
+		//	uint32_t posToFind = number_together_;
+		//	while (true)
+		//	{
+		//		auto findIter = findFromStart(posToFind);
+		//		if (findIter == clusterMap_.end())
+		//			break;
+
+
+		//		auto pos = std::distance(clusterMap_.begin(), findIter);
+		//		if (pos + number_together_ >= clusterMap_.size())
+		//			break;
+
+
+
+		//		auto nCount = countOfSixteen(findIter);
+		//		posToFind = pos + 1;
+		//		auto nextIter = findFromStart(posToFind);
+		//		auto distSize = std::distance(findIter, nextIter);
+		//		if (distSize < number_together_)
+		//		{
+		//			auto next_pos = std::distance(clusterMap_.begin(), nextIter);
+		//			if (next_pos + number_together_ >= clusterMap_.size())
+		//				break;
+
+		//			auto nCountNext = countOfSixteen(nextIter);
+		//			if (nCountNext > nCount)
+		//			{
+		//				posToFind = next_pos;
+		//				continue;
+		//			}
+		//		}
+
+		//		if (nCount >= countLimit)
+		//		{
+		//			
+		//			for (auto i = 0; i < number_together_; ++i)
+		//			{
+		//				bitmap_[pos + i] = false;
+		//			}
+		//			posToFind += number_together_;
+		//		}
+
+		//		if (posToFind >= clusterMap_.size())
+		//			break;
+		//	}
 		}
 
 
@@ -257,8 +293,9 @@ namespace fs = std::experimental::filesystem;
 	{
 		const uint32_t GP_CLUSTER_SIZE = 32768;
 		const uint32_t GP_LRV_SKIP_COUNT = 16;
+
 	private:
-		uint32_t nulls_border_ = 200;//187
+		uint32_t nulls_border_ = default_nulls_boder;//187
 
 	public:
 		GoProRaw(IODevicePtr device)

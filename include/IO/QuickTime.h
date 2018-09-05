@@ -189,7 +189,7 @@ namespace IO
 
 		DataArray two_bytes(2);
 
-		std::vector<bool> clusters(num_clusters + 1, false);
+		std::vector<uint32_t> clusters(num_clusters + 1, 0);
 
 		uint32_t cur_pos = 0;
 		for (auto i = 0; i < numberOf; ++i)
@@ -202,18 +202,35 @@ namespace IO
 				qtFile.ReadData(two_bytes);
 				if (memcmp(two_bytes.data(), gp_keyword.data(), two_bytes.size()) == 0)
 				{
-					clusters[cur_pos / cluster_size] = true; 
+					++clusters[cur_pos / cluster_size]; 
 				}
 			}
 		}
 
+		uint64_t pos = 0;
+
+		std::vector<uint32_t> nullsInCluster(num_clusters +1 , 0);
+		for (auto i = 0; i < num_clusters; ++i)
+		{
+			qtFile.setPosition(pos);
+			qtFile.ReadData(cluster_data);
+			nullsInCluster[i] = calc_nulls(cluster_data);
+			pos += cluster_size;
+		}
+
+
 		for (auto i = 0; i < clusters.size(); ++i)
 		{
 			std::string write_str = std::to_string(i) + " \t";
-			if (clusters[i] == true)
-				write_str += " --GP marker";
+			write_str += std::to_string(nullsInCluster[i]) + " \t";
+			if (clusters[i] > 0)
+				write_str += " GP marker " + std::to_string(clusters[i]);
 			write_str += "\n";
+			//if ( i != 0)
+			//if (i % 15 == 0)
+			//	write_str += '\n';
 			txt_file.WriteText(write_str);
+
 		}
 
 		//std::vector<uint32_t> markerMap()
