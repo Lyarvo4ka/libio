@@ -9,27 +9,266 @@
 
 #include <experimental/filesystem>
 
+namespace fs = std::experimental::filesystem;
+
 namespace IO
 {
-
-	struct NullsInCluster
-	{
-		uint32_t cluster_number;
-		uint32_t number_nulls;
-
-	};
-
-	struct StartAmountSkip
-	{
-		uint32_t start_pos;
-		uint32_t amount_skip;
-	};
 
 	const uint32_t default_nulls_boder = 230;//187;
 	const uint32_t default_number_together = 16;
 	const uint32_t GP_TOGHER_LIMIT = 5;
 
-	class GoProFile
+	inline static std::string clusterNullsToSstring(const uint32_t cluster_number, const uint32_t number_nulls)
+	{
+		auto cluster_str = std::to_string(cluster_number);
+		auto number_nulls_str = std::to_string(number_nulls);
+
+		return  cluster_str + " \t" + number_nulls_str;
+	}
+
+#pragma pack(1)
+	struct STCO_Table
+	{
+		qt_block_t stco_block;
+		uint8_t version;
+		uint8_t flags[3];
+		uint32_t number_of_endries;
+	};
+#pragma pack()
+
+	inline void createMarkerMapSTCO(const path_string & fileName, const uint32_t cluster_size)
+	{
+		const std::string_view gp_keyword = "GP";
+
+		auto txt_file_name = fileName + L".txt";
+		File txt_file(txt_file_name);
+		txt_file.OpenCreate();
+
+		File qtFile(fileName);
+		qtFile.OpenRead();
+
+		DataArray cluster_data(cluster_size);
+
+		auto num_clusters = qtFile.Size() / cluster_size;
+
+		uint64_t offset = qtFile.Size() - cluster_size;
+		uint32_t bytesRead = 0;
+		uint32_t table_pos = 0;
+		bool bFoundTable = false;
+
+		while (true)
+		{
+			qtFile.setPosition(offset);
+			bytesRead = qtFile.ReadData(cluster_data);
+			if (findTextTnBlockFromEnd(cluster_data, stco_table_name, table_pos))
+			{
+				table_pos = offset + cluster_size - table_pos - 4;
+				bFoundTable = true;
+				break;
+			}
+
+			if (offset <= cluster_size)
+				break;
+			offset -= cluster_size;
+		}
+		if (!bFoundTable)
+			return;
+
+		// read table
+		if (table_pos < qt_keyword_size)
+			return;
+
+		qtFile.setPosition(table_pos - qt_keyword_size);
+
+		qt_block_t stco_block = { 0 };
+		qtFile.ReadData((ByteArray)&stco_block, sizeof(qt_block_t));
+		toBE32(stco_block.block_size);
+
+		DataArray stco_data(stco_block.block_size);
+		qtFile.setPosition(table_pos - qt_keyword_size);
+		qtFile.ReadData(stco_data);
+
+		STCO_Table * pSCTO_Table = (STCO_Table *)stco_data.data();
+		uint32_t * posPointer = (uint32_t *)(stco_data.data() + sizeof(STCO_Table));
+
+		auto numberOf = pSCTO_Table->number_of_endries;
+
+		toBE32(numberOf);
+
+		DataArray two_bytes(2);
+
+		std::vector<uint32_t> clusters(num_clusters + 1, 0);
+
+		uint32_t cur_pos = 0;
+		for (auto i = 0; i < numberOf; ++i)
+		{
+			cur_pos = posPointer[i];
+			toBE32(cur_pos);
+			if (cur_pos < qtFile.Size())
+			{
+				qtFile.setPosition(cur_pos);
+				qtFile.ReadData(two_bytes);
+				if (memcmp(two_bytes.data(), gp_keyword.data(), two_bytes.size()) == 0)
+				{
+					++clusters[cur_pos / cluster_size];
+				}
+			}
+		}
+
+		uint64_t pos = 0;
+
+		std::vector<uint32_t> nullsInCluster(num_clusters + 1, 0);
+		for (auto i = 0; i < num_clusters; ++i)
+		{
+			qtFile.setPosition(pos);
+			qtFile.ReadData(cluster_data);
+			nullsInCluster[i] = calc_nulls(cluster_data);
+			pos += cluster_size;
+		}
+
+
+		for (auto i = 0; i < clusters.size(); ++i)
+		{
+			std::string write_str = std::to_string(i) + " \t";
+			write_str += std::to_string(nullsInCluster[i]) + " \t";
+			if (clusters[i] > 0)
+				write_str += " GP marker " + std::to_string(clusters[i]);
+			write_str += "\n";
+			//if ( i != 0)
+			//if (i % 15 == 0)
+			//	write_str += '\n';
+			txt_file.WriteText(write_str);
+
+		}
+
+		//std::vector<uint32_t> markerMap()
+
+
+
+	}
+	class GoProAnalyzer :
+		public FileAnalyzer
+	{
+	private:
+		path_string fileName_;
+		uint32_t block_size_ = default_block_size;
+		File goProFile_;
+		bool bValid_ = false;
+	public:
+		GoProAnalyzer(const path_string & file_name)
+			: fileName_(file_name)
+			, goProFile_(file_name)
+		{
+		}
+		~GoProAnalyzer()
+		{
+			Close();
+		}
+		uint32_t getBlockSize() const
+		{
+			return block_size_;
+		}
+		bool isValid() const
+		{
+			return bValid_;
+		}
+		void setValid()
+		{
+			bValid_ = true;
+		}
+		void Close()
+		{
+			goProFile_.Close();
+		}
+		bool find_stco_table(uint32_t & table_offset)
+		{
+
+			uint64_t offset = goProFile_.Size() - getBlockSize();
+			uint32_t bytesRead = 0;
+			uint32_t table_pos = 0;
+
+			DataArray block_data(getBlockSize());
+
+			while (true)
+			{
+				goProFile_.setPosition(offset);
+				bytesRead = goProFile_.ReadData(block_data);
+				if (findTextTnBlockFromEnd(block_data, stco_table_name, table_pos))
+				{
+					table_offset = offset + getBlockSize() - table_pos - 4;
+					return true;
+				}
+
+				if (offset <= getBlockSize())
+					break;
+				offset -= getBlockSize();
+			}
+			return false;
+		}
+
+		void Analyze(const IO::path_string & file_name) override
+		{
+			const std::string_view gp_keyword = "GP";
+			
+			goProFile_.OpenRead();
+
+			auto file_size = goProFile_.Size();
+			if (file_size < getBlockSize())
+				return;
+
+			uint32_t table_pos = 0;
+			if (!find_stco_table(table_pos))
+				return;
+
+			// read table
+			if (table_pos < qt_keyword_size)
+				return;
+
+			goProFile_.setPosition(table_pos - qt_keyword_size);
+
+			qt_block_t stco_block = { 0 };
+			goProFile_.ReadData((ByteArray)&stco_block, sizeof(qt_block_t));
+			toBE32(stco_block.block_size);
+
+			DataArray stco_data(stco_block.block_size);
+			auto table_offset = table_pos - qt_keyword_size;
+			if (table_offset >= file_size)
+				return;
+			if (table_offset + stco_data.size() > file_size)
+				return;
+
+			goProFile_.setPosition(table_pos - qt_keyword_size);
+			goProFile_.ReadData(stco_data);
+
+			STCO_Table * pSCTO_Table = (STCO_Table *)stco_data.data();
+			uint32_t * posPointer = (uint32_t *)(stco_data.data() + sizeof(STCO_Table));
+
+			auto numberOf = pSCTO_Table->number_of_endries;
+
+			toBE32(numberOf);
+
+			DataArray two_bytes(2);
+
+
+			uint32_t cur_pos = 0;
+			for (auto i = 0; i < numberOf; ++i)
+			{
+				cur_pos = posPointer[i];
+				toBE32(cur_pos);
+				if (cur_pos > file_size)
+					return;
+				goProFile_.setPosition(cur_pos);
+				goProFile_.ReadData(two_bytes);
+				if (memcmp(two_bytes.data(), gp_keyword.data(), two_bytes.size()) != 0)
+					return;
+			}
+
+			setValid();
+		}
+	};
+
+
+	class GoProTempFile
 	{
 		std::vector<uint32_t> clusterMap_;
 		std::vector<bool> bitmap_;
@@ -95,78 +334,7 @@ namespace IO
 		{
 			return bitmap_;
 		}
-		// <<<<<<<<<<<<<<<
-		bool findBackwardNumberOf(const uint32_t start, uint32_t & number_of)
-		{
-			const uint32_t WindowSize = 3;
-			if (start < WindowSize)
-				return false;
-			uint32_t amountTo = start -1;
-			uint32_t curr_pos = start;
 
-			uint32_t prev = clusterMap_[curr_pos--];
-			uint32_t curr = clusterMap_[curr_pos];
-			uint32_t next = 0;
-
-			uint32_t toCheck = number_together_ - 1;///????
-			uint32_t window_size = 0;
-			uint32_t skip_count = 1;	///????
-
-			for (uint32_t i = 0; i < amountTo; ++i)
-			{
-				if (toCheck == 0)
-					break;
-
-				next = clusterMap_[--curr_pos];
-				window_size = 0;
-
-				if (prev > nulls_border_)
-					++window_size;
-				if (curr > nulls_border_)
-					++window_size;
-				if (next > nulls_border_)
-					++window_size;
-
-				if (window_size >= 2)
-				{
-					++skip_count;
-					// to skip
-				}
-				else
-					break;
-
-				prev = curr;
-				curr = next;
-
-				--toCheck;
-			}
-
-
-			number_of = skip_count;
-			return true;
-		}
-
-		bool findFromEnd(const uint32_t start , uint32_t & found_pos)
-		{
-			 //Start from end to analyze number together
-			auto rPos = clusterMap_.size() -1 - start;
-			auto findIter = std::find_if(clusterMap_.rbegin() + rPos, clusterMap_.rend(), [=](const uint32_t nulls_val) {
-				return nulls_val > nulls_border_;
-			}); 
-			if (findIter == clusterMap_.rend())
-				return false;
-			found_pos = clusterMap_.size() -1 - std::distance(clusterMap_.rbegin(), findIter);
-			return true;
-
-		}
-
-		std::vector<uint32_t>::iterator findFromStart(const uint32_t start)
-		{
-			auto findIter = std::find_if(clusterMap_.begin() + start, clusterMap_.end(), [=](const uint32_t nulls_val) {
-				return nulls_val > nulls_border_;
-			});
-			return findIter;
-		}
 		uint32_t countOfSixteen(std::vector<uint32_t>::iterator startIter)
 		{
 			return std::count_if(startIter, startIter + number_together_, [=](const uint32_t nulls_val) {
@@ -183,9 +351,6 @@ namespace IO
 					++number_of;
 			}
 			return number_of;
-			//return std::count_if(clusterMap_.begin() + position , clusterMap_.begin() + position + number_together_, [=](const uint32_t nulls_val) {
-			//	return nulls_val > nulls_border_;
-			//});
 		}
 
 		void analyze()
@@ -207,12 +372,7 @@ namespace IO
 
 			for (size_t iCluster = 1; iCluster < clusterMap_.size(); ++iCluster)
 			{
-				if (iCluster == 560)
-				{
-					int k = 1;
-					k = 1;
-				}
-				if ((iCluster % number_together_ )== 0)
+				if ((iCluster % number_together_) == 0)
 				{
 					if (iCluster + number_together_ > clusterMap_.size())
 						break;
@@ -226,67 +386,12 @@ namespace IO
 				}
 
 			}
-
-		//	uint32_t posToFind = number_together_;
-		//	while (true)
-		//	{
-		//		auto findIter = findFromStart(posToFind);
-		//		if (findIter == clusterMap_.end())
-		//			break;
-
-
-		//		auto pos = std::distance(clusterMap_.begin(), findIter);
-		//		if (pos + number_together_ >= clusterMap_.size())
-		//			break;
-
-
-
-		//		auto nCount = countOfSixteen(findIter);
-		//		posToFind = pos + 1;
-		//		auto nextIter = findFromStart(posToFind);
-		//		auto distSize = std::distance(findIter, nextIter);
-		//		if (distSize < number_together_)
-		//		{
-		//			auto next_pos = std::distance(clusterMap_.begin(), nextIter);
-		//			if (next_pos + number_together_ >= clusterMap_.size())
-		//				break;
-
-		//			auto nCountNext = countOfSixteen(nextIter);
-		//			if (nCountNext > nCount)
-		//			{
-		//				posToFind = next_pos;
-		//				continue;
-		//			}
-		//		}
-
-		//		if (nCount >= countLimit)
-		//		{
-		//			
-		//			for (auto i = 0; i < number_together_; ++i)
-		//			{
-		//				bitmap_[pos + i] = false;
-		//			}
-		//			posToFind += number_together_;
-		//		}
-
-		//		if (posToFind >= clusterMap_.size())
-		//			break;
-		//	}
 		}
-
-
 	};
 
-	std::string clusterNullsToSstring(const uint32_t cluster_number, const uint32_t number_nulls)
-	{
-		auto cluster_str = std::to_string(cluster_number);
-		auto number_nulls_str = std::to_string(number_nulls);
-
-		return  cluster_str + " \t" + number_nulls_str;
-	}
 
 
-namespace fs = std::experimental::filesystem;
+
 
 	class GoProRaw
 		: public QuickTimeRaw
@@ -303,7 +408,7 @@ namespace fs = std::experimental::filesystem;
 		{
 			setBlockSize(GP_CLUSTER_SIZE);
 		}
-		GoProFile SaveTempFile(File & temp_file, File & txt_file , const uint64_t start_offset)
+		GoProTempFile SaveTempFile(File & temp_file, File & txt_file , const uint64_t start_offset)
 		{
 			uint64_t offset = start_offset;
 
@@ -319,7 +424,7 @@ namespace fs = std::experimental::filesystem;
 			std::vector<uint32_t> cluster_map;
 			uint32_t moov_pos = 0;
 
-			GoProFile gpFile;
+			GoProTempFile gpFile;
 			uint32_t cluster = 0;
 			std::string_view endLine = "\n";
 
@@ -354,7 +459,7 @@ namespace fs = std::experimental::filesystem;
 				number_nulls = calc_nulls(data_array);
 				gpFile.addNumberNulls(0, number_nulls);
 
-				auto str_toWrite = clusterNullsToSstring(cluster , number_nulls);
+				std::string str_toWrite = clusterNullsToSstring(cluster , number_nulls);
 				txt_file.WriteText(str_toWrite);
 				if (number_nulls > nulls_border_)
 					txt_file.WriteText(" -skipped");
