@@ -63,17 +63,17 @@ void initAudioFactoryManager(IO::RawFactoryManager & factory_manager)
 void initKeysFactoryManager(IO::RawFactoryManager & factory_manager)
 {
 	factory_manager.Register("zs2_514C", std::make_unique<IO::ZS2RawFactory>());
-	factory_manager.Register("zs2_3082", std::make_unique<IO::ZS2Raw_3082Factory>());
+	//factory_manager.Register("zs2_3082", std::make_unique<IO::ZS2Raw_3082Factory>());
 	factory_manager.Register("pck", std::make_unique<IO::PCKRawFactory>());
 }
 
 void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
-	//initKeysFactoryManager(factory_manager);
+	initKeysFactoryManager(factory_manager);
 	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
 	//initVideoFactoryManager(factory_manager);
 	//initAudioFactoryManager(factory_manager);
-	factory_manager.Register("go_pro", std::make_unique<IO::GoProRawFactory>());
+	//factory_manager.Register("go_pro", std::make_unique<IO::GoProRawFactory>());
 
 	//factory_manager.Register("pln", std::make_unique<IO::PLNRawFactory>());
 
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 
-		QFile file("go_pro.json");
+		QFile file("keys.json");
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			qInfo() << "Error to open file. \"" << file.fileName() << "\"";
