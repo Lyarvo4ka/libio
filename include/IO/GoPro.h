@@ -471,6 +471,53 @@ namespace IO
 
 			return gpFile;
 		}
+		uint64_t SaveUsingBitmap(File & target_file , File & temp_file, const std::vector<uint32_t>  & bitmap)
+		{
+			DataArray data_array(getBlockSize());
+			uint64_t file_size = 0;
+			uint64_t src_pos = 0;
+			for (auto iCluster = 0; iCluster < bitmap.size(); ++iCluster)
+			{
+				if (bitmap[iCluster] )
+				{
+					src_pos = iCluster * getBlockSize();
+					tempFile.setPosition(src_pos);
+					tempFile.ReadData(data_array);
+					target_file.WriteData(data_array.data() , data_array.size());
+					file_size += getBlockSize();
+				}
+			}
+			return file_size;
+	
+		}
+		uint64_t SaveMoov(const path_string & target_file_name)
+		{
+			uint64_t file_size = 0;
+			QuickTimeRaw qt_raw(target_file_name);
+			target_file.OpenWrite();
+			auto ftypAtom = qt_raw.readQtAtom(0);
+			if (ftypAtom.compareKeyword(s_ftyp))
+			if (ftypAtom.isValid())
+			{
+				auto mdatAtom = qt_raw.readQtAtom(ftypAtom.size());
+				if (mdatAtom.isValid())
+				if (mdatAtom.compareKeyword(s_mdat))
+				{
+					auto moov_pos = ftypAtom.size() + mdatAtom.size();
+					target_ptr->setPosition(moov_pos);
+					target_ptr->WriteData(gpFile.getMoovData()->data(), gpFile.getMoovData()->size());
+					file_size += gpFile.getMoovData()->size();
+
+					if ( moov_pos > gpFile.getEndChunk()->size())
+					{
+						target_ptr->setPosition(moov_pos - gpFile.getEndChunk()->size());
+						target_ptr->WriteData(gpFile.getEndChunk()->data(), gpFile.getEndChunk()->size());
+						file_size += gpFile.getEndChunk()->size();
+					}
+				}
+			}
+			return file_size;
+		}
 
 		uint64_t SaveRawFile(File & target_file, const uint64_t start_offset) override
 		{
@@ -495,52 +542,10 @@ namespace IO
 				return 0;
 			}
 
-			uint64_t src_pos = 0;
 			
-
-			DataArray data_array(getBlockSize());
-			auto bitmap = gpFile.getBitMap();
-			uint64_t file_size = 0;
-			for (auto iCluster = 0; iCluster < bitmap.size(); ++iCluster)
-			{
-				if (bitmap[iCluster] )
-				{
-					src_pos = iCluster * getBlockSize();
-					tempFile.setPosition(src_pos);
-					tempFile.ReadData(data_array);
-					target_file.WriteData(data_array.data() , data_array.size());
-					file_size += getBlockSize();
-				}
-			}
+			auto file_size = SaveUsingBitmap(targer_file , tempFile , gpFile.getBitMap());
 			target_file.Close();
-			auto target_ptr = makeFilePtr(target_file.getFileName());
-			target_ptr->OpenWrite();
-			QuickTimeRaw qt_raw(target_ptr);
-			target_file.OpenWrite();
-			auto ftypAtom = qt_raw.readQtAtom(0);
-			if (ftypAtom.isValid())
-			{
-				auto mdatAtom = qt_raw.readQtAtom(ftypAtom.size());
-				if (mdatAtom.isValid())
-				{
-					auto moov_pos = ftypAtom.size() + mdatAtom.size();
-					target_ptr->setPosition(moov_pos);
-					target_ptr->WriteData(gpFile.getMoovData()->data(), gpFile.getMoovData()->size());
-					file_size += gpFile.getMoovData()->size();
-
-
-					target_ptr->setPosition(moov_pos - gpFile.getEndChunk()->size());
-					target_ptr->WriteData(gpFile.getEndChunk()->data(), gpFile.getEndChunk()->size());
-					file_size += gpFile.getEndChunk()->size();
-				}
-			}
-				
-
-
-
-
-			int k = 1;
-			k = 2;
+			file_size +=SaveMoov(target_file.getFileName());  
 
 			return file_size;
 		}
