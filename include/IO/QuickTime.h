@@ -199,9 +199,9 @@ namespace IO
 			: StandartRaw(device)
 		{
 		}
-		explicit QuickTimeRaw(const path_sting & fileName )
+		explicit QuickTimeRaw(const path_string & fileName )
+			: StandartRaw(makeFilePtr(fileName))
 		{
-			device_ = makeFilePtr(fileName);
 		}
 
 		virtual ~QuickTimeRaw()

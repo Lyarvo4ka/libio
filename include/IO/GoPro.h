@@ -229,6 +229,8 @@ namespace IO
 			qt_block_t stco_block = { 0 };
 			goProFile_.ReadData((ByteArray)&stco_block, sizeof(qt_block_t));
 			toBE32(stco_block.block_size);
+			if (stco_block.block_size > file_size)
+				return;
 
 			DataArray stco_data(stco_block.block_size);
 			auto table_offset = table_pos - qt_keyword_size;
@@ -471,7 +473,7 @@ namespace IO
 
 			return gpFile;
 		}
-		uint64_t SaveUsingBitmap(File & target_file , File & temp_file, const std::vector<uint32_t>  & bitmap)
+		uint64_t SaveUsingBitmap(File & target_file , File & temp_file, const std::vector<bool>  & bitmap)
 		{
 			DataArray data_array(getBlockSize());
 			uint64_t file_size = 0;
@@ -481,8 +483,8 @@ namespace IO
 				if (bitmap[iCluster] )
 				{
 					src_pos = iCluster * getBlockSize();
-					tempFile.setPosition(src_pos);
-					tempFile.ReadData(data_array);
+					temp_file.setPosition(src_pos);
+					temp_file.ReadData(data_array);
 					target_file.WriteData(data_array.data() , data_array.size());
 					file_size += getBlockSize();
 				}
@@ -493,29 +495,30 @@ namespace IO
 		uint64_t SaveMoov(const path_string & target_file_name)
 		{
 			uint64_t file_size = 0;
-			QuickTimeRaw qt_raw(target_file_name);
-			target_file.OpenWrite();
-			auto ftypAtom = qt_raw.readQtAtom(0);
-			if (ftypAtom.compareKeyword(s_ftyp))
-			if (ftypAtom.isValid())
-			{
-				auto mdatAtom = qt_raw.readQtAtom(ftypAtom.size());
-				if (mdatAtom.isValid())
-				if (mdatAtom.compareKeyword(s_mdat))
-				{
-					auto moov_pos = ftypAtom.size() + mdatAtom.size();
-					target_ptr->setPosition(moov_pos);
-					target_ptr->WriteData(gpFile.getMoovData()->data(), gpFile.getMoovData()->size());
-					file_size += gpFile.getMoovData()->size();
+			//auto target_ptr = makeFilePtr(target_file_name);
+			//target_ptr->OpenWrite();
+			//QuickTimeRaw qt_raw(target_ptr);
+			//auto ftypAtom = qt_raw.readQtAtom(0);
+			//if (ftypAtom.compareKeyword(s_ftyp))
+			//if (ftypAtom.isValid())
+			//{
+			//	auto mdatAtom = qt_raw.readQtAtom(ftypAtom.size());
+			//	if (mdatAtom.isValid())
+			//	if (mdatAtom.compareKeyword(s_mdat))
+			//	{
+			//		auto moov_pos = ftypAtom.size() + mdatAtom.size();
+			//		target_ptr->setPosition(moov_pos);
+			//		target_ptr->WriteData(gpFile.getMoovData()->data(), gpFile.getMoovData()->size());
+			//		file_size += gpFile.getMoovData()->size();
 
-					if ( moov_pos > gpFile.getEndChunk()->size())
-					{
-						target_ptr->setPosition(moov_pos - gpFile.getEndChunk()->size());
-						target_ptr->WriteData(gpFile.getEndChunk()->data(), gpFile.getEndChunk()->size());
-						file_size += gpFile.getEndChunk()->size();
-					}
-				}
-			}
+			//		if ( moov_pos > gpFile.getEndChunk()->size())
+			//		{
+			//			target_ptr->setPosition(moov_pos - gpFile.getEndChunk()->size());
+			//			target_ptr->WriteData(gpFile.getEndChunk()->data(), gpFile.getEndChunk()->size());
+			//			file_size += gpFile.getEndChunk()->size();
+			//		}
+			//	}
+			//}
 			return file_size;
 		}
 
@@ -543,7 +546,7 @@ namespace IO
 			}
 
 			
-			auto file_size = SaveUsingBitmap(targer_file , tempFile , gpFile.getBitMap());
+			auto file_size = SaveUsingBitmap(target_file, tempFile , gpFile.getBitMap());
 			target_file.Close();
 			file_size +=SaveMoov(target_file.getFileName());  
 
