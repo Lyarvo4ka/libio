@@ -12,6 +12,8 @@
 
 namespace IO
 {
+
+
 	inline path_string toWString(const std::string & oneByteString)
 	{
 		return path_string(oneByteString.begin(), oneByteString.end());

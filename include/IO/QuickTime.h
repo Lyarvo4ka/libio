@@ -55,7 +55,14 @@ namespace IO
 #pragma pack()
 
 	//using ListQtBlock = std::list<qt_block_t>;
-
+	inline ByteArray toByteArray(qt_block_t & qtBlock)
+	{
+		return reinterpret_cast<ByteArray>(&qtBlock);
+	}
+	inline ByteArray toByteArray(uint64_t value64bit)
+	{
+		return reinterpret_cast<ByteArray>(value64bit);
+	}
 	const uint32_t qt_block_struct_size = sizeof(qt_block_t);
 
 	inline bool isQuickTimeKeyword(const qt_block_t & pQtBlock , const char * keyword_name )
@@ -63,6 +70,10 @@ namespace IO
 		return (memcmp(pQtBlock.block_type, keyword_name, qt_keyword_size) == 0);
 	}
 
+	inline bool verify_region(const uint64_t start, const uint64_t size)
+	{
+		return start < size;
+	}
 	inline bool isQuickTime(const qt_block_t & pQtBlock)
 	{
 		for ( auto keyword_name : qt_array)
@@ -209,8 +220,10 @@ namespace IO
 		}
 		uint64_t readQtAtom(const uint64_t start_offset, qt_block_t & qt_block)
 		{
+			if ( (start_offset + qt_block_struct_size) >= this->getSize())
+				return 0;
 			this->setPosition(start_offset);
-			auto bytes_read = this->ReadData((ByteArray)&qt_block, qt_block_struct_size);
+			auto bytes_read = this->ReadData(toByteArray(qt_block), qt_block_struct_size);
 			if (bytes_read != qt_block_struct_size)
 				return 0;
 
@@ -230,10 +243,8 @@ namespace IO
 			atom_handle.setOffset(start_offset);
 			auto atom_size = readQtAtom(start_offset, *atom_handle.getBlock());
 			if  (atom_size == 0)
-			{
-				LOG_MESSAGE("atom size is 0");
 				return QtHandle();
-			}
+
 			atom_handle.setSize(atom_size);
 			return atom_handle;
 		}
@@ -268,10 +279,12 @@ namespace IO
 			{
 				uint64_t ext_size = 0;
 				uint64_t ext_size_offset = keyword_offset + qt_block_struct_size;
+				if (ext_size_offset + sizeof(uint64_t) >= this->getSize())
+					return 0;
 
 				this->setPosition(ext_size_offset);
-				if (!this->ReadData((ByteArray)&ext_size, sizeof(uint64_t)))
-					return 0;
+				this->ReadData(toByteArray(ext_size), sizeof(uint64_t));
+
 				toBE64(ext_size);
 				write_size = ext_size;
 			}
@@ -289,18 +302,17 @@ namespace IO
 			uint64_t keyword_pos = start_offset;
 			DataArray data_array(this->getBlockSize());
 			uint32_t bytesRead = 0;
+			uint32_t bytesToRead = 0;
 
 			while (keyword_pos < this->getSize())
 			{
+				bytesToRead = calcBlockSize(keyword_pos, this->getSize(), data_array.size());
 				this->setPosition(keyword_pos);
-				bytesRead = this->ReadData(data_array.data(), data_array.size());
-				if (bytesRead != data_array.size())
-					break;
+				bytesRead = this->ReadData(data_array.data(), bytesToRead);
 
 				for (uint32_t iSector = 0; iSector < bytesRead; iSector += default_sector_size)
 				{
-					qt_block_t * pQt_block = (qt_block_t*)(data_array.data() + iSector);
-
+					qt_block_t * pQt_block = reinterpret_cast<qt_block_t*>(data_array.data() + iSector);
 					if (cmp_keyword(*pQt_block, keyword_name.c_str()))
 					{
 						auto keyword_block = readQtAtom(keyword_pos + iSector);
@@ -308,7 +320,7 @@ namespace IO
 							return keyword_block;
 					}
 				}
-				keyword_pos += data_array.size();
+				keyword_pos += bytesRead;
 			}
 
 

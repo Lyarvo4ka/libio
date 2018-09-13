@@ -241,16 +241,14 @@ namespace IO
 
 			goProFile_.setPosition(table_pos - qt_keyword_size);
 			goProFile_.ReadData(stco_data);
-
-			STCO_Table * pSCTO_Table = (STCO_Table *)stco_data.data();
-			uint32_t * posPointer = (uint32_t *)(stco_data.data() + sizeof(STCO_Table));
+			STCO_Table * pSCTO_Table = reinterpret_cast<STCO_Table*>(stco_data.data());
+			uint32_t * posPointer = reinterpret_cast<uint32_t *>(stco_data.data() + sizeof(STCO_Table));
 
 			auto numberOf = pSCTO_Table->number_of_endries;
 
 			toBE32(numberOf);
 
 			DataArray two_bytes(2);
-
 
 			uint32_t cur_pos = 0;
 			for (auto i = 0; i < numberOf; ++i)

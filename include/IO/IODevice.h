@@ -47,6 +47,14 @@ namespace IO
 		}
 	}
 
+	class DeviceEngine
+	{
+	public:
+		static Error::IOStatus ReadDataBlock(HANDLE & hDrive , ByteArray data, uint32_t read_size)
+		{
+
+		}
+	};
 
 	class IODevice
 	{
@@ -140,7 +148,6 @@ namespace IO
 				Error::IOStatus error_status(status_code, error_string, lastError);
 				throw Error::IOErrorException(error_status);
 
-				//printf(error_string.c_str());
 				//***********************
 				//1. (OpenMode::OpenRead)			Error opening the file for reading
 				//2. (OpenMode::OpenWrite)			Error opening file for writing
@@ -148,13 +155,7 @@ namespace IO
 				//4. (ReadData)						Error reading from file
 				//4. (WriteData)					Error writing to file
 				//***********************
-				int k = 1;
-				k = 2;
-				//auto device_err = make_error_condition(openModeToIOError(openMode));
-				
-				//device_err.message()
-				//auto device_error = openModeToIOError(openMode);
-				//err->showMessage(dwError, ioDeviceErrorToString(device_error), file_name_);
+
 			}
 
 			return bOpen_;
@@ -194,15 +195,9 @@ namespace IO
 			{
 				bytes_to_read = calcBlockSize(data_pos, read_size, transfer_size);
 				setPosition(position_);
-				auto readResult = ::ReadFile(hFile_, data + data_pos, bytes_to_read, &bytes_read, NULL);
-				if (!readResult || (bytes_read == 0))
-				{
-					auto error_message = Error::getDiskOrFileError(Error::IOErrorsType::kReadData, "file");
-					auto lastError = ::GetLastError();
-					Error::IOStatus error_status(Error::IOErrorsType::kReadData, error_message, lastError);
-					return error_status;
-				}
-
+				ByteArray pData = data + data_pos;
+				if (auto status = read_data(pData, bytes_to_read, bytes_read); !status.isOK())
+					return status;
 				data_pos += bytes_read;
 				position_ += bytes_read;
 			}
@@ -221,8 +216,8 @@ namespace IO
 			auto error_status = ReadData(data, read_size, bytes_read);
 			if (error_status.isOK())
 				return bytes_read;
-			return 0;
-			//throw Error::IOErrorException(error_status);
+
+			throw Error::IOErrorException(error_status);
 		};
 
 		uint32_t ReadData(DataArray & data_array)
@@ -242,13 +237,10 @@ namespace IO
 
 		uint32_t WriteData(ByteArray data, uint32_t write_size) override
 		{
-			if (data == nullptr)
-				return 0;
-			if (write_size == 0)
-				return 0;
+			assert(data != nullptr);
+			assert(write_size >= 0);
 
 			DWORD bytes_written = 0;
-
 
 			if (!::WriteFile(hFile_, data, write_size, &bytes_written, NULL))
 			{
@@ -315,6 +307,19 @@ namespace IO
 			size_ = liSize.QuadPart;
 			return Error::IOStatus();
 		}
+		private:
+			Error::IOStatus read_data(ByteArray data , const uint32_t bytes_to_read , DWORD & bytes_read)
+			{
+				auto readResult = ::ReadFile(hFile_, data , bytes_to_read, &bytes_read, NULL);
+				if (!readResult || (bytes_read == 0))
+				{
+					auto error_message = Error::getDiskOrFileError(Error::IOErrorsType::kReadData, "file");
+					auto lastError = ::GetLastError();
+					Error::IOStatus error_status(Error::IOErrorsType::kReadData, error_message, lastError);
+					return error_status;
+				}
+				return Error::IOStatus::OK();
+			}
 
 	};
 
