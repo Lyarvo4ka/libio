@@ -2,13 +2,23 @@
 #include "physicaldrive.h"
 #include <string>
 #include <string_view>
+#include <functional>
 #include "dataarray.h"
 #include "error.h"
 
 namespace IO
 {
-	
+	BOOL read_device(HANDLE & hDevice, ByteArray data, const uint32_t bytes_to_read, DWORD & bytes_read)
+	{
+		return::ReadFile(hDevice, data, bytes_to_read, &bytes_read, NULL);
+	}
+	BOOL write_write(HANDLE & hDevice, ByteArray data, const uint32_t bytes_to_write, DWORD & bytes_written)
+	{
+		return::ReadFile(hDevice, data, bytes_to_write, &bytes_written, NULL);
+	}
 
+	
+	std::function<>;
 
 	inline uint32_t calcBlockSize(uint64_t current, uint64_t size, uint32_t block_size)
 	{
@@ -307,18 +317,26 @@ namespace IO
 			size_ = liSize.QuadPart;
 			return Error::IOStatus();
 		}
+		std::string getDeviceTypeName() const
+		{
+			return file_txt.data();
+		}
 		private:
 			Error::IOStatus read_data(ByteArray data , const uint32_t bytes_to_read , DWORD & bytes_read)
 			{
 				auto readResult = ::ReadFile(hFile_, data , bytes_to_read, &bytes_read, NULL);
 				if (!readResult || (bytes_read == 0))
-				{
-					auto error_message = Error::getDiskOrFileError(Error::IOErrorsType::kReadData, "file");
-					auto lastError = ::GetLastError();
-					Error::IOStatus error_status(Error::IOErrorsType::kReadData, error_message, lastError);
-					return error_status;
-				}
+					return makeErrorStatus(Error::IOErrorsType::kReadData);
+
 				return Error::IOStatus::OK();
+			}
+			Error::IOStatus makeErrorStatus(Error::IOErrorsType error_type)
+			{
+				auto error_message = Error::getDiskOrFileError(error_type, getDeviceTypeName());
+				auto lastError = ::GetLastError();
+				Error::IOStatus error_status(error_type, error_message, lastError);
+				return error_status;
+
 			}
 
 	};
