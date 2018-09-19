@@ -60,10 +60,11 @@ namespace IO
 	class DeviceEngine
 	{
 	public:
-		static Error::IOStatus ReadDataBlock(HANDLE & hDrive , ByteArray data, uint32_t read_size)
+		Error::IOStatus ReadDataBlock(HANDLE & device, ByteArray data, const uint32_t read_size , uint32_t & bytes_read)
 		{
 
 		}
+		Error::IOStatus WriteDataBlock(HANDLE & device, ByteArray data , const uint32_t write_size , uint32_t & bytes_written)
 	};
 
 	class IODevice
