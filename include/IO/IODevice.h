@@ -18,7 +18,7 @@ namespace IO
 	}
 
 	
-	std::function<>;
+	//std::function<>;
 
 	inline uint32_t calcBlockSize(uint64_t current, uint64_t size, uint32_t block_size)
 	{
@@ -60,11 +60,12 @@ namespace IO
 	class DeviceEngine
 	{
 	public:
-		Error::IOStatus ReadDataBlock(HANDLE & device, ByteArray data, const uint32_t read_size , uint32_t & bytes_read)
-		{
+		//Error::IOStatus ReadDataBlock(HANDLE & device, ByteArray data, const uint32_t read_size , uint32_t & bytes_read)
+		//{
 
-		}
-		Error::IOStatus WriteDataBlock(HANDLE & device, ByteArray data , const uint32_t write_size , uint32_t & bytes_written)
+		//}
+		//Error::IOStatus WriteDataBlock(HANDLE & device, ByteArray data, const uint32_t write_size, uint32_t & bytes_written)
+		//{}
 	};
 
 	class IODevice

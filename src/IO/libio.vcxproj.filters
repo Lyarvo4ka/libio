@@ -227,5 +227,8 @@
     <ClInclude Include="..\..\include\IO\acronis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\IO\vhd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
