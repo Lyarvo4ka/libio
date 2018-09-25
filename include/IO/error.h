@@ -24,6 +24,7 @@ namespace IO
 			OK = 0,
 			kOpenRead ,
 			kOpenWrite,
+			kOpen,
 			kCreate,
 			kReadData,
 			kWriteData,
