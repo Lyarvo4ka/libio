@@ -14,6 +14,8 @@ namespace IO
 	{
 		HANDLE hDevice_ = INVALID_HANDLE_VALUE;
 	public:
+		//void operator() (ByteArray, const uint32_t, uint32_t &)
+		//{}
 		Error::IOErrorsType Open(const path_string & path)
 		{
 			hDevice_ = ::CreateFile(path.c_str(),
@@ -105,6 +107,7 @@ namespace IO
 		}
 
 	};
+
 	using read_or_write_func = std::function<Error::IOErrorsType(ByteArray, const uint32_t, uint32_t &)>;
 
 
@@ -158,6 +161,17 @@ namespace IO
 		virtual uint32_t ReadData(ByteArray data, uint32_t read_size) = 0;
 		virtual uint32_t WriteData(ByteArray data, uint32_t read_size) = 0;
 		virtual uint64_t Size() const = 0;
+	};
+	class BasicDevice
+		: public IODevice
+	{
+		std::unique_ptr<IOEngine> io_engine = std::make_unique<IOEngine>();
+		//path_string device_path_;
+	public:
+		bool Open(OpenMode open_mode) override
+		{
+			//io_engine->Open(device_path_);
+		}
 	};
 
 	using IODevicePtr = std::shared_ptr<IODevice>;
@@ -279,29 +293,7 @@ namespace IO
 			::SetFilePointerEx(hFile_, liPos, NULL, FILE_BEGIN);
 		};
 
-		Error::IOStatus ReadData(ByteArray data, uint32_t read_size , DWORD & bytes_read) 
-		{
-			auto result = ReadOrWriteData(data, read_size, bytes_read, std::bind(&IOEngine::Read, std::ref(*io_engine.get()) ));
-			//auto transfer_size = default_block_size;
-
-			//uint32_t data_pos = 0;
-			//uint32_t bytes_to_read = 0;
-			//while (data_pos < read_size)
-			//{
-			//	bytes_to_read = calcBlockSize(data_pos, read_size, transfer_size);
-			//	setPosition(position_);
-			//	ByteArray pData = data + data_pos;
-			//	if (auto status = read_data(pData, bytes_to_read, bytes_read); !status.isOK())
-			//		return status;
-			//	data_pos += bytes_read;
-			//	position_ += bytes_read;
-			//}
-			//bytes_read = data_pos;
-			//return Error::IOStatus::OK();
-
-		}
-
-		Error::IOErrorsType ReadOrWriteData(ByteArray data, uint32_t read_size, DWORD & bytes_read , read_or_write_func read_write)
+		Error::IOErrorsType ReadOrWriteData(ByteArray data, uint32_t read_size, uint32_t & bytes_read, read_or_write_func read_write)
 		{
 			auto transfer_size = default_block_size;
 
@@ -323,12 +315,24 @@ namespace IO
 		}
 
 
+		Error::IOStatus ReadData(ByteArray data, uint32_t read_size , uint32_t & bytes_read) 
+		{
+			auto ptr = io_engine.get();
+			auto read_func = std::bind(&IOEngine::Read, std::ref(*ptr), data , read_size, bytes_read);
+			auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
+			if (result != Error::IOErrorsType::OK)
+				return makeErrorStatus(result);
+
+			return Error::IOStatus::OK();
+
+		}
+
 		uint32_t ReadData(ByteArray data, uint32_t read_size) override
 		{
 			assert(data != nullptr);
 			assert(read_size >= 0);
 
-			DWORD bytes_read = 0;
+			uint32_t bytes_read = 0;
 
 			auto error_status = ReadData(data, read_size, bytes_read);
 			if (error_status.isOK())
@@ -339,7 +343,7 @@ namespace IO
 
 		uint32_t ReadData(DataArray & data_array)
 		{
-			DWORD bytes_read = 0;
+			uint32_t bytes_read = 0;
 			auto error_status = ReadData(data_array.data(), data_array.size(), bytes_read);
 			if (error_status.isOK())
 				return bytes_read;
@@ -352,23 +356,38 @@ namespace IO
 			return WriteData((ByteArray)text_data.data(), static_cast<uint32_t>(text_data.length()));
 		}
 
+		Error::IOStatus WriteData(ByteArray data, uint32_t write_size, uint32_t & bytes_written)
+		{
+			auto ptr = io_engine.get();
+			auto read_func = std::bind(&IOEngine::Write, std::ref(*ptr), data, write_size, bytes_written);
+			auto result = ReadOrWriteData(data, write_size, bytes_written, read_func); 
+			if (result != Error::IOErrorsType::OK)
+				return makeErrorStatus(result);
+
+			return Error::IOStatus::OK();
+
+		}
+
 		uint32_t WriteData(ByteArray data, uint32_t write_size) override
 		{
 			assert(data != nullptr);
 			assert(write_size >= 0);
 
 			DWORD bytes_written = 0;
+			auto ptr = io_engine.get();
+			auto read_func = std::bind(&IOEngine::Read, std::ref(*ptr), data, read_size, bytes_read);
+			auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
 
-			if (!::WriteFile(hFile_, data, write_size, &bytes_written, NULL))
-			{
-				auto dwLastError = ::GetLastError();
-				auto err = ErrorHandler::get();
-				err->showMessage(Error::getDiskOrFileError(Error::IOErrorsType::kWriteData, "file"));
-				//ERROR_DISK_FULL
-				err->showMessage(err->getMessage(dwLastError));
+			//if (!::WriteFile(hFile_, data, write_size, &bytes_written, NULL))
+			//{
+			//	auto dwLastError = ::GetLastError();
+			//	auto err = ErrorHandler::get();
+			//	err->showMessage(Error::getDiskOrFileError(Error::IOErrorsType::kWriteData, "file"));
+			//	//ERROR_DISK_FULL
+			//	err->showMessage(err->getMessage(dwLastError));
 
-				return 0;
-			}
+			//	return 0;
+			//}
 			size_ += bytes_written;
 			return bytes_written;
 		};
