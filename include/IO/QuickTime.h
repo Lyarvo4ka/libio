@@ -107,7 +107,7 @@ namespace IO
 			if (searchDirection == SearchDirection::kForward) 
 				temp_pos = pos;
 			else
-				temp_pos = data_array.size() - textToFind.length() - pos;
+				temp_pos = data_array.size() - static_cast<uint32_t>(textToFind.length()) - pos;
 
 			if (memcmp(data_array.data() + temp_pos, textToFind.data(), textToFind.length()) == 0)
 			{

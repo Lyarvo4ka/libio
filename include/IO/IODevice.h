@@ -16,7 +16,7 @@ namespace IO
 	public:
 		//void operator() (ByteArray, const uint32_t, uint32_t &)
 		//{}
-		Error::IOErrorsType Open(const path_string & path)
+		Error::IOErrorsType OpenRead(const path_string & path)
 		{
 			hDevice_ = ::CreateFile(path.c_str(),
 				GENERIC_READ | GENERIC_WRITE,
@@ -26,7 +26,21 @@ namespace IO
 				0,
 				NULL);
 			if (hDevice_ == INVALID_HANDLE_VALUE)
-				return Error::IOErrorsType::kOpen;
+				return Error::IOErrorsType::kOpenRead;
+
+			return Error::IOErrorsType::OK;
+		}
+		Error::IOErrorsType OpenWrite(const path_string & path)
+		{
+			hDevice_ = ::CreateFile(path.c_str(),
+				GENERIC_READ | GENERIC_WRITE,
+				FILE_SHARE_READ | FILE_SHARE_WRITE,
+				NULL,
+				OPEN_EXISTING,
+				0,
+				NULL);
+			if (hDevice_ == INVALID_HANDLE_VALUE)
+				return Error::IOErrorsType::kOpenWrite;
 
 			return Error::IOErrorsType::OK;
 		}
@@ -158,31 +172,98 @@ namespace IO
 		virtual void Close() = 0;
 		virtual bool isOpen() = 0;
 		virtual void setPosition(uint64_t offset) = 0;
+		virtual uint64_t getPosition()  const = 0;
 		virtual uint32_t ReadData(ByteArray data, uint32_t read_size) = 0;
 		virtual uint32_t WriteData(ByteArray data, uint32_t read_size) = 0;
 		virtual uint64_t Size() const = 0;
+		virtual std::string getDeviceTypeName() const = 0;
 	};
+
 	class BasicDevice
 		: public IODevice
 	{
-		std::unique_ptr<IOEngine> io_engine = std::make_unique<IOEngine>();
-		//path_string device_path_;
+		uint64_t position_ = 0;
+		uint32_t transfer_size_ = default_block_size;
 	public:
-		bool Open(OpenMode open_mode) override
+		void setPosition(uint64_t offset) override
 		{
-			//io_engine->Open(device_path_);
+			position_ = offset;
+		}
+		uint64_t getPosition() const override
+		{
+			return position_;
+		}
+		uint32_t getTransferSize() const
+		{
+			return transfer_size_;
+		}
+		void setTranferSize(uint32_t transfer_size)
+		{
+			transfer_size_ = transfer_size;
+		}
+	protected:
+		std::unique_ptr<IOEngine> io_engine = std::make_unique<IOEngine>();
+
+		Error::IOErrorsType ReadOrWriteData(ByteArray data, uint32_t read_size, uint32_t & bytes_read, read_or_write_func read_write)
+		{
+
+			uint32_t data_pos = 0;
+			uint32_t bytes_to_read = 0;
+			while (data_pos < read_size)
+			{
+				bytes_to_read = calcBlockSize(data_pos, read_size, getTransferSize());
+				setPosition(position_);
+				ByteArray pData = data + data_pos;
+				if (auto result = read_write(pData, bytes_to_read, bytes_read); result != Error::IOErrorsType::OK)
+					return result;
+				data_pos += bytes_read;
+				position_ += bytes_read;
+			}
+			bytes_read = data_pos;
+			return Error::IOErrorsType::OK;
+
+		}
+
+		Error::IOStatus read_data(ByteArray data, uint32_t read_size, uint32_t & bytes_read)
+		{
+			auto engine_ptr = io_engine.get();
+			auto read_func = std::bind(&IOEngine::Read, std::ref(*engine_ptr), data, read_size, bytes_read);
+			auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
+			if (result != Error::IOErrorsType::OK)
+				return makeErrorStatus(result);
+
+			return Error::IOStatus::OK();
+
+		}
+
+		Error::IOStatus write_data(ByteArray data, uint32_t write_size, uint32_t & bytes_written)
+		{
+			auto engine_ptr = io_engine.get();
+			auto write_func = std::bind(&IOEngine::Write, std::ref(*engine_ptr), data, write_size, bytes_written);
+			auto result = ReadOrWriteData(data, write_size, bytes_written, write_func);
+			if (result != Error::IOErrorsType::OK)
+				return makeErrorStatus(result);
+
+			return Error::IOStatus::OK();
+
+		}
+
+		Error::IOStatus makeErrorStatus(Error::IOErrorsType error_type)
+		{
+			auto error_message = Error::getDiskOrFileError(error_type, getDeviceTypeName());
+			auto lastError = ::GetLastError();
+			Error::IOStatus error_status(error_type, error_message, lastError);
+			return error_status;
+
 		}
 	};
 
 	using IODevicePtr = std::shared_ptr<IODevice>;
 
 	class File
-		: public IODevice
+		: public BasicDevice
 	{
 	private:
-		std::unique_ptr<IOEngine> io_engine = std::make_unique<IOEngine>();
-		HANDLE hFile_;
-		uint64_t position_;
 		uint64_t size_;
 		path_string file_name_;
 		bool bOpen_;
@@ -190,9 +271,7 @@ namespace IO
 
 	public:
 		File(const path_string & file_name)
-			: hFile_(INVALID_HANDLE_VALUE)
-			, position_( 0 )
-			, size_(0)
+			: size_(0)
 			, file_name_(file_name)
 			, bOpen_(false)
 		{
@@ -218,53 +297,28 @@ namespace IO
 
 		bool Open( OpenMode openMode) override
 		{
-			uint32_t win_open_mode = 0;
-
+			Error::IOErrorsType result = Error::IOErrorsType::OK;
 			switch (openMode)
 			{
 			case OpenMode::OpenRead:
+				result = io_engine->OpenRead(file_name_);
+				break;
 			case OpenMode::OpenWrite:
-				win_open_mode = OPEN_EXISTING;
+				result = io_engine->OpenWrite(file_name_);
 				break;
 			case OpenMode::Create:
-				win_open_mode = CREATE_ALWAYS;
+				result = io_engine->Create(file_name_);
 				break;
 			}
 
-			hFile_ = ::CreateFile(file_name_.c_str(),
-				GENERIC_READ | GENERIC_WRITE,
-				FILE_SHARE_READ | FILE_SHARE_WRITE,
-				NULL,
-				win_open_mode,
-				0,
-				NULL);
+			if (result != Error::IOErrorsType::OK)
+				throw Error::IOErrorException(makeErrorStatus(result));
 
-			if (hFile_ != INVALID_HANDLE_VALUE)
-			{
-				bOpen_ = true;
-				auto error_status = readFileSize(size_);
-				if (!error_status.isOK())
-					throw Error::IOErrorException(error_status);
-				
-			}
-			else
-			{
-				bOpen_ = false;
-				DWORD lastError = ::GetLastError();
-				auto status_code = Error::OpenModeToError(openMode);
-				auto error_string = Error::getDiskOrFileError(status_code, "file");
-				Error::IOStatus error_status(status_code, error_string, lastError);
+			bOpen_ = true;
+
+			auto error_status = readFileSize(size_);
+			if (!error_status.isOK())
 				throw Error::IOErrorException(error_status);
-
-				//***********************
-				//1. (OpenMode::OpenRead)			Error opening the file for reading
-				//2. (OpenMode::OpenWrite)			Error opening file for writing
-				//3. (OpenMode::Create)				Error creating file
-				//4. (ReadData)						Error reading from file
-				//4. (WriteData)					Error writing to file
-				//***********************
-
-			}
 
 			return bOpen_;
 		}
@@ -272,11 +326,7 @@ namespace IO
 		
 		void Close() override
 		{
-			if (hFile_ != INVALID_HANDLE_VALUE)
-			{
-				::CloseHandle(hFile_);
-				hFile_ = INVALID_HANDLE_VALUE;
-			}
+			io_engine->Close();
 			bOpen_ = false;
 
 		}
@@ -287,44 +337,13 @@ namespace IO
 
 		void setPosition(uint64_t offset) override
 		{
-			position_ = offset;
-			LARGE_INTEGER liPos = { 0};
-			liPos.QuadPart = position_;
-			::SetFilePointerEx(hFile_, liPos, NULL, FILE_BEGIN);
-		};
-
-		Error::IOErrorsType ReadOrWriteData(ByteArray data, uint32_t read_size, uint32_t & bytes_read, read_or_write_func read_write)
-		{
-			auto transfer_size = default_block_size;
-
-			uint32_t data_pos = 0;
-			uint32_t bytes_to_read = 0;
-			while (data_pos < read_size)
-			{
-				bytes_to_read = calcBlockSize(data_pos, read_size, transfer_size);
-				setPosition(position_);
-				ByteArray pData = data + data_pos;
-				if (auto result = read_write(pData, bytes_to_read, bytes_read); result != Error::IOErrorsType::OK)
-					return result;
-				data_pos += bytes_read;
-				position_ += bytes_read;
-			}
-			bytes_read = data_pos;
-			return Error::IOErrorsType::OK;
-
+			BasicDevice::setPosition(offset);
+			io_engine->setPostion(offset);
 		}
 
-
-		Error::IOStatus ReadData(ByteArray data, uint32_t read_size , uint32_t & bytes_read) 
+		uint64_t getPosition() const override
 		{
-			auto ptr = io_engine.get();
-			auto read_func = std::bind(&IOEngine::Read, std::ref(*ptr), data , read_size, bytes_read);
-			auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
-			if (result != Error::IOErrorsType::OK)
-				return makeErrorStatus(result);
-
-			return Error::IOStatus::OK();
-
+			return BasicDevice::getPosition();
 		}
 
 		uint32_t ReadData(ByteArray data, uint32_t read_size) override
@@ -334,93 +353,48 @@ namespace IO
 
 			uint32_t bytes_read = 0;
 
-			auto error_status = ReadData(data, read_size, bytes_read);
-			if (error_status.isOK())
+			auto status = read_data(data, read_size, bytes_read);
+			if (status.isOK())
 				return bytes_read;
 
-			throw Error::IOErrorException(error_status);
-		};
+			throw Error::IOErrorException(status);
+		}
 
 		uint32_t ReadData(DataArray & data_array)
 		{
 			uint32_t bytes_read = 0;
-			auto error_status = ReadData(data_array.data(), data_array.size(), bytes_read);
-			if (error_status.isOK())
-				return bytes_read;
-
-			throw Error::IOErrorException(error_status);
+			return ReadData(data_array.data(), data_array.size());
 		}
 
 		uint32_t WriteText(const std::string_view text_data)
 		{
 			return WriteData((ByteArray)text_data.data(), static_cast<uint32_t>(text_data.length()));
 		}
-
-		Error::IOStatus WriteData(ByteArray data, uint32_t write_size, uint32_t & bytes_written)
-		{
-			auto ptr = io_engine.get();
-			auto read_func = std::bind(&IOEngine::Write, std::ref(*ptr), data, write_size, bytes_written);
-			auto result = ReadOrWriteData(data, write_size, bytes_written, read_func); 
-			if (result != Error::IOErrorsType::OK)
-				return makeErrorStatus(result);
-
-			return Error::IOStatus::OK();
-
-		}
-
 		uint32_t WriteData(ByteArray data, uint32_t write_size) override
 		{
 			assert(data != nullptr);
 			assert(write_size >= 0);
 
-			DWORD bytes_written = 0;
-			auto ptr = io_engine.get();
-			auto read_func = std::bind(&IOEngine::Read, std::ref(*ptr), data, read_size, bytes_read);
-			auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
+			uint32_t bytes_written = 0;
+			auto status = write_data(data, write_size, bytes_written);
+			if (status.isOK())
+				return bytes_written;
 
-			//if (!::WriteFile(hFile_, data, write_size, &bytes_written, NULL))
-			//{
-			//	auto dwLastError = ::GetLastError();
-			//	auto err = ErrorHandler::get();
-			//	err->showMessage(Error::getDiskOrFileError(Error::IOErrorsType::kWriteData, "file"));
 			//	//ERROR_DISK_FULL
-			//	err->showMessage(err->getMessage(dwLastError));
-
-			//	return 0;
-			//}
-			size_ += bytes_written;
-			return bytes_written;
+			throw Error::IOErrorException(status);
 		};
 
 		uint64_t Size() const override
 		{
 			return size_;
 		}
-		
-		Error::IOStatus setFileSize(uint64_t new_size) 
-		{
-			if (size_ != new_size)
-			{
-				size_ = new_size;
-				LARGE_INTEGER li = LARGE_INTEGER();
-				li.QuadPart = size_;
-				::SetFilePointerEx(hFile_, li, NULL, FILE_BEGIN);
-				auto bResult = ::SetEndOfFile(hFile_);
-				if (!bResult)
-				{
-					auto error_string = Error::getDiskOrFileError(Error::IOErrorsType::kSetFileSize, "file");
-					Error::IOStatus error_status(Error::IOErrorsType::kSetFileSize, error_string, ::GetLastError());
-					return error_status;
-				}
-			}
-			return Error::IOStatus::OK();
-		}
 
 		void setSize(uint64_t new_size)
 		{
-			auto result = setFileSize(new_size);
-			if (!result.isOK())
-				throw Error::IOErrorException(result);
+			auto status = makeErrorStatus(io_engine->SetFileSize(new_size));
+			if (!status.isOK())
+				throw Error::IOErrorException(status);
+			size_ = new_size;
 		}
 		void setFileName(const path_string new_filename)
 		{
@@ -433,46 +407,12 @@ namespace IO
 		}
 		Error::IOStatus readFileSize(uint64_t & file_size)
 		{
-			LARGE_INTEGER liSize = { 0 };
-			if (!::GetFileSizeEx(hFile_, &liSize))
-			{
-				DWORD lastError = ::GetLastError();
-				auto error_string = Error::getDiskOrFileError(Error::IOErrorsType::kGetFileSize, "file");
-				return Error::IOStatus(Error::IOErrorsType::kGetFileSize, error_string, lastError);
-			}
-			size_ = liSize.QuadPart;
-			return Error::IOStatus();
+			return makeErrorStatus(io_engine->readFileSize(file_size));
 		}
-		std::string getDeviceTypeName() const
+		std::string getDeviceTypeName() const override
 		{
 			return file_txt.data();
 		}
-		private:
-			Error::IOStatus read_data(ByteArray data , const uint32_t bytes_to_read , DWORD & bytes_read)
-			{
-				auto readResult = ::ReadFile(hFile_, data , bytes_to_read, &bytes_read, NULL);
-				if (!readResult || (bytes_read == 0))
-					return makeErrorStatus(Error::IOErrorsType::kReadData);
-
-				return Error::IOStatus::OK();
-			}
-			Error::IOStatus write_data(ByteArray data, const uint32_t bytes_to_write, DWORD & bytes_written)
-			{
-				auto readResult = ::ReadFile(hFile_, data, bytes_to_write, &bytes_written, NULL);
-				if (!readResult || (bytes_written == 0))
-					return makeErrorStatus(Error::IOErrorsType::kWriteData);
-
-				return Error::IOStatus::OK();
-			}
-			Error::IOStatus makeErrorStatus(Error::IOErrorsType error_type)
-			{
-				auto error_message = Error::getDiskOrFileError(error_type, getDeviceTypeName());
-				auto lastError = ::GetLastError();
-				Error::IOStatus error_status(error_type, error_message, lastError);
-				return error_status;
-
-			}
-
 	};
 
 	using FilePtr = std::shared_ptr<File>;
@@ -481,68 +421,45 @@ namespace IO
 		return std::make_shared<File>(file_name);
 	}
 
-	class BlockDevice
-		: public IODevice
-	{
-	public:
-		virtual uint32_t ReadBlock(ByteArray data, uint32_t read_size) = 0;
-		virtual uint32_t WriteBlock(ByteArray data, uint32_t read_size) = 0;
+	//class BlockDevice
+	//	: public BasicDevice
+	//{
+	//public:
+	//	virtual uint32_t ReadBlock(ByteArray data, uint32_t read_size) = 0;
+	//	virtual uint32_t WriteBlock(ByteArray data, uint32_t read_size) = 0;
 
-	};
+	//};
 
 
 	class DiskDevice
-		: public BlockDevice
+		: public BasicDevice
 	{
 	private:
-		HANDLE hDrive_;
 		bool bOpen_;
-		uint64_t position_;
 		PhysicalDrivePtr physical_drive_;
 	public:
 		DiskDevice(PhysicalDrivePtr physical_drive)
-			:hDrive_(INVALID_HANDLE_VALUE)
-			, bOpen_(false)
-			, position_(0)
+			: bOpen_(false)
 			, physical_drive_(physical_drive)
 		{
-			system_oi_ = std::make_unique<SystemIO>();
-		}
-		DiskDevice(PhysicalDrivePtr physical_drive , std::unique_ptr<SystemIO> system_io)
-			:hDrive_(INVALID_HANDLE_VALUE)
-			, bOpen_(false)
-			, position_(0)
-			, physical_drive_(physical_drive)
-			, system_oi_(std::move(system_io))
-		{
+			setTranferSize(physical_drive_->getTransferLength());
 		}
 		bool Open(OpenMode open_mode) override
 		{
+			bOpen_ = false;
 			if (physical_drive_)
 			{
-				hDrive_ = system_oi_->OpenPhysicalDrive(physical_drive_->getPath());
-				if (hDrive_ != INVALID_HANDLE_VALUE)
-				{
-					bOpen_ = true;
-					return true;
-				}
-
+				auto status = makeErrorStatus(io_engine->OpenRead(physical_drive_->getPath()));
+				if (!status.isOK())
+					throw Error::IOErrorException(status);
+				bOpen_ = true;
 			}
-			bOpen_ = false;
-			//***********************
-			//1. (OpenMode::OpenRead)			Error opening the disk for reading
-			//2. (OpenMode::OpenWrite)			Error opening disk for writing
-			//3. (OpenMode::Create)				Error cannot open physical drive for creating
-			//4. (ReadData)						Error reading from disk
-			//4. (WriteData)					Error writing to disk
-			//***********************
 
 			return bOpen_;
 		}
 		void Close() override
 		{
-			if (hDrive_ != INVALID_HANDLE_VALUE)
-				CloseHandle(hDrive_);
+			io_engine->Close();
 			bOpen_ = false;
 
 		}
@@ -552,90 +469,43 @@ namespace IO
 		}
 		void setPosition(uint64_t offset) override
 		{
-			//if (offset != position_)
-			{
-				position_ = offset;
-				LARGE_INTEGER li{ 0};
-				li.QuadPart = position_;
-				::SetFilePointerEx(hDrive_, li, nullptr, FILE_BEGIN);
-			}
+			BasicDevice::setPosition(offset);
+			io_engine->setPostion(offset);
+
 		}
 		uint64_t getPosition() const 
 		{
-			return position_;
+			return BasicDevice::getPosition();
 		}
 
 		uint32_t ReadDataNotAligned(ByteArray data, uint32_t read_size)
 		{
-			DWORD numByteRead = 0;
-			auto sector_size = physical_drive_->getBytesPerSector();
-			uint32_t data_start = position_ % sector_size;
-			int sector_to_read = (data_start + read_size) / sector_size + 1;
-			int bytes_to_read = sector_to_read * sector_size;
+			const auto sector_size = physical_drive_->getBytesPerSector();
+			const uint32_t data_start = this->getPosition() % sector_size;
+			const int sector_to_read = (data_start + read_size) / sector_size + 1;
+			const int bytes_to_read = sector_to_read * sector_size;
 
-			if (bytes_to_read > 0)
-			{
-				ByteArray temp_buffer = new uint8_t[bytes_to_read];
+			
+			DataArray temp_data(bytes_to_read);
+			auto bytes_read = ReadBlock(temp_data.data() , temp_data.size());
 
-				uint64_t aling_offset = position_ / sector_size;
-				aling_offset *= sector_size;
-				setPosition(aling_offset);
-				if (system_oi_->ReadFile(hDrive_, temp_buffer, bytes_to_read, &numByteRead, NULL))
-					if (numByteRead > 0)
-					{
-						memcpy(data, temp_buffer + data_start, read_size);
-						numByteRead = read_size;
-					}
-				delete[] temp_buffer;
-			}
-
-			position_ += (numByteRead + data_start);
-			return numByteRead;
-
+			memcpy(data, temp_data.data() + data_start, read_size);
+			return read_size;
 		}
 		uint32_t ReadData(ByteArray data, uint32_t read_size) override
 		{
-			if (!isOpen())
-				return 0;
-			if (data == nullptr)
-				return 0;
-			if (read_size == 0)
-				return 0;
-
+			assert(!isOpen());
 			auto sector_size = physical_drive_->getBytesPerSector();
 
-
-			if (isMultiple(position_, sector_size) && isMultiple(read_size, sector_size))
-			{
+			if (isMultiple(this->getPosition(), sector_size) && isMultiple(read_size, sector_size))
 				return ReadBlock(data, read_size);
-			}
 			else
-			{
 				return ReadDataNotAligned(data, read_size);
-			}
 		}
 		uint32_t WriteData(ByteArray data, uint32_t write_size) override
 		{
-			DWORD bytes_written = 0;
-			uint64_t data_pos = 0;
-			uint32_t bytes_to_write = default_block_size;
-
-			// copy paste
-			auto transfer_size = this->physical_drive_->getTransferLength();
-			while (data_pos < write_size)
-			{
-				bytes_to_write = calcBlockSize(data_pos, write_size, transfer_size);
-				setPosition(position_);// ??? not work
-				if (!system_oi_->WriteFile(hDrive_, data + data_pos, bytes_to_write, &bytes_written, NULL))
-					return 0;
-				if (bytes_to_write == 0)
-					return 0;
-
-				data_pos += bytes_written;
-				position_ += bytes_written;
-			}
-			return static_cast<uint32_t>(data_pos);
-
+			assert(!isOpen());
+			return WriteBlock(data, write_size);
 		}
 
 		uint64_t Size() const override
@@ -643,76 +513,29 @@ namespace IO
 			return physical_drive_->getSize();	// return byte, not sectors
 		}
 
-		uint32_t ReadBlock(ByteArray data, uint32_t read_size) override
+	private:
+		uint32_t ReadBlock(ByteArray data, uint32_t read_size) 
 		{
-			if (!isOpen())
-				return 0;
-			if (data == nullptr)
-				return 0;
-			if (read_size == 0)
-				return 0;
-			if (!isMultiple(position_, physical_drive_->getBytesPerSector()))
-				return 0;
-			if (!isMultiple(read_size , physical_drive_->getBytesPerSector()))
-				return 0;
-				
-			DWORD bytes_read = 0;
-			uint32_t data_pos = 0;
-			uint32_t bytes_to_read = 0;
-			auto transfer_size = this->physical_drive_->getTransferLength();
+			assert(data != nullptr);
+			assert(read_size >= 0);
 
-			while (data_pos < read_size)
-			{
-				bytes_to_read = calcBlockSize(data_pos, read_size, transfer_size);
-				setPosition(position_);// ??? not work
-				if (!system_oi_->ReadFile(hDrive_, data + data_pos, bytes_to_read, &bytes_read, NULL))
-					return 0;
-				if (bytes_read == 0)
-					return 0;
+			uint32_t bytes_read = 0;
+			if (auto status = read_data(data, read_size, bytes_read); !status.isOK())
+				throw Error::IOErrorException(status);
 
-				data_pos += bytes_read;
-				position_ += bytes_read;
-			}
-			bytes_read = data_pos;
 			return bytes_read;
-
-
 		}
-		uint32_t WriteBlock(ByteArray data, uint32_t write_size) override
+		uint32_t WriteBlock(ByteArray data, uint32_t write_size)
 		{
-			//if ( !isOpen())
-			//	return 0;
-			DWORD bytes_written = 0;
+			assert(data != nullptr);
+			assert(write_size >= 0);
 
-			BOOL bResult = WriteFile(hDrive_, data , write_size, &bytes_written, NULL);
-			if (!bResult)
-				return 0;
+			uint32_t bytes_written = 0;
+			if ( auto status = write_data(data,write_size, bytes_written); !status.isOK())
+				throw Error::IOErrorException(status);
+
 			return bytes_written;
 		}
-
-
-		private:
-			std::unique_ptr<SystemIO> system_oi_;
-
-
-
 	};
-	//using DiskDevicePtr = std::shared_ptr<DiskDevice>;
-	//inline DiskDevicePtr makeDiskDevicePtr(DiskDevice * pFile)
-	//{
-	//	return std::make_shared<DiskDevice>(pFile);
-	//}
-
-	//class FileDevice
-	//	: public BlockDevice
-	//{
-	//public:
-	//	FileDevice(const path_string & path)
-	//		: BlockDevice(path)
-	//	{
-
-	//	}
-
-	//};
 
 }
