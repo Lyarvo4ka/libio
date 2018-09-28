@@ -14,9 +14,9 @@ namespace IO
 	{
 		HANDLE hDevice_ = INVALID_HANDLE_VALUE;
 	public:
-		//void operator() (ByteArray, const uint32_t, uint32_t &)
-		//{}
-		Error::IOErrorsType OpenRead(const path_string & path)
+		virtual ~IOEngine() {}
+
+		virtual Error::IOErrorsType OpenRead(const path_string & path)
 		{
 			hDevice_ = ::CreateFile(path.c_str(),
 				GENERIC_READ | GENERIC_WRITE,
@@ -30,7 +30,7 @@ namespace IO
 
 			return Error::IOErrorsType::OK;
 		}
-		Error::IOErrorsType OpenWrite(const path_string & path)
+		virtual Error::IOErrorsType OpenWrite(const path_string & path)
 		{
 			hDevice_ = ::CreateFile(path.c_str(),
 				GENERIC_READ | GENERIC_WRITE,
@@ -44,7 +44,7 @@ namespace IO
 
 			return Error::IOErrorsType::OK;
 		}
-		Error::IOErrorsType Create(const path_string & path)
+		virtual Error::IOErrorsType Create(const path_string & path)
 		{
 			hDevice_ = ::CreateFile(path.c_str(),
 				GENERIC_READ | GENERIC_WRITE,
@@ -59,7 +59,7 @@ namespace IO
 			return Error::IOErrorsType::OK;
 
 		}
-		void Close()
+		virtual void Close()
 		{
 			if (hDevice_ != INVALID_HANDLE_VALUE)
 			{
@@ -67,13 +67,13 @@ namespace IO
 				hDevice_ = INVALID_HANDLE_VALUE;
 			}
 		}
-		void setPostion(uint64_t position)
+		virtual void setPostion(uint64_t position)
 		{
 			LARGE_INTEGER liPos = { 0 };
 			liPos.QuadPart = position;
 			::SetFilePointerEx(hDevice_, liPos, NULL, FILE_BEGIN);
 		}
-		Error::IOErrorsType Read( ByteArray data, const uint32_t read_size , uint32_t & bytes_read)
+		virtual Error::IOErrorsType Read( ByteArray data, const uint32_t read_size , uint32_t & bytes_read)
 		{
 			auto bResult = read_device(hDevice_, data, read_size, bytes_read);
 			if (!bResult || (bytes_read == 0))
@@ -81,7 +81,7 @@ namespace IO
 				
 			return Error::IOErrorsType::OK;
 		}
-		Error::IOErrorsType Write( ByteArray data, const uint32_t write_size, uint32_t & bytes_written)
+		virtual Error::IOErrorsType Write( ByteArray data, const uint32_t write_size, uint32_t & bytes_written)
 		{
 			auto bResult = write_device(hDevice_, data, write_size, bytes_written);
 			if (!bResult || (bytes_written == 0))
@@ -89,7 +89,7 @@ namespace IO
 
 			return Error::IOErrorsType::OK;
 		}
-		Error::IOErrorsType SetFileSize(uint64_t new_size)
+		virtual Error::IOErrorsType SetFileSize(uint64_t new_size)
 		{
 			LARGE_INTEGER li = LARGE_INTEGER();
 			li.QuadPart = new_size;
@@ -100,7 +100,7 @@ namespace IO
 			return Error::IOErrorsType::OK;
 		}
 
-		Error::IOErrorsType readFileSize(uint64_t & file_size)
+		virtual Error::IOErrorsType readFileSize(uint64_t & file_size)
 		{
 			LARGE_INTEGER liSize = { 0 };
 			if (!::GetFileSizeEx(hDevice_, &liSize))

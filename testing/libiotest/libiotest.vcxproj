@@ -47,7 +47,7 @@
   <ItemGroup>
     <ClCompile Include="dataarraytest.cpp" />
     <ClCompile Include="goprotest.cpp" />
-    <ClCompile Include="iodivetest.cpp" />
+    <ClCompile Include="iodevicetest.cpp" />
     <ClCompile Include="quicktimetest.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
