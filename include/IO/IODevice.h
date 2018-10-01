@@ -14,7 +14,10 @@ namespace IO
 	{
 		HANDLE hDevice_ = INVALID_HANDLE_VALUE;
 	public:
-		virtual ~IOEngine() {}
+		virtual ~IOEngine() 
+		{
+			Close();
+		}
 
 		virtual Error::IOErrorsType OpenRead(const path_string & path)
 		{

@@ -1,7 +1,7 @@
 #include "pch.h"
 
 #include "IO\GoPro.h"
-//
+/*
 TEST(goprotest, calcNumberToSkipTest)
 {
 	std::vector<uint32_t> vecTest = { 0,0,10,10,10,10,10,0,10,10,10,0,0,0,0,0,0,0 };
@@ -65,7 +65,7 @@ TEST(goprotest, findFromEndTest)
 
 
 
-}
+}*/
 //
 //TEST(goprotest, toStringTest)
 //{

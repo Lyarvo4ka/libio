@@ -6,7 +6,9 @@
 #include "utility.h"
 #include <memory>
 
-#include <boost/filesystem.hpp>
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 
 #pragma warning(disable:4251)
 
@@ -69,7 +71,7 @@ namespace IO
 
 		path_string getExtension() const
 		{
-			boost::filesystem::path file_path(this->getName());
+			fs::path file_path(this->getName());
 			return file_path.extension().generic_wstring();
 		}
 	};

@@ -3,7 +3,7 @@
 
 #include "iofs.h"
 #include <iostream>
-#include <boost/filesystem.hpp>
+
 #include <locale>
 #include <codecvt>
 #include <boost/algorithm/string.hpp>
@@ -12,6 +12,10 @@
 #include "IODevice.h"
 #include "QuickTime.h"
 #include "dbf.h"
+
+#include <experimental/filesystem>
+
+namespace fs = std::experimental::filesystem;
 //#include "tinyxml2.h"
 
 namespace IO
@@ -235,7 +239,7 @@ namespace IO
 
 					IO::path_string new_date_str(date_string.begin(), date_string.end());
 
-					boost::filesystem::path src_path(filePath);
+					fs::path src_path(filePath);
 					auto folder_path = src_path.parent_path().generic_wstring();
 					auto only_name_path = src_path.stem().generic_wstring();
 					auto ext = src_path.extension().generic_wstring();
@@ -243,9 +247,9 @@ namespace IO
 					test_file->Close();
 					try
 					{
-						boost::filesystem::rename(filePath, new_name);
+						fs::rename(filePath, new_name);
 					}
-					catch (const boost::filesystem::filesystem_error& e)
+					catch (const fs::filesystem_error& e)
 					{
 						std::cout << "Error: " << e.what() << std::endl;
 					}
@@ -286,7 +290,7 @@ namespace IO
 					if (!isDirectoryAttribute(findData))
 					{
 						path_string file_name = findData.cFileName;
-						boost::filesystem::path tmp_path(file_name);
+						fs::path tmp_path(file_name);
 						path_string file_ext = tmp_path.extension().wstring();
 
 						auto full_name = addBackSlash(current_folder) + file_name;
@@ -351,7 +355,7 @@ namespace IO
 
 				if ( memcmp(buff , bad_sector_sign , bad_sector_sign_size) == 0)
 				{
-					boost::filesystem::rename(file_name, file_name + L".bad_file");
+					fs::rename(file_name, file_name + L".bad_file");
 				}
 			}
 
@@ -377,7 +381,7 @@ namespace IO
 
 				if (memcmp(buff, nulls_sign, nulls_sing_size) == 0)
 				{
-					boost::filesystem::rename(file_name, file_name + L".bad_file");
+					fs::rename(file_name, file_name + L".bad_file");
 				}
 			}
 
@@ -406,7 +410,7 @@ namespace IO
 				if (memcmp(buff, const_end_jpg, constSize) != 0)
 				{
 
-					boost::filesystem::rename(filePath, filePath + L".bad_file");
+					fs::rename(filePath, filePath + L".bad_file");
 				}
 			}
 
@@ -505,7 +509,7 @@ namespace IO
 
 				if (isQtSignature(buff, header_size) == false)
 				{
-					boost::filesystem::rename(filePath, filePath + L".bad_file");
+					fs::rename(filePath, filePath + L".bad_file");
 				}
 			}
 

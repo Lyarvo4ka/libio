@@ -8,6 +8,9 @@
 #include <vector>
 #include <memory>
 
+#include <experimental/filesystem>
+
+namespace fs = std::experimental::filesystem;
 //#include "factories.h"
 
 /*
@@ -527,8 +530,8 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 				offset = header_offset;
 
 				auto new_folder = addBackSlash(target_folder) + header_info->ext.substr(1, header_info->ext.length() -1);
-				if (!boost::filesystem::exists(new_folder))
-					boost::filesystem::create_directory(new_folder);
+				if (!fs::exists(new_folder))
+					fs::create_directory(new_folder);
 
 				auto target_file = toFullPath(new_folder, counter++, header_info->ext);
 				tmp_offset = saveFile(header_offset, target_file);

@@ -6,6 +6,9 @@
 #include <Wingdi.h>
 #include "Finder.h"
 
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 namespace IO
 {
 	class my_exception
@@ -325,7 +328,7 @@ namespace IO
 			auto fileList = finder.getFiles();
 			for (auto & theFile : fileList)
 			{
-				boost::filesystem::path src_path(theFile);
+				fs::path src_path(theFile);
 				auto folder_path = src_path.parent_path().generic_wstring();
 				auto only_name_path = src_path.stem().generic_wstring();
 				auto ext = src_path.extension().generic_wstring();
@@ -368,9 +371,9 @@ namespace IO
 
 				try
 				{
-					boost::filesystem::rename(theFile, new_file_name);
+					fs::rename(theFile, new_file_name);
 				}
-				catch (const boost::filesystem::filesystem_error& e)
+				catch (const fs::filesystem_error& e)
 				{
 					std::cout << "Error: " << e.what() << std::endl;
 				}
