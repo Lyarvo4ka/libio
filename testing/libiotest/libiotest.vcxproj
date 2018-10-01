@@ -41,6 +41,7 @@
     <IntDir>$(SolutionDir)_obj\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemGroup>
+    <ClInclude Include="MockBasicDevice.h" />
     <ClInclude Include="mockfile.h" />
     <ClInclude Include="MockIOEngine.h" />
     <ClInclude Include="pch.h" />

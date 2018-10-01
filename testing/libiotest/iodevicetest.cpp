@@ -6,21 +6,38 @@
 using ::testing::AtLeast;
 using ::testing::Return;
 using ::testing::_;
+using ::testing::Test;
 //using namespace IO;
 //using namespace IO::Error;
 
 #include "MockIOEngine.h"
 
-TEST(test_IOEngine, test_OpenRead)
+class IOEngineTestSuit
+	: public Test
 {
-	MockIOEngine io_engine;
-	EXPECT_CALL(io_engine, OpenRead(_))
-		.Times(1)
-		.WillOnce(Return(IOErrorsType::OK));
+protected:
+	MockIOEngine io_engine_;
+	void SetUp() override
+	{
+		//io_engine
+		EXPECT_CALL(io_engine_, OpenRead(_))
+			//.Times(1)
+			.WillOnce(Return(IOErrorsType::OK))
+			.WillOnce(Return(IOErrorsType::kOpenRead));
 
-	auto actual = io_engine.OpenRead(L"the file");
+	}
+};
 
-	ASSERT_EQ(actual, IOErrorsType::OK);
+TEST_F(IOEngineTestSuit, testOpenRead)
+{
+	//EXPECT_CALL(this, OpenRead(_))
+	//	.Times(1)
+	//	.WillOnce(Return(IOErrorsType::OK));
+
+
+	ASSERT_EQ( IOErrorsType::OK, io_engine_.OpenRead(L""));
+	auto val = io_engine_.OpenRead(L"");
+	//ASSERT_EQ( IOErrorsType::kOpenRead, io_engine_.OpenRead(L""));
 }
 
 //class Base
