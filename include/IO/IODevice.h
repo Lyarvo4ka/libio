@@ -333,7 +333,7 @@ namespace IO
 			bOpen_ = false;
 
 		}
-		bool isOpen()
+		bool isOpen() override
 		{
 			return bOpen_;
 		}
@@ -392,6 +392,10 @@ namespace IO
 			return size_;
 		}
 
+		std::string getDeviceTypeName() const override
+		{
+			return file_txt.data();
+		}
 		void setSize(uint64_t new_size)
 		{
 			auto status = makeErrorStatus(io_engine->SetFileSize(new_size));
@@ -412,10 +416,7 @@ namespace IO
 		{
 			return makeErrorStatus(io_engine->readFileSize(file_size));
 		}
-		std::string getDeviceTypeName() const override
-		{
-			return file_txt.data();
-		}
+
 	};
 
 	using FilePtr = std::shared_ptr<File>;

@@ -42,12 +42,14 @@
   </PropertyGroup>
   <ItemGroup>
     <ClInclude Include="MockBasicDevice.h" />
-    <ClInclude Include="mockfile.h" />
+    <ClInclude Include="FakeFile.h" />
+    <ClInclude Include="MockFile.h" />
     <ClInclude Include="MockIOEngine.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dataarraytest.cpp" />
+    <ClCompile Include="FileTest.cpp" />
     <ClCompile Include="goprotest.cpp" />
     <ClCompile Include="iodevicetest.cpp" />
     <ClCompile Include="main.cpp" />
