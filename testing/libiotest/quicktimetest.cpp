@@ -3,7 +3,7 @@
 #include <string_view>
 
 #include "IO\QuickTime.h"
-#include "mockfile.h"
+#include "FakeFile.h"
 
 const uint32_t cftyp_size = 10;
 const uint32_t cmoov_size = 20;
@@ -33,12 +33,12 @@ IO::qt_block_t writeQtAtom(IO::DataArray & data_array, uint32_t offset, uint32_t
 }
 
 // not implemented when block_size 1 (64bit size)
-MockFile::Ptr createFtypMoovMdat(uint32_t ftyp_size , uint32_t moov_size, uint32_t mdat_size)
+FakeFile::Ptr createFtypMoovMdat(uint32_t ftyp_size , uint32_t moov_size, uint32_t mdat_size)
 {
 
 	const uint32_t file_size = ftyp_size + moov_size + mdat_size;
 	
-	auto src_file = makeMockFile(file_size);
+	auto src_file = makeFakeFile(file_size);
 	auto data_array = src_file->getData();
 
 	auto ftyp_block = writeQtAtom(*data_array, ftyp_ofset, ftyp_size, IO::s_ftyp);
@@ -57,13 +57,13 @@ protected:
 	{
 		testFile_ = createFtypMoovMdat(cftyp_size, cmoov_size, cmdat_size);
 	}
-	MockFile::Ptr testFile_;
+	FakeFile::Ptr testFile_;
 };
 
 TEST(QuickTimeTest, readQtAtom)
 {
 	using namespace IO;
-	QuickTimeRaw qt_clear(makeMockFile(10));
+	QuickTimeRaw qt_clear(makeFakeFile(10));
 	auto nulls_block = qt_clear.readQtAtom(0);
 	EXPECT_FALSE(nulls_block.isValid());
 
@@ -121,7 +121,7 @@ TEST(QuickTimeTest, findQtKeywordTest)
 	const uint32_t file_size = 2048;
 	const uint32_t name_position = 1536;
 
-	auto src_file = makeMockFile(file_size);
+	auto src_file = makeFakeFile(file_size);
 	QTFragmentRaw fragmentRaw(src_file);
 	fragmentRaw.setBlockSize(1024);
 

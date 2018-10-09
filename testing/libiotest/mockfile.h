@@ -8,7 +8,7 @@ using namespace IO;
 using namespace IO::Error;
 
 class MockFile :
-	public IOEngine
+	public IODevice
 {
 public:
 	MOCK_METHOD1(Open, bool(OpenMode));
@@ -19,6 +19,7 @@ public:
 	MOCK_METHOD2(ReadData, uint32_t(ByteArray, uint32_t));
 	MOCK_METHOD2(WriteData, uint32_t(ByteArray, uint32_t));
 	MOCK_CONST_METHOD0(Size, uint64_t());
+	MOCK_CONST_METHOD0(getDeviceTypeName, std::string());
 	//MOCK_METHOD1(setSize, void(uint64_t));
 
 

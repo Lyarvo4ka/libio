@@ -10,9 +10,24 @@ namespace IO
 {
 
 
+
+	//Error::IOStatus read_data(ByteArray data, uint32_t read_size, uint32_t & bytes_read)
+	//{
+	//	auto engine_ptr = io_engine.get();
+	//	auto read_func = std::bind(&IOEngine::Read, std::ref(*engine_ptr), data, read_size, bytes_read);
+	//	auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
+	//	if (result != Error::IOErrorsType::OK)
+	//		return makeErrorStatus(result);
+
+	//	return Error::IOStatus::OK();
+
+	//}
 	class IOEngine
 	{
-		HANDLE hDevice_ = INVALID_HANDLE_VALUE;
+		HANDLE hDevice_ = INVALID_HANDLE_VALUE;		
+		uint32_t transfer_size_ = default_block_size;
+		uint64_t position_ = 0;
+
 	public:
 		virtual ~IOEngine() 
 		{
@@ -72,9 +87,14 @@ namespace IO
 		}
 		virtual void setPostion(uint64_t position)
 		{
+			position_ = position;
 			LARGE_INTEGER liPos = { 0 };
-			liPos.QuadPart = position;
+			liPos.QuadPart = position_;
 			::SetFilePointerEx(hDevice_, liPos, NULL, FILE_BEGIN);
+		}
+		uint64_t getPostion() const
+		{
+			return position_;
 		}
 		virtual Error::IOErrorsType Read( ByteArray data, const uint32_t read_size , uint32_t & bytes_read)
 		{
@@ -113,7 +133,45 @@ namespace IO
 			return Error::IOErrorsType::OK;
 		}
 
+		void setTranserSize(const uint32_t transfer_size)
+		{
+			transfer_size_ = transfer_size;
+		}
+		uint32_t getTranferSize() const
+		{
+			return transfer_size_;
+		}
+
 	private:
+
+		Error::IOErrorsType ReadOrWriteData(ByteArray data, const uint32_t read_size, uint32_t & bytes_read, read_or_write_func read_write)
+		{
+
+			uint32_t data_pos = 0;
+			uint32_t bytes_to_read = 0;
+			while (data_pos < read_size)
+			{
+				bytes_to_read = calcBlockSize(data_pos, read_size, getTranferSize());
+				setPostion(position_);
+				ByteArray pData = data + data_pos;
+				if (auto result = read_write(pData, bytes_to_read, bytes_read); result != Error::IOErrorsType::OK)
+					return result;
+				data_pos += bytes_read;
+				position_ += bytes_read;
+			}
+			bytes_read = data_pos;
+			return Error::IOErrorsType::OK;
+
+		}
+
+		Error::IOErrorsType read_data(ByteArray data, uint32_t read_size, uint32_t & bytes_read)
+		{
+			auto read_func = std::bind(&IOEngine::Read, std::ref(*this), data, read_size, bytes_read);
+			auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
+			if (result != Error::IOErrorsType::OK)
+		}
+
+
 		BOOL read_device(HANDLE & hDevice, ByteArray data, const uint32_t bytes_to_read, uint32_t & bytes_read)
 		{
 			return::ReadFile(hDevice, data, bytes_to_read, reinterpret_cast<LPDWORD>(&bytes_read), NULL);
@@ -164,6 +222,7 @@ namespace IO
 			return unknown_txt;
 		}
 	}
+
 
 
 

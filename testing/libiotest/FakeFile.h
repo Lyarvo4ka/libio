@@ -2,15 +2,15 @@
 
 #include "IO\AbstractRaw.h"
 
-class MockFile
+class FakeFile
 	: public IO::File
 {
 private:
 	IO::DataArray::Ptr data_;
 	uint64_t offset_ = 0;
 public:
-	using Ptr = std::shared_ptr<MockFile>;
-	MockFile(uint32_t file_size)
+	using Ptr = std::shared_ptr<FakeFile>;
+	FakeFile(uint32_t file_size)
 		: IO::File(L"")
 		, data_(IO::makeDataArray(file_size))
 	{
@@ -64,9 +64,9 @@ public:
 
 };
 
-static MockFile::Ptr makeMockFile(uint32_t size)
+static FakeFile::Ptr makeFakeFile(uint32_t size)
 {
-	return std::make_shared<MockFile>(size);
+	return std::make_shared<FakeFile>(size);
 }
 
 
