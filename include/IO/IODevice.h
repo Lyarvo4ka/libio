@@ -10,23 +10,24 @@ namespace IO
 {
 
 
+	using read_or_write_func = std::function<Error::IOErrorsType(ByteArray, const uint32_t, uint32_t &)>;
 
-	//Error::IOStatus read_data(ByteArray data, uint32_t read_size, uint32_t & bytes_read)
-	//{
-	//	auto engine_ptr = io_engine.get();
-	//	auto read_func = std::bind(&IOEngine::Read, std::ref(*engine_ptr), data, read_size, bytes_read);
-	//	auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
-	//	if (result != Error::IOErrorsType::OK)
-	//		return makeErrorStatus(result);
+	inline uint32_t calcBlockSize(uint64_t current, uint64_t size, uint32_t block_size)
+	{
+		uint32_t bytes = 0;
+		if (current + (uint64_t)block_size <= size)
+			bytes = block_size;
+		else
+			bytes = (uint32_t)(size - current);
+		return bytes;
+	}
 
-	//	return Error::IOStatus::OK();
-
-	//}
 	class IOEngine
 	{
 		HANDLE hDevice_ = INVALID_HANDLE_VALUE;		
 		uint32_t transfer_size_ = default_block_size;
 		uint64_t position_ = 0;
+		bool bOpen_ = false;
 
 	public:
 		virtual ~IOEngine() 
@@ -46,6 +47,7 @@ namespace IO
 			if (hDevice_ == INVALID_HANDLE_VALUE)
 				return Error::IOErrorsType::kOpenRead;
 
+			bOpen_ = true;
 			return Error::IOErrorsType::OK;
 		}
 		virtual Error::IOErrorsType OpenWrite(const path_string & path)
@@ -60,6 +62,7 @@ namespace IO
 			if (hDevice_ == INVALID_HANDLE_VALUE)
 				return Error::IOErrorsType::kOpenWrite;
 
+			bOpen_ = true;
 			return Error::IOErrorsType::OK;
 		}
 		virtual Error::IOErrorsType Create(const path_string & path)
@@ -74,6 +77,7 @@ namespace IO
 			if (hDevice_ == INVALID_HANDLE_VALUE)
 				return Error::IOErrorsType::kCreate;
 
+			bOpen_ = true;
 			return Error::IOErrorsType::OK;
 
 		}
@@ -84,6 +88,11 @@ namespace IO
 				CloseHandle(hDevice_);
 				hDevice_ = INVALID_HANDLE_VALUE;
 			}
+			bOpen_ = false;
+		}
+		virtual bool isOpen() const
+		{
+			return bOpen_;
 		}
 		virtual void setPostion(uint64_t position)
 		{
@@ -98,19 +107,15 @@ namespace IO
 		}
 		virtual Error::IOErrorsType Read( ByteArray data, const uint32_t read_size , uint32_t & bytes_read)
 		{
-			auto bResult = read_device(hDevice_, data, read_size, bytes_read);
-			if (!bResult || (bytes_read == 0))
-				return Error::IOErrorsType::kReadData;
-				
-			return Error::IOErrorsType::OK;
+			auto read_func = std::bind(&IOEngine::read_data, std::ref(*this), data, read_size, bytes_read);
+			return ReadOrWriteData(data, read_size, bytes_read, read_func);
+
 		}
 		virtual Error::IOErrorsType Write( ByteArray data, const uint32_t write_size, uint32_t & bytes_written)
 		{
-			auto bResult = write_device(hDevice_, data, write_size, bytes_written);
-			if (!bResult || (bytes_written == 0))
-				return Error::IOErrorsType::kWriteData;
+			auto write_func = std::bind(&IOEngine::write_data, std::ref(*this), data, write_size, bytes_written);
+			return ReadOrWriteData(data, write_size, bytes_written, write_func);
 
-			return Error::IOErrorsType::OK;
 		}
 		virtual Error::IOErrorsType SetFileSize(uint64_t new_size)
 		{
@@ -166,9 +171,21 @@ namespace IO
 
 		Error::IOErrorsType read_data(ByteArray data, uint32_t read_size, uint32_t & bytes_read)
 		{
-			auto read_func = std::bind(&IOEngine::Read, std::ref(*this), data, read_size, bytes_read);
-			auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
-			if (result != Error::IOErrorsType::OK)
+			auto bResult = read_device(hDevice_, data, read_size, bytes_read);
+			if (!bResult || (bytes_read == 0))
+				return Error::IOErrorsType::kReadData;
+
+			return Error::IOErrorsType::OK;
+
+		}
+
+		Error::IOErrorsType write_data(ByteArray data, uint32_t write_size, uint32_t & bytes_written)
+		{
+			auto bResult = write_device(hDevice_, data, write_size, bytes_written);
+			if (!bResult || (bytes_written == 0))
+				return Error::IOErrorsType::kWriteData;
+
+			return Error::IOErrorsType::OK;
 		}
 
 
@@ -183,18 +200,9 @@ namespace IO
 
 	};
 
-	using read_or_write_func = std::function<Error::IOErrorsType(ByteArray, const uint32_t, uint32_t &)>;
 
 
-	inline uint32_t calcBlockSize(uint64_t current, uint64_t size, uint32_t block_size)
-	{
-		uint32_t bytes = 0;
-		if (current + (uint64_t)block_size <= size)
-			bytes = block_size;
-		else
-			bytes = (uint32_t)(size - current);
-		return bytes;
-	}
+
 	inline bool isMultiple(uint64_t number, uint32_t multiple_by)
 	{
 		if (multiple_by == 0)
@@ -241,101 +249,39 @@ namespace IO
 		virtual std::string getDeviceTypeName() const = 0;
 	};
 
-	class BasicDevice
-		: public IODevice
-	{
-		uint64_t position_ = 0;
-		uint32_t transfer_size_ = default_block_size;
-	public:
-		void setPosition(uint64_t offset) override
+
+		inline Error::IOStatus makeErrorStatus(IODevice & io_device , Error::IOErrorsType error_type)
 		{
-			position_ = offset;
-		}
-		uint64_t getPosition() const override
-		{
-			return position_;
-		}
-		uint32_t getTransferSize() const
-		{
-			return transfer_size_;
-		}
-		void setTranferSize(uint32_t transfer_size)
-		{
-			transfer_size_ = transfer_size;
-		}
-	protected:
-		std::unique_ptr<IOEngine> io_engine = std::make_unique<IOEngine>();
-
-		Error::IOErrorsType ReadOrWriteData(ByteArray data, uint32_t read_size, uint32_t & bytes_read, read_or_write_func read_write)
-		{
-
-			uint32_t data_pos = 0;
-			uint32_t bytes_to_read = 0;
-			while (data_pos < read_size)
-			{
-				bytes_to_read = calcBlockSize(data_pos, read_size, getTransferSize());
-				setPosition(position_);
-				ByteArray pData = data + data_pos;
-				if (auto result = read_write(pData, bytes_to_read, bytes_read); result != Error::IOErrorsType::OK)
-					return result;
-				data_pos += bytes_read;
-				position_ += bytes_read;
-			}
-			bytes_read = data_pos;
-			return Error::IOErrorsType::OK;
-
-		}
-
-		Error::IOStatus read_data(ByteArray data, uint32_t read_size, uint32_t & bytes_read)
-		{
-			auto engine_ptr = io_engine.get();
-			auto read_func = std::bind(&IOEngine::Read, std::ref(*engine_ptr), data, read_size, bytes_read);
-			auto result = ReadOrWriteData(data, read_size, bytes_read, read_func);
-			if (result != Error::IOErrorsType::OK)
-				return makeErrorStatus(result);
-
-			return Error::IOStatus::OK();
-
-		}
-
-		Error::IOStatus write_data(ByteArray data, uint32_t write_size, uint32_t & bytes_written)
-		{
-			auto engine_ptr = io_engine.get();
-			auto write_func = std::bind(&IOEngine::Write, std::ref(*engine_ptr), data, write_size, bytes_written);
-			auto result = ReadOrWriteData(data, write_size, bytes_written, write_func);
-			if (result != Error::IOErrorsType::OK)
-				return makeErrorStatus(result);
-
-			return Error::IOStatus::OK();
-
-		}
-
-		Error::IOStatus makeErrorStatus(Error::IOErrorsType error_type)
-		{
-			auto error_message = Error::getDiskOrFileError(error_type, getDeviceTypeName());
+			auto error_message = Error::getDiskOrFileError(error_type, io_device.getDeviceTypeName());
 			auto lastError = ::GetLastError();
 			Error::IOStatus error_status(error_type, error_message, lastError);
 			return error_status;
 
 		}
-	};
+		inline Error::IOStatus makeErrorStatus(IODevice * io_device, Error::IOErrorsType error_type)
+		{
+			auto error_message = Error::getDiskOrFileError(error_type, io_device->getDeviceTypeName());
+			auto lastError = ::GetLastError();
+			Error::IOStatus error_status(error_type, error_message, lastError);
+			return error_status;
+
+		}
+
 
 	using IODevicePtr = std::shared_ptr<IODevice>;
 
 	class File
-		: public BasicDevice
+		: public IODevice
 	{
 	private:
+		std::unique_ptr<IOEngine> io_engine_ = std::make_unique<IOEngine>();
 		uint64_t size_;
 		path_string file_name_;
-		bool bOpen_;
-
 
 	public:
 		File(const path_string & file_name)
 			: size_(0)
 			, file_name_(file_name)
-			, bOpen_(false)
 		{
 
 		}
@@ -363,49 +309,45 @@ namespace IO
 			switch (openMode)
 			{
 			case OpenMode::OpenRead:
-				result = io_engine->OpenRead(file_name_);
+				result = io_engine_->OpenRead(file_name_);
 				break;
 			case OpenMode::OpenWrite:
-				result = io_engine->OpenWrite(file_name_);
+				result = io_engine_->OpenWrite(file_name_);
 				break;
 			case OpenMode::Create:
-				result = io_engine->Create(file_name_);
+				result = io_engine_->Create(file_name_);
 				break;
 			}
 
 			if (result != Error::IOErrorsType::OK)
-				throw Error::IOErrorException(makeErrorStatus(result));
+				throw Error::IOErrorException(makeErrorStatus(this,result));
 
-			bOpen_ = true;
 
 			auto error_status = readFileSize(size_);
 			if (!error_status.isOK())
 				throw Error::IOErrorException(error_status);
 
-			return bOpen_;
+			return io_engine_->isOpen();
 		}
 
 		
 		void Close() override
 		{
-			io_engine->Close();
-			bOpen_ = false;
-
+			io_engine_->Close();
 		}
 		bool isOpen() override
 		{
-			return bOpen_;
+			return io_engine_->isOpen();
 		}
 
 		void setPosition(uint64_t offset) override
 		{
-			BasicDevice::setPosition(offset);
-			io_engine->setPostion(offset);
+			io_engine_->setPostion(offset);
 		}
 
 		uint64_t getPosition() const override
 		{
-			return BasicDevice::getPosition();
+			return io_engine_->getPostion();
 		}
 
 		uint32_t ReadData(ByteArray data, uint32_t read_size) override
@@ -415,16 +357,15 @@ namespace IO
 
 			uint32_t bytes_read = 0;
 
-			auto status = read_data(data, read_size, bytes_read);
-			if (status.isOK())
+			auto result = io_engine_->Read(data, read_size, bytes_read);
+			if (result == Error::IOErrorsType::OK)
 				return bytes_read;
-
-			throw Error::IOErrorException(status);
+			
+			throw Error::IOErrorException(makeErrorStatus(this, result));
 		}
 
 		uint32_t ReadData(DataArray & data_array)
 		{
-			uint32_t bytes_read = 0;
 			return ReadData(data_array.data(), data_array.size());
 		}
 
@@ -438,12 +379,12 @@ namespace IO
 			assert(write_size >= 0);
 
 			uint32_t bytes_written = 0;
-			auto status = write_data(data, write_size, bytes_written);
-			if (status.isOK())
+			auto result = io_engine_->Write(data, write_size, bytes_written);
+			if (result == Error::IOErrorsType::OK)
 				return bytes_written;
 
 			//	//ERROR_DISK_FULL
-			throw Error::IOErrorException(status);
+			throw Error::IOErrorException(makeErrorStatus(this , result));
 		};
 
 		uint64_t Size() const override
@@ -457,7 +398,7 @@ namespace IO
 		}
 		void setSize(uint64_t new_size)
 		{
-			auto status = makeErrorStatus(io_engine->SetFileSize(new_size));
+			auto status = makeErrorStatus(this,io_engine_->SetFileSize(new_size));
 			if (!status.isOK())
 				throw Error::IOErrorException(status);
 			size_ = new_size;
@@ -473,7 +414,7 @@ namespace IO
 		}
 		Error::IOStatus readFileSize(uint64_t & file_size)
 		{
-			return makeErrorStatus(io_engine->readFileSize(file_size));
+			return makeErrorStatus(this,io_engine_->readFileSize(file_size));
 		}
 
 	};
@@ -495,50 +436,44 @@ namespace IO
 
 
 	class DiskDevice
-		: public BasicDevice
+		: public IODevice
 	{
 	private:
-		bool bOpen_;
+		std::unique_ptr<IOEngine> io_engine_ = std::make_unique<IOEngine>();
 		PhysicalDrivePtr physical_drive_;
 	public:
 		DiskDevice(PhysicalDrivePtr physical_drive)
-			: bOpen_(false)
-			, physical_drive_(physical_drive)
+			: physical_drive_(physical_drive)
 		{
-			setTranferSize(physical_drive_->getTransferLength());
+			io_engine_->setTranserSize(physical_drive_->getTransferLength());
 		}
 		bool Open(OpenMode open_mode) override
 		{
-			bOpen_ = false;
 			if (physical_drive_)
 			{
-				auto status = makeErrorStatus(io_engine->OpenRead(physical_drive_->getPath()));
+				auto status = makeErrorStatus(this,io_engine_->OpenRead(physical_drive_->getPath()));
 				if (!status.isOK())
 					throw Error::IOErrorException(status);
-				bOpen_ = true;
 			}
-
-			return bOpen_;
+			return io_engine_->isOpen();
 		}
 		void Close() override
 		{
-			io_engine->Close();
-			bOpen_ = false;
+			io_engine_->Close();
 
 		}
 		bool isOpen() override
 		{
-			return bOpen_;
+			return io_engine_->isOpen();
 		}
 		void setPosition(uint64_t offset) override
 		{
-			BasicDevice::setPosition(offset);
-			io_engine->setPostion(offset);
+			io_engine_->setPostion(offset);
 
 		}
 		uint64_t getPosition() const 
 		{
-			return BasicDevice::getPosition();
+			io_engine_->getPostion();
 		}
 
 		uint32_t ReadDataNotAligned(ByteArray data, uint32_t read_size)
@@ -583,8 +518,8 @@ namespace IO
 			assert(read_size >= 0);
 
 			uint32_t bytes_read = 0;
-			if (auto status = read_data(data, read_size, bytes_read); !status.isOK())
-				throw Error::IOErrorException(status);
+			if ( auto result = io_engine_->Read(data, read_size, bytes_read); result != Error::IOErrorsType::OK)
+				throw Error::IOErrorException(makeErrorStatus(this , result));
 
 			return bytes_read;
 		}
@@ -594,8 +529,8 @@ namespace IO
 			assert(write_size >= 0);
 
 			uint32_t bytes_written = 0;
-			if ( auto status = write_data(data,write_size, bytes_written); !status.isOK())
-				throw Error::IOErrorException(status);
+			if ( auto result = io_engine_->Write(data,write_size, bytes_written); result != Error::IOErrorsType::OK)
+				throw Error::IOErrorException(makeErrorStatus(this , result));
 
 			return bytes_written;
 		}
