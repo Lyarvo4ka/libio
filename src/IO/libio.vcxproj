@@ -24,6 +24,7 @@
     <ClCompile Include="error.cpp" />
     <ClCompile Include="factories.cpp" />
     <ClCompile Include="iodevicecpp.cpp" />
+    <ClCompile Include="ioengine.cpp" />
     <ClCompile Include="iofs.cpp" />
     <ClCompile Include="iofunctions.cpp" />
     <ClCompile Include="IOLibrary.cpp" />
@@ -56,6 +57,7 @@
     <ClInclude Include="..\..\include\IO\HexTexRaw.h" />
     <ClInclude Include="..\..\include\IO\ImageWriter.h" />
     <ClInclude Include="..\..\include\IO\IODevice.h" />
+    <ClInclude Include="..\..\include\IO\ioengine.h" />
     <ClInclude Include="..\..\include\IO\iofs.h" />
     <ClInclude Include="..\..\include\IO\iofunctions.h" />
     <ClInclude Include="..\..\include\IO\iolibrary_global.h" />
