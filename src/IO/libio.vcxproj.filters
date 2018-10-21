@@ -236,5 +236,8 @@
     <ClInclude Include="..\..\include\IO\ioengine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\IO\ext4_raw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

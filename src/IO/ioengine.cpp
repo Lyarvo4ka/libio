@@ -82,14 +82,48 @@ namespace IO
 	}
 	IOErrorsType IOEngine::Read(ByteArray data, const uint32_t read_size, uint32_t & bytes_read)
 	{
-		auto read_func = std::bind(&IOEngine::read_data, std::ref(*this), data, read_size, bytes_read);
-		return ReadOrWriteData(data, read_size, bytes_read, read_func);
+		uint32_t data_pos = 0;
+		uint32_t bytes_to_read = 0;
+		while (data_pos < read_size)
+		{
+			bytes_to_read = calcBlockSize(data_pos, read_size, getTranferSize());
+			setPostion(position_);
+			ByteArray pData = data + data_pos;
+
+			auto result = read_data(pData, bytes_to_read, bytes_read);
+			if (result != IOErrorsType::OK)
+				return result;
+			data_pos += bytes_read;
+			position_ += bytes_read;
+		}
+		bytes_read = data_pos;
+		return IOErrorsType::OK;
+
+		//auto read_func = std::bind(&IOEngine::read_data, std::ref(*this), data, read_size, bytes_read);
+		//return ReadOrWriteData(data, read_size, bytes_read, read_func);
 
 	}
 	IOErrorsType IOEngine::Write(ByteArray data, const uint32_t write_size, uint32_t & bytes_written)
 	{
-		auto write_func = std::bind(&IOEngine::write_data, std::ref(*this), data, write_size, bytes_written);
-		return ReadOrWriteData(data, write_size, bytes_written, write_func);
+		uint32_t data_pos = 0;
+		uint32_t bytes_to_read = 0;
+		while (data_pos < write_size)
+		{
+			bytes_to_read = calcBlockSize(data_pos, write_size, getTranferSize());
+			setPostion(position_);
+			ByteArray pData = data + data_pos;
+
+			auto result = read_data(pData, bytes_to_read, bytes_written);
+			if (result != IOErrorsType::OK)
+				return result;
+			data_pos += bytes_written;
+			position_ += bytes_written;
+		}
+		bytes_written = data_pos;
+		return IOErrorsType::OK;
+
+		//auto write_func = std::bind(&IOEngine::write_data, std::ref(*this), data, write_size, bytes_written);
+		//return ReadOrWriteData(data, write_size, bytes_written, write_func);
 
 	}
 	IOErrorsType IOEngine::SetFileSize(uint64_t new_size)
@@ -117,7 +151,7 @@ namespace IO
 	{
 		return transfer_size_;
 	}
-	inline IOErrorsType IOEngine::ReadOrWriteData(ByteArray data, const uint32_t read_size, uint32_t & bytes_read, read_or_write_func read_write)
+	IOErrorsType IOEngine::ReadOrWriteData(ByteArray data, const uint32_t read_size, uint32_t & bytes_read, read_or_write_func read_write)
 	{
 		uint32_t data_pos = 0;
 		uint32_t bytes_to_read = 0;
@@ -126,7 +160,9 @@ namespace IO
 			bytes_to_read = calcBlockSize(data_pos, read_size, getTranferSize());
 			setPostion(position_);
 			ByteArray pData = data + data_pos;
-			if (auto result = read_write(pData, bytes_to_read, bytes_read); result != IOErrorsType::OK)
+
+			auto result = read_write(pData, bytes_to_read, bytes_read); 
+			if( result != IOErrorsType::OK)
 				return result;
 			data_pos += bytes_read;
 			position_ += bytes_read;
@@ -135,7 +171,9 @@ namespace IO
 		return IOErrorsType::OK;
 
 	}
-	inline IOErrorsType IOEngine::read_data(ByteArray data, uint32_t read_size, uint32_t & bytes_read)
+
+
+	IOErrorsType IOEngine::read_data(ByteArray data, uint32_t read_size, uint32_t & bytes_read)
 	{
 		auto bResult = read_device(hDevice_, data, read_size, bytes_read);
 		if (!bResult || (bytes_read == 0))
@@ -143,7 +181,7 @@ namespace IO
 
 		return IOErrorsType::OK;
 	}
-	inline Error::IOErrorsType IOEngine::write_data(ByteArray data, uint32_t write_size, uint32_t & bytes_written)
+	Error::IOErrorsType IOEngine::write_data(ByteArray data, uint32_t write_size, uint32_t & bytes_written)
 	{
 		auto bResult = write_device(hDevice_, data, write_size, bytes_written);
 		if (!bResult || (bytes_written == 0))
@@ -151,11 +189,11 @@ namespace IO
 
 		return IOErrorsType::OK;
 	}
-	inline BOOL IOEngine::read_device(HANDLE & hDevice, ByteArray data, const uint32_t bytes_to_read, uint32_t & bytes_read)
+	BOOL IOEngine::read_device(HANDLE & hDevice, ByteArray data, const uint32_t bytes_to_read, uint32_t & bytes_read)
 	{
 		return::ReadFile(hDevice, data, bytes_to_read, reinterpret_cast<LPDWORD>(&bytes_read), NULL);
 	}
-	inline BOOL IOEngine::write_device(HANDLE & hDevice, ByteArray data, const uint32_t bytes_to_write, uint32_t & bytes_written)
+	BOOL IOEngine::write_device(HANDLE & hDevice, ByteArray data, const uint32_t bytes_to_write, uint32_t & bytes_written)
 	{
 		return::WriteFile(hDevice, data, bytes_to_write, reinterpret_cast<LPDWORD>(&bytes_written), NULL);
 	}

@@ -50,11 +50,7 @@ namespace IO
 
 		~DataArray()
 		{
-			if (data_)
-			{
-				delete[] data_;
-				data_ = nullptr;
-			}
+			clear();
 		}
 		uint32_t size() const
 		{
@@ -67,6 +63,23 @@ namespace IO
 		ByteArray data() const
 		{
 			return data_;
+		}
+		void resize(const uint32_t new_size)
+		{
+			if (size_ != new_size)
+			{
+				clear();
+				data_ = new uint8_t[new_size];
+			}
+		}
+		void clear()
+		{
+			if (data_)
+			{
+				delete[] data_;
+				data_ = nullptr;
+			}
+
 		}
 		static bool compareData(const DataArray & left, const DataArray & right)
 		{

@@ -49,6 +49,7 @@
     <ClInclude Include="..\..\include\IO\Entropy.h" />
     <ClInclude Include="..\..\include\IO\error.h" />
     <ClInclude Include="..\..\include\IO\ext2_raw.h" />
+    <ClInclude Include="..\..\include\IO\ext4_raw.h" />
     <ClInclude Include="..\..\include\IO\Factories.h" />
     <ClInclude Include="..\..\include\IO\Finder.h" />
     <ClInclude Include="..\..\include\IO\FireBird.h" />
