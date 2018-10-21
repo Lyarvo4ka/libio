@@ -12,17 +12,17 @@ class FileSuit
 protected:
 	void SetUp()
 	{
-		EXPECT_CALL(file_, Open(IO::OpenMode::OpenRead))
-			.WillOnce(Return(true));
+		//EXPECT_CALL(file_, Open(IO::OpenMode::OpenRead))
+		//	.WillOnce(Return(true));
 
-		EXPECT_CALL(file_, isOpen())
-			.WillOnce(Return(true));
+		//EXPECT_CALL(file_, isOpen())
+		//	.WillOnce(Return(true));
 
-		EXPECT_CALL(file_, setPosition(_))
-			.WillOnce();
+		//EXPECT_CALL(file_, setPosition(_))
+		//	.WillOnce();
 
-		EXPECT_CALL(file_, getPosition())
-			.WillOnce(Return(10));
+		//EXPECT_CALL(file_, getPosition())
+		//	.WillOnce(Return(10));
 
 	}
 
