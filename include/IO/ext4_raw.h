@@ -72,15 +72,27 @@ namespace IO
 			if (!device_->isOpen())
 				return 0;
 
-			DataArray inode(512);
-			device_->setPosition(inode_offset);
-			device_->ReadData(inode.data(), inode.size());
-			EXTENT_BLOCK *pExtBlock = (EXTENT_BLOCK*)(inode.data() + 0x128);
+			//DataArray inode(256);
+			//device_->setPosition(inode_offset);
+			//device_->ReadData(inode.data(), inode.size());
+			//EXTENT_BLOCK *pExtBlock = (EXTENT_BLOCK*)(inode.data());
 
-			auto ext_offset = pExtBlock->extent_index->PysicalBlock();
-			int k = 1;
-			k = 2;
+			//auto ext_offset = pExtBlock->extent_index->PysicalBlock();
 			
+			//DataArray next_inode(4096);
+			//device_->setPosition(inode_offset);
+			//device_->ReadData(next_inode.data(), next_inode.size());
+			//EXTENT_BLOCK *pNext = (EXTENT_BLOCK*)(next_inode.data());
+
+			//int k = 1;
+			//k = 2;
+			auto ext_offset = inode_offset / 4096;
+			uint64_t inode_block = ext_offset/* / 4096*/;
+			File target_file(target_folder);
+			target_file.OpenCreate();
+
+
+			SaveToFile(inode_block , target_file);
 			//auto inode = read_inode(inode_offset);
 			//ext4_inode * pInode = (ext4_inode*)inode.data();
 			//if (pInode->extent_block.header.magic == EXTENT_HEADER_MAGIC)

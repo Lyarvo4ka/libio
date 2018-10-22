@@ -113,7 +113,7 @@ namespace IO
 			setPostion(position_);
 			ByteArray pData = data + data_pos;
 
-			auto result = read_data(pData, bytes_to_read, bytes_written);
+			auto result = write_data(pData, bytes_to_read, bytes_written);
 			if (result != IOErrorsType::OK)
 				return result;
 			data_pos += bytes_written;
