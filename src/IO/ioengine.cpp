@@ -10,14 +10,18 @@ namespace IO
 	IOErrorsType IOEngine::OpenRead(const path_string & path)
 	{
 		hDevice_ = ::CreateFile(path.c_str(),
-			GENERIC_READ | GENERIC_WRITE,
-			FILE_SHARE_READ | FILE_SHARE_WRITE,
+			GENERIC_READ /*| GENERIC_WRITE*/,
+			FILE_SHARE_READ /*| FILE_SHARE_WRITE*/,
 			NULL,
 			OPEN_EXISTING,
 			0,
 			NULL);
 		if (hDevice_ == INVALID_HANDLE_VALUE)
+		{
+			auto last_error = ::GetLastError();
 			return IOErrorsType::kOpenRead;
+		}
+
 
 		bOpen_ = true;
 		return IOErrorsType::OK;
@@ -139,8 +143,11 @@ namespace IO
 	IOErrorsType IOEngine::readFileSize(uint64_t & file_size)
 	{
 		LARGE_INTEGER liSize = { 0 };
-		if (auto bResult = ::GetFileSizeEx(hDevice_, &liSize); !bResult)
+		auto bResult = ::GetFileSizeEx(hDevice_, &liSize);
+		if (!bResult)
 			return IOErrorsType::kGetFileSize;
+
+		file_size = liSize.QuadPart;
 		return IOErrorsType::OK;
 	}
 	void IOEngine::setTranserSize(const uint32_t transfer_size)

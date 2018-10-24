@@ -149,6 +149,7 @@ namespace IO
 		{
 		private :
 			IOStatus error_status_;
+			mutable std::string tmp_str;
 		public:
 			IOErrorException(IOStatus error_status)
 				:error_status_(error_status)
@@ -157,8 +158,8 @@ namespace IO
 			}
 			const char* what() const override
 			{
-				auto fullTextError = error_status_.error_message() + LastErrorMessage(error_status_.lastError());
-				return fullTextError.c_str();
+				tmp_str = error_status_.error_message() + LastErrorMessage(error_status_.lastError());
+				return tmp_str.c_str();
 			}
 		};
 

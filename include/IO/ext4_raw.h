@@ -107,6 +107,34 @@ namespace IO
 			device_->ReadData(inode.data(), inode.size());
 			return inode;
 		}
+    void search_extends(uint64_t block_start)
+    {
+		//const uint32_t count = 16;
+		//const uint32_t buff_size = count * block_size_;
+		//DataArray buff(buff_size);
+		//uint64_t offset = (uint64_t)(block_start * block_size_);
+		//uint64_t src_size = device_->Size();
+		//uint32_t to_read = 0;
+		//uint32_t bytes_read = 0;
+
+		//while (offset < device_->Size())
+		//{
+		//	to_read = calcBlockSize(offset, src_size, buff_size);
+		//	device_->setPosition(offset);
+		//	device_->ReadData(buff.data(), to_read);
+
+		//	for (uint32_t i = 0; i < to_read, i += block_size_)
+		//	{
+		//		EXTENT_BLOCK * p_extent = (EXTENT_BLOCK *)(buff.data() + i);
+
+		//	}
+
+
+		//	offset += to_read;
+		//}
+
+
+    }
 		uint64_t SaveToFile(const uint64_t block_num, File &target_file)
 		{
 			if (!target_file.isOpen())
