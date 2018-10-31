@@ -24,7 +24,7 @@
     "quicktime":{
 		"header":
           [
-			{
+			      {
                 "textdata":"ftyp",
                 "offset": 4
             },

@@ -347,6 +347,19 @@ namespace IO
 		virtual void Analyze(const IO::path_string & file_name) = 0;
 	};
 
+	class BlockDevice
+	{
+		IODevicePtr device_;
+		uint32_t block_size_ = default_block_size;
+		uint32_t sector_size_ = default_sector_size;
+	public:
+		IODevice * getDevice()
+		{
+			return device_.get();
+		}
+
+	};
+
 	class DefaultRaw : public RawAlgorithm
 	{
 	private:
