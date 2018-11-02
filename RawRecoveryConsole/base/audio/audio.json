@@ -1,0 +1,32 @@
+{
+	"wav":{
+		"header":
+		[
+			{
+				"hexdata":"52494646",
+				"offset": 0
+			},
+			{
+				"hexdata":"57415645",
+				"offset": 8
+			}
+		],
+	"extension":".wav"
+  },
+ 	"mx7":{
+		"header":
+		[
+			{
+				"hexdata":"52494646",
+				"offset": 0
+			},
+			{
+				"hexdata":"4D584333",
+				"offset": 8
+			}
+		],
+	"extension":".mx7"
+  }
+ 
+
+}

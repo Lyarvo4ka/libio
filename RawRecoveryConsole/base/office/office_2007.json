@@ -1,0 +1,21 @@
+{
+"msoffice2007":
+  {
+    "algorithmName" : "zip",
+    "category": "office",
+    "header": 
+    [
+      {
+        "hexdata": "504B0304",
+        "offset": 0
+      }
+    ],
+    
+    "footer": 
+    {
+      "hexdata": "504B0506",
+       "tailsize": 18
+    },
+    "extension": ".zip"
+  }  
+}

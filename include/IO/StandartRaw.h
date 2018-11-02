@@ -6,14 +6,6 @@
 
 namespace IO
 {
-	class SimpleRaw
-		: public RawAlgorithm
-	{
-		uint64_t maxfilesize_ = 0;
-	public:
-
-	};
-
 	class StandartRaw
 		: public DefaultRaw
 	{

@@ -1,0 +1,16 @@
+{
+"msoffice2003":
+  {
+    "algorithmName" : "office_2003",
+    "category": "office",
+    "header": 
+    [
+      {
+        "hexdata": "D0CF11",
+        "offset": 0
+      }
+    ],
+    "extension": ".msdoc"   
+  } 
+
+}

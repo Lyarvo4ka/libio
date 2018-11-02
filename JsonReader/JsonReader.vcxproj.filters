@@ -40,4 +40,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\RawRecoveryConsole\base\audio\audio.json" />
+    <None Include="..\RawRecoveryConsole\base\office\office_2003.json" />
+    <None Include="..\RawRecoveryConsole\base\video\video.json" />
+    <None Include="..\RawRecoveryConsole\base\office\office_2007.json" />
+  </ItemGroup>
 </Project>

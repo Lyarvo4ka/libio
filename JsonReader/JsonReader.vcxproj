@@ -98,6 +98,12 @@
       <Project>{a3400ee0-87c5-4fcc-a551-359cdea8c97e}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\RawRecoveryConsole\base\audio\audio.json" />
+    <None Include="..\RawRecoveryConsole\base\office\office_2003.json" />
+    <None Include="..\RawRecoveryConsole\base\office\office_2007.json" />
+    <None Include="..\RawRecoveryConsole\base\video\video.json" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
     <Import Project="$(QtMsBuild)\qt.targets" />
