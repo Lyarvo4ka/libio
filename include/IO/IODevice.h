@@ -285,7 +285,7 @@ namespace IO
 		}
 		uint64_t getPosition() const 
 		{
-			io_engine_->getPostion();
+			return io_engine_->getPostion();
 		}
 
 		uint32_t ReadDataNotAligned(ByteArray data, uint32_t read_size)
@@ -322,7 +322,10 @@ namespace IO
 		{
 			return physical_drive_->getSize();	// return byte, not sectors
 		}
-
+		std::string getDeviceTypeName() const override
+		{
+			return disk_txt.data();
+		}
 	private:
 		uint32_t ReadBlock(ByteArray data, uint32_t read_size) 
 		{

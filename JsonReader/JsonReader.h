@@ -13,6 +13,10 @@
 
 #include "IO\AbstractRaw.h"
 
+
+const QString algorithmName_txt = "algorithmName";
+const QString category_txt = "category";
+
 const QString header_txt = "header";
 const QString offset_txt = "offset";
 const QString footer_txt = "footer";
@@ -27,6 +31,7 @@ const QString extension_txt = "extension";
 const QString equally_to_txt = "equally_to";
 
 const QString search_block_txt = "search_block";
+
 
 struct SignatureHandle
 {
@@ -44,6 +49,8 @@ using ArrayOfHeader = QVector<SignatureHandle>;
 struct JsonFileStruct
 {
 	QString name;
+	QString algorithmName;
+	QString category;
 	ArrayOfHeader headers;
 	SignatureHandle footer;
 	qlonglong maxfilesize = 0;
@@ -125,34 +132,43 @@ void ReadJsonFIle(const QByteArray & byte_data, QList<JsonFileStruct> & parsedRe
 	{
 		JsonFileStruct jsonFileStruct;
 		jsonFileStruct.name = signature_name;
+		qInfo() << "name = " << signature_name << endl;
+
+
+		//	QVariant
 		auto object_value = root.value(signature_name);
 		if (object_value.isObject())
 		{
-			qInfo() << "name = " << signature_name << endl;
-			// find only header
-			QJsonValue header_value = object_value.toObject().value(header_txt);
+			auto json_object = object_value.toObject();
+			auto algorithm_name = json_object.value(algorithmName_txt);
+			jsonFileStruct.algorithmName = algorithm_name.toString();
+
+			auto category_name = json_object.value(category_txt);
+			jsonFileStruct.category = category_name.toString();
+
+			QJsonValue header_value = json_object.value(header_txt);
 			if (header_value.isArray())
 			{
 				auto array_headers = header_value.toArray();
 				ReadHadersOffset(array_headers, jsonFileStruct.headers);
 			}
 
-			auto footer_value = object_value.toObject().value(footer_txt);
+			auto footer_value = json_object.value(footer_txt);
 			if (footer_value.isObject())
 			{
 				ReadFooter(footer_value.toObject(), jsonFileStruct.footer);
 			}
 
-			auto maxsize_value = object_value.toObject().value(maxfilesize_txt);
+			auto maxsize_value = json_object.value(maxfilesize_txt);
 			if (!maxsize_value.isUndefined())
 				jsonFileStruct.maxfilesize = maxsize_value.toVariant().toLongLong();
 
-			auto minsize_value = object_value.toObject().value(minfilesize_txt);
+			auto minsize_value = json_object.value(minfilesize_txt);
 			if (!minsize_value.isUndefined())
 				jsonFileStruct.minfilesize = minsize_value.toVariant().toLongLong();
 
 
-			auto extension_value = object_value.toObject().value(extension_txt);
+			auto extension_value = json_object.value(extension_txt);
 			if (extension_value.isString())
 				jsonFileStruct.extension = extension_value.toString();
 

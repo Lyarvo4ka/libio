@@ -163,8 +163,8 @@ int main(int argc, char *argv[])
 		//////////////////////////////////////////////////////////////////////////
 		QList<JsonFileStruct> listFileStruct;
 
-
-		QFile file("keys.json");
+		QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
+		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{
 			qInfo() << "Error to open file. \"" << file.fileName() << "\"";
