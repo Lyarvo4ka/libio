@@ -1,0 +1,16 @@
+{
+  "mp3": {
+    "category": "audio",
+    "header": [
+      {
+        "hexdata": "FFFB",
+        "offset": 0
+      },
+      {
+        "hexdata": "494433",
+        "offset": 0
+      }
+    ],
+    "extension": ".mp3"
+  }
+}
