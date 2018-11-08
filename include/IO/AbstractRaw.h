@@ -191,7 +191,7 @@ namespace IO
 			return minFileSize_;
 		}
 
-		bool compareWithAllHeaders(ByteArray data, uint32_t size)
+		bool compareWithAllHeaders(ByteArray data, uint32_t size) const
 		{
 			for (auto & theHeader : headers_)
 			{

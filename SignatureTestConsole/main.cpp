@@ -4,14 +4,28 @@
 
 #include "IO/Finder.h"
 
+#include <experimental/filesystem>
 
-void testMp3(const JsonFileStruct sign_list, const IO::path_string & file_to_test)
+using fs = std::experimental::filesystem;
+
+void testMp3(const IO::FileStruct & Mp3FileStruct, const IO::path_string & file_to_test)
 {
 	IO::File file(file_to_test);
 	file.OpenRead();
 	auto file_size = file.Size();
 
-	for (auto & file_struct : )
+	IO::DataArray sector_data(default_sector_size);
+	file.ReadData(sector_data);
+	file.Close();
+
+	auto bFound = Mp3FileStruct.compareWithAllHeaders(sector_data.data(), sector_data.size());
+	
+	if (!bFound)
+	{
+		fs::rename(file_to_test, file_to_test + L".bad_file");
+	}
+	
+
 }
 
 int main(int argc, char *argv[])
@@ -43,7 +57,7 @@ int main(int argc, char *argv[])
 
 		for (auto & theFile : fileList)
 		{
-
+			testMp3(Mp3FileStruct,theFile);
 		}
 	}
 	
