@@ -69,7 +69,7 @@ void initKeysFactoryManager(IO::RawFactoryManager & factory_manager)
 
 void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
-	initKeysFactoryManager(factory_manager);
+	//initKeysFactoryManager(factory_manager);
 	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
 	//initVideoFactoryManager(factory_manager);
 	//initAudioFactoryManager(factory_manager);
@@ -90,7 +90,7 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 
 	//factory_manager.Register("r3d", std::make_unique<IO::StandartRawFactory>());
 	//factory_manager.Register("ZOOMHandyRecorder", std::make_unique<IO::RawZOOMHandyRecorder>());
-	//factory_manager.Register("imd", std::make_unique<IO::RawIMDFactory>());
+	factory_manager.Register("imd", std::make_unique<IO::RawIMDFactory>());
 	//factory_manager.Register("Canon80D", std::make_unique<IO::Canon80D_FragmentRawFactory>());
 
 
@@ -163,7 +163,8 @@ int main(int argc, char *argv[])
 		//////////////////////////////////////////////////////////////////////////
 		QList<JsonFileStruct> listFileStruct;
 
-		QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
+		//QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
+		QString json_file = "imd.json";
 		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{
@@ -235,7 +236,8 @@ int main(int argc, char *argv[])
 			{
 				raw_algorithm = raw_factory->createRawAlgorithm(src_device);
 				IO::StandartRaw * tmpPtr = dynamic_cast<IO::StandartRaw *>(raw_algorithm);
-				tmpPtr->setMaxFileSize(file_struct->getMaxFileSize());
+				if (tmpPtr)
+					tmpPtr->setMaxFileSize(file_struct->getMaxFileSize());
 			}
 				
 				if (raw_algorithm->Specify(header_offset))
