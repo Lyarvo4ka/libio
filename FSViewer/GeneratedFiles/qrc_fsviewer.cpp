@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Resource object code
 **
-** Created by: The Resource Compiler for Qt version 5.11.0
+** Created by: The Resource Compiler for Qt version 5.11.2
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -26,21 +26,21 @@ namespace QT_NAMESPACE {
 }
 #endif
 
-int QT_RCC_MANGLE_NAMESPACE(qInitResources_fsviewer)();
-int QT_RCC_MANGLE_NAMESPACE(qInitResources_fsviewer)()
+int QT_RCC_MANGLE_NAMESPACE(qInitResources_FSViewer)();
+int QT_RCC_MANGLE_NAMESPACE(qInitResources_FSViewer)()
 {
     return 1;
 }
 
-int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_fsviewer)();
-int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_fsviewer)()
+int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_FSViewer)();
+int QT_RCC_MANGLE_NAMESPACE(qCleanupResources_FSViewer)()
 {
     return 1;
 }
 
 namespace {
    struct initializer {
-       initializer() { QT_RCC_MANGLE_NAMESPACE(qInitResources_fsviewer)(); }
-       ~initializer() { QT_RCC_MANGLE_NAMESPACE(qCleanupResources_fsviewer)(); }
+       initializer() { QT_RCC_MANGLE_NAMESPACE(qInitResources_FSViewer)(); }
+       ~initializer() { QT_RCC_MANGLE_NAMESPACE(qCleanupResources_FSViewer)(); }
    } dummy;
 }

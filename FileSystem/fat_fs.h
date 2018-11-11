@@ -24,11 +24,11 @@ using std::queue;
 namespace FileSystem
 {
 	/////////////////////////////// MBR //////////////////////////////////
-	class FSExport MasterBootRecord
+	class  MasterBootRecord
 	{
 	public:
 		static const WORD mbr_size = 512;
-		static const byte partition_count = 4;
+		static const uint8_t partition_count = 4;
 		static const WORD partition_offset = 446;
 
 		MasterBootRecord(const DWORD offsetMBR = 0);
@@ -46,7 +46,7 @@ namespace FileSystem
 	};
 
 	/////////////////////////////// Fat_Table //////////////////////////////////
-	class FSExport Fat_Table
+	class  Fat_Table
 	{
 	public:
 		Fat_Table(const VirtualReader & pVirualReader, const LONGLONG offset);
@@ -66,14 +66,14 @@ namespace FileSystem
 		vector<bool> Sector_Array_;
 	};
 
-	typedef std::tr1::shared_ptr<Fat_Table> FatTable;
+	typedef std::shared_ptr<Fat_Table> FatTable;
 
 	DWORD toDWORD(const WORD low, const WORD high);
 
 	/////////////////////////////// FatFS //////////////////////////////////
 
 
-	class FSExport FatFileSystem
+	class  FatFileSystem
 		: public AbstractFileSystem
 	{
 	public:
@@ -106,11 +106,11 @@ namespace FileSystem
 		FatTable FatTable_;
 	};
 
-	typedef std::tr1::shared_ptr<FatFileSystem> FatFS;
+	typedef std::shared_ptr<FatFileSystem> FatFS;
 
 	bool ReadListClusters(File_Handle * pFileHandle, FatTable & fat_table,  DWORD cluster);
 	void appendString(wstring & currentString, msdos_long_dir_entry* pLogDirEntry);
-	DWORD FSExport sectorsFromSize(const DWORD data_size, const DWORD sector_size);
+	DWORD  sectorsFromSize(const DWORD data_size, const DWORD sector_size);
 
 	//class FSExport IFileSysten
 	//{

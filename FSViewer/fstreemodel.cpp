@@ -69,7 +69,7 @@ void TreeIndex::resetChilds()
 		{
 			NodeEntry dirEntry(directory_->child(iChild));
 			if (dirEntry->type() == FileSystem::folder_type)
-				insertChild(std::tr1::static_pointer_cast<DirectoryNode>(dirEntry));
+				insertChild(std::static_pointer_cast<DirectoryNode>(dirEntry));
 		}
 }
 void TreeIndex::insertChild( const DirectoryEntry & directory_entry)

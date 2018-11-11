@@ -41,8 +41,8 @@ DWORD FileSystem::Cluster::number() const
 /*							 CSectorReader								*/
 /************************************************************************/
 
-FileSystem::CSectorReader::CSectorReader(const AbstractReader & reader, const DWORD sector_size)
-	: Reader_(reader)
+FileSystem::CSectorReader::CSectorReader(IO::IODevicePtr device, const DWORD sector_size)
+	: device_(device)
 	, sector_size_(sector_size)
 	, position_(0)
 {
@@ -55,29 +55,28 @@ FileSystem::CSectorReader::~CSectorReader()
 
 bool FileSystem::CSectorReader::Open()
 {
-	if (Reader_)
-		return (bool)Reader_->Open();
-	return false;
+	return device_->Open(IO::OpenMode::OpenRead);
 }
 bool FileSystem::CSectorReader::isReady() const
 {
 	if (sector_size_ == 0)
 		return false;
-	return (Reader_) ? (bool)Reader_->isOpen() : false;
+	return device_->isOpen() ;
 }
 bool FileSystem::CSectorReader::ReadSector(BYTE * sector_data, LONGLONG sector_number) 
 {
 	assert(sector_data != NULL);
 	position_ = (LONGLONG)(sector_number * sector_size_);
-	return (Reader_->Read(sector_data,sector_size_,position_) == sector_size_) ? true : false;
-
+	device_->ReadData(sector_data, sector_size_);
+	return true;
 }
 bool FileSystem::CSectorReader::ReadSectors(BYTE * sector_data, LONGLONG sector_number , const DWORD count_sectors) 
 {
 	assert(sector_data != NULL);
 	position_ = (LONGLONG)(sector_number * sector_size_);
 	DWORD readSize =  count_sectors * sector_size_;
-	return ( Reader_->Read(sector_data , readSize, position_) == readSize ) ? true : false;
+	device_->ReadData(sector_data, readSize);
+	return true;
 }
 //FileSystem::CVirtualReader::CVirtualReader(IReader * pReader)
 //	: Reader_(pReader)

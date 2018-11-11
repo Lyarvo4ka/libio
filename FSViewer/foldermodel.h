@@ -8,8 +8,8 @@
 #include <QAbstractItemModel>
 #include <QFileIconProvider>
 
-#include "DirectoryTree.h"
-#include "AbstractFS.h"
+#include "FileSystem/DirectoryTree.h"
+#include "FileSystem/AbstractFS.h"
 
 using FileSystem::DirectoryEntry;
 using FileSystem::DirectoryNode;

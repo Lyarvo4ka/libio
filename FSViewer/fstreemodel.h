@@ -6,7 +6,7 @@
  #include <QFileIconProvider>
 
 #include "BaseIndex.h"
-#include "AbstractFS.h"
+#include "FileSystem/AbstractFS.h"
 
 using FileSystem::DirectoryEntry;
 using FileSystem::DirectoryNode;

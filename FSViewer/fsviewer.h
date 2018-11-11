@@ -1,8 +1,8 @@
-#ifndef FSVIEWER_H
-#define FSVIEWER_H
+#pragma once
 
-#include <QtGui/QMainWindow>
-#include "ui_fsviewer.h"
+#include <QtWidgets/QMainWindow>
+#include "ui_FSViewer.h"
+
 
 class FSTreeModel;
 class FSTableModel;
@@ -12,15 +12,9 @@ class FolderModel;
 class FS_Model;
 class TableIndex;
 class TreeIndex;
-#include "AbstractFS.h"
 
-//	-- declaration
-//class IVirtualNode;
-//typedef std::tr1::shared_ptr<IVirtualNode> NodeEntry;
-//class FileNode;
-//typedef std::tr1::shared_ptr<FileNode> FileEntry;
-//class DirectoryNode;
-//typedef std::tr1::shared_ptr<DirectoryNode> DirectoryEntry;
+#include "FileSystem/AbstractFS.h"
+
 
 #include "ui_RecoverDialog.h"
 #include "recoverdialog.h"
@@ -30,11 +24,11 @@ class FSViewer : public QMainWindow
 	Q_OBJECT
 
 public:
-	typedef std::tr1::shared_ptr<QDialog> DialogPtr;
+	typedef std::shared_ptr<QDialog> DialogPtr;
 
-	FSViewer(QWidget *parent = 0, Qt::WFlags flags = 0);
+
+	FSViewer(QWidget *parent = Q_NULLPTR);
 	~FSViewer();
-
 	void RecoverFile(const QString & folder_path, const FileSystem::FileEntry & file_entry);
 	void RecoverFolder(const QString & folder_path, FileSystem::DirectoryEntry & folder_entry);
 	void RecoverFolder(const QString & folder_path, TableIndex * FolderIndex);
@@ -53,19 +47,19 @@ protected slots:
 
 	void RecoverySelected();
 private:
-	void readFolders( TableIndex * FolderIndex );
-	void read_and_check( TreeIndex * checkIndex, const Qt::CheckState checkState);
+	void readFolders(TableIndex * FolderIndex);
+	void read_and_check(TreeIndex * checkIndex, const Qt::CheckState checkState);
 private:
 	TreeIndex * toTreeIndex(const QModelIndex & treeIndex);
 	TableIndex * toTableIndex(const QModelIndex & tableIndex);
 
 	Ui::FSViewerClass ui;
-	FSTreeModel * tree_model_;
-	FSTableModel * table_model_;
+	FSTreeModel * tree_model_ = nullptr;
+	FSTableModel * table_model_ = nullptr;
 
 	//	Dialogs
 	Ui::RecoverDialog RecoverUi_;
-	RecoverDialog * RecoverDialog_;
+	RecoverDialog * RecoverDialog_ = nullptr;
 	// Actions
 	QAction *recFileAction;
 
@@ -74,5 +68,3 @@ private:
 
 	FileSystem::AbstractFS abstract_fs;
 };
-
-#endif // FSVIEWER_H

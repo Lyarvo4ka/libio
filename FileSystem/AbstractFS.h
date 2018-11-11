@@ -58,9 +58,9 @@ namespace FileSystem
 		DWORD sector_count_;
 	};
 
-	typedef std::tr1::shared_ptr<CPartition> PartitionEntry;
+	typedef std::shared_ptr<CPartition> PartitionEntry;
 
-	class FSExport AbstractFileSystem
+	class  AbstractFileSystem
 	{
 	public:
 		virtual ~AbstractFileSystem() {};
@@ -83,7 +83,7 @@ namespace FileSystem
 
 	};
 
-	typedef std::tr1::shared_ptr<AbstractFileSystem> AbstractFS;
+	typedef std::shared_ptr<AbstractFileSystem> AbstractFS;
 
 
 

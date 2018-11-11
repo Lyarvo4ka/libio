@@ -3,10 +3,11 @@
 #include "FileSystemDLL.h"
 
 #include <memory>
+#include "IO/IODevice.h"
 
 namespace FileSystem
 {
-	class FSExport Cluster
+	class  Cluster
 	{
 	public:
 		Cluster(const DWORD size, const DWORD number = 0);
@@ -21,7 +22,7 @@ namespace FileSystem
 		BYTE * data_;
 	};
 
-	class FSExport IVirualReader
+	class  IVirualReader
 	{
 	public:
 		// Destructor
@@ -43,22 +44,14 @@ namespace FileSystem
 
 	};
 
-	class AbstractReader
-	{
-	public:
-		virtual ~AbstractReader() = 0;
-		virtual bool Open() = 0;
-		virtual bool isOpen() = 0;
-		virtual bool Read() = 0;
-	};
 
 	typedef std::shared_ptr<IVirualReader> VirtualReader;
 ////////////////////// CSectorReader /////////////////////
-	class FSExport CSectorReader
+	class  CSectorReader
 		: public IVirualReader
 	{
 	public:
-		CSectorReader(const AbstractReader & reader, const DWORD sector_size);
+		CSectorReader(IO::IODevicePtr device, const DWORD sector_size);
 		virtual ~CSectorReader();
 
 		virtual bool Open() ;
@@ -69,11 +62,9 @@ namespace FileSystem
 		void setOffset(LONGLONG offset);
 
 	private:
-		AbstractReader Reader_;
 		DWORD sector_size_;
 		LONGLONG position_;
-		//string error_;
-
+		IO::IODevicePtr device_;
 	};
 	typedef std::shared_ptr<CSectorReader> SectorReader; 
 

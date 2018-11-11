@@ -1,103 +1,54 @@
-#include "fsviewer.h"
+#include "FSViewer.h"
+
 
 #include "foldermodel.h"
+#include "FileSystem/BootSector.h"
+#include "FileSystem/DirectoryTree.h"
+#include "FileSystem/VirtualReader.h"
+#include "FileSystem/fat_fs.h"
 
-#include "Devices.h"
-#include "Reader.h"
-#include "AbstractFactory.h"
-#include "BootSector.h"
-#include "DirectoryTree.h"
-#include "VirtualReader.h"
-#include "fat_fs.h"
-
-#include <QtGui>
+#include "IO/constants.h"
 
 using namespace FileSystem;
 
 #include "fstreemodel.h"
 #include "fstablemodel.h"
 
-FSViewer::FSViewer(QWidget *parent, Qt::WFlags flags)
-	: QMainWindow(parent, flags)
-	, tree_model_(nullptr)
-	, table_model_(nullptr)
+#include <QDir>
+
+FSViewer::FSViewer(QWidget *parent)
+	: QMainWindow(parent)
 {
 	ui.setupUi(this);
-	
-	
+
 	RecoverDialog_ = new RecoverDialog(this, &RecoverUi_);
 	RecoverUi_.setupUi(RecoverDialog_);
-	//FileNode * pFileNode = new FileNode("fil1.dat");
-
-	//void * pVoid = (void *) pFileNode;
-
-	//IVirtualNode * pVirtualNode = static_cast<IVirtualNode *> (pVoid);
-
-	//if ( DirectoryNode * pDirNode = static_cast<DirectoryNode*>(pVirtualNode) )
-	//{
-	//	int k = 1;
-	//	k = 2;
-	//}
-	//else
-	//{
-	//	int b = 1;
-	//	b = 1;
-	//}
-
-	//DirectoryEntry pRootDir( new DirectoryNode("Main Root:") );
-	//DirectoryEntry pLocal_C( new DirectoryNode("Local drive C:") );
-	//pLocal_C->add_folder( new DirectoryNode("root:") );
-
-	//DirectoryEntry pLocal_D( new DirectoryNode("Local drive D:") );
-	//pLocal_D->add_folder( new DirectoryNode("root:") );
-
-	//pRootDir->add_folder(pLocal_C);
-	//pRootDir->add_folder(pLocal_D);
-
-
-	//int divide1 = 4095 / 4096;
-
-	CPhysicalDevice physicalDevices;
-	CDiviceList devList;
-	physicalDevices.GetDevices(devList);
-	devList.SORT();
-
-	DevicePtr pDevice = devList.GetDevice(2);
-	//CFileFactory fileFactory;
-	//IDevice * pFatFile = fileFactory.CreateDevice();
-	//DevicePtr pDevice(pFatFile);
-	//pDevice->SetPath(L"d:\\FAT32.bin");
-
-
-	CReaderFactory FactoryReader;
-	AbstractReader pReader( FactoryReader.CreateReader(pDevice)  );
-
-	//SectorReader pVirtualReader = ;
-	SectorReader sector_reader( new CSectorReader(pReader,pDevice->GetBytesPerSector()) );
+	
+	SectorReader sector_reader(new CSectorReader(nullptr, 512));
 
 	DirectoryEntry root_folder(new DirectoryNode("root:"));
 
-	if (sector_reader->Open()) 
-	{		
+	if (sector_reader->Open())
+	{
 		MasterBootRecord MBR;
 
 
-		if ( MBR.open(sector_reader) )
+		if (MBR.open(sector_reader))
 		{
 			if (MBR.count() > 1)
 			{
 
-				abstract_fs = FatFS( new FatFileSystem(sector_reader) );
-				if (abstract_fs->mount( MBR.getPartition(1) ) )
+				abstract_fs = FatFS(new FatFileSystem(sector_reader));
+				if (abstract_fs->mount(MBR.getPartition(1)))
 				{
 					NodeEntry resultEntry;
 
-					if (abstract_fs->getFirst(root_folder,resultEntry))
+					if (abstract_fs->getFirst(root_folder, resultEntry))
 					{
-						do 
+						do
 						{
 
-						} while ( abstract_fs->getNext(resultEntry));
+						} while (abstract_fs->getNext(resultEntry));
 					}	// end if
 
 				}
@@ -108,7 +59,7 @@ FSViewer::FSViewer(QWidget *parent, Qt::WFlags flags)
 	else
 		printf("Error open device...\r\n");
 
-	DirectoryEntry pMainRoot( new DirectoryNode("") );
+	DirectoryEntry pMainRoot(new DirectoryNode(""));
 	pMainRoot->add_folder(root_folder);
 
 	TreeIndex * treeRootIndex = new TreeIndex(pMainRoot);
@@ -118,38 +69,16 @@ FSViewer::FSViewer(QWidget *parent, Qt::WFlags flags)
 	TableIndex * tableRootIndex = new TableIndex(pMainRoot);
 	table_model_ = new FSTableModel(this, tableRootIndex);
 	ui.tableView->setModel(table_model_);
-	ui.tableView->setRootIndex( table_model_->indexFromPath(L"\\root:") );
+	ui.tableView->setRootIndex(table_model_->indexFromPath(L"\\root:"));
 
-	/*
-	FSModelIndex * rootIndex = new FSModelIndex(pMainRoot);
+	connect(ui.tableView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(OnTableContextMenu(const QPoint &)));
+	connect(table_model_, SIGNAL(updateTreeState(const QString &, Qt::CheckState)), this, SLOT(TableViewCheckedFolders(const QString &, Qt::CheckState)));
+	connect(table_model_, SIGNAL(updateParentState(Qt::CheckState)), this, SLOT(TableViewParentFolders(Qt::CheckState)));
 
-
-	//pFSmodel = new FolderModel(this,pMainRoot);
-	pFSmodel = new FolderModel(this,rootIndex);
-	
-	ui.treeView->setModel(pFSmodel);
-	ui.treeView->hideColumn(FolderModel::header_size);
-	ui.treeView->hideColumn(FolderModel::header_created);
-	ui.treeView->hideColumn(FolderModel::header_modified);
-	ui.treeView->hideColumn(FolderModel::header_accessed);
-	
-	//QSizePolicy sizePolicy();
-	//sizePolicy.setHorizontalPolicy(Policy::Minimum);
-	//ui.treeView->setSizePolicy(sizePolicy)
-	//ui.tableView->setMinimumHeight(5);
-	//ui.tableView->setRowHeight(1,5);
-	
-	//ui.verticalLayout->setSizeConstraint(QLayou)
-	ui.tableView->setModel(pFSmodel);
-	*/
-
-	connect(ui.tableView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(OnTableContextMenu(const QPoint &)));
-	connect(table_model_, SIGNAL(updateTreeState(const QString &, Qt::CheckState)), this,SLOT(TableViewCheckedFolders(const QString &, Qt::CheckState)));
-	connect( table_model_, SIGNAL( updateParentState(Qt::CheckState) ), this,SLOT( TableViewParentFolders(Qt::CheckState)) );
-
-	connect(tree_model_, SIGNAL(updateTableState(Qt::CheckState)), this,SLOT(TreeViewChecked(Qt::CheckState)));
+	connect(tree_model_, SIGNAL(updateTableState(Qt::CheckState)), this, SLOT(TreeViewChecked(Qt::CheckState)));
 	recFileAction = new QAction(tr("&Recover file"), this);
-	ui.treeView->setBaseSize(100,0);
+	ui.treeView->setBaseSize(100, 0);
+
 }
 
 FSViewer::~FSViewer()
@@ -165,32 +94,34 @@ FSViewer::~FSViewer()
 		table_model_ = nullptr;
 	}
 }
+
+
 void FSViewer::RecoverFile(const QString & folder_path, const FileSystem::FileEntry & file_entry)
 {
 	QDir currentDir(folder_path);
 
-	QFileInfo fileInfo( currentDir, QString::fromStdWString(file_entry->name()) );
+	QFileInfo fileInfo(currentDir, QString::fromStdWString(file_entry->name()));
 
 
-	if ( !currentDir.mkpath(folder_path))
+	if (!currentDir.mkpath(folder_path))
 	{
 		qDebug("Error to create directory...");
 		return;
 	}
 
-	DWORD sector_count = FileSystem::sectorsFromSize(file_entry->size(),default_sector_size);
+	DWORD sector_count = FileSystem::sectorsFromSize(file_entry->size(), 512);
 
-	BYTE * read_data = new BYTE[sector_count * default_sector_size];
-	memset(read_data,0x8F,sector_count * default_sector_size);
+	BYTE * read_data = new BYTE[sector_count * 512];
+	memset(read_data, 0x8F, sector_count * 512);
 	DWORD bytesRead = 0;
 	file_entry->OpenFile();
-	if ( abstract_fs->ReadFile(file_entry,read_data,file_entry->size(),bytesRead) )
+	if (abstract_fs->ReadFile(file_entry, read_data, file_entry->size(), bytesRead))
 	{
 		qDebug("Read ok.");
 	}
 	QString filePath(fileInfo.absoluteFilePath());
-	HANDLE hWriteFile = CreateFile(	fileInfo.absoluteFilePath().toStdWString().c_str(), 		
-		GENERIC_WRITE ,
+	HANDLE hWriteFile = CreateFile(fileInfo.absoluteFilePath().toStdWString().c_str(),
+		GENERIC_WRITE,
 		FILE_SHARE_READ,
 		NULL,
 		CREATE_ALWAYS,
@@ -202,7 +133,7 @@ void FSViewer::RecoverFile(const QString & folder_path, const FileSystem::FileEn
 	else
 	{
 		DWORD bytes_write = 0;
-		BOOL bWriteResult = WriteFile(hWriteFile,read_data,file_entry->size(),&bytes_write,NULL);
+		BOOL bWriteResult = WriteFile(hWriteFile, read_data, file_entry->size(), &bytes_write, NULL);
 
 
 
@@ -216,29 +147,29 @@ void FSViewer::RecoverFolder(const QString & folder_path, FileSystem::DirectoryE
 	QDir currentDir(folder_path);
 	QChar delimiter('\\');
 	QString next_folder(folder_path);
-	if (next_folder.at(next_folder.length()-1) !=  delimiter)
+	if (next_folder.at(next_folder.length() - 1) != delimiter)
 		next_folder.append(delimiter);
-	next_folder.append( QString::fromStdWString(folder_entry->name()) );
+	next_folder.append(QString::fromStdWString(folder_entry->name()));
 
 
-	if ( !currentDir.mkpath(next_folder))
+	if (!currentDir.mkpath(next_folder))
 	{
 		qDebug("Error to create directory...");
 		return;
 	}
 
 	NodeEntry next_entry;
-	if ( abstract_fs->getFirst( folder_entry , next_entry) )
+	if (abstract_fs->getFirst(folder_entry, next_entry))
 	{
-		do 
+		do
 		{
-			if ( FileSystem::DirectoryEntry dir_entry = std::tr1::dynamic_pointer_cast<DirectoryNode> (next_entry) )
+			if (FileSystem::DirectoryEntry dir_entry = std::dynamic_pointer_cast<DirectoryNode> (next_entry))
 			{
-				this->RecoverFolder(next_folder,dir_entry);
+				this->RecoverFolder(next_folder, dir_entry);
 			}
 			else
-			if (FileSystem::FileEntry file_entry = std::tr1::dynamic_pointer_cast<FileNode> (next_entry))
-				this->RecoverFile(next_folder,file_entry);
+				if (FileSystem::FileEntry file_entry = std::dynamic_pointer_cast<FileNode> (next_entry))
+					this->RecoverFile(next_folder, file_entry);
 
 		} while (abstract_fs->getNext(next_entry));
 	}
@@ -248,11 +179,11 @@ void FSViewer::RecoverFolder(const QString & folder_path, TableIndex * FolderInd
 	QDir currentDir(folder_path);
 	QChar delimiter('\\');
 	QString next_folder(folder_path);
-	if (next_folder.at(next_folder.length()-1) !=  delimiter)
+	if (next_folder.at(next_folder.length() - 1) != delimiter)
 		next_folder.append(delimiter);
-	next_folder.append( QString::fromStdWString(FolderIndex->getEntry()->name()) );
+	next_folder.append(QString::fromStdWString(FolderIndex->getEntry()->name()));
 
-	if ( !currentDir.mkpath(next_folder))
+	if (!currentDir.mkpath(next_folder))
 	{
 		qDebug("Error to create directory...");
 		return;
@@ -261,17 +192,17 @@ void FSViewer::RecoverFolder(const QString & folder_path, TableIndex * FolderInd
 	//NodeEntry next_entry;
 	readFolders(FolderIndex);
 
-	for (std::size_t iNodeEntry = 0 ; iNodeEntry < FolderIndex->count(); ++iNodeEntry)
+	for (std::size_t iNodeEntry = 0; iNodeEntry < FolderIndex->count(); ++iNodeEntry)
 	{
-		if ( TableIndex * pChildIndex = FolderIndex->getChild(iNodeEntry) )
+		if (TableIndex * pChildIndex = FolderIndex->getChild(iNodeEntry))
 		{
 			if (pChildIndex->getEntry()->type() == FileSystem::folder_type)
 			{
-				this->RecoverFolder(next_folder,pChildIndex);
+				this->RecoverFolder(next_folder, pChildIndex);
 			}
 			else
-				if (FileSystem::FileEntry file_entry = std::tr1::dynamic_pointer_cast<FileNode> (pChildIndex->getEntry()))
-						this->RecoverFile(next_folder,file_entry);
+				if (FileSystem::FileEntry file_entry = std::dynamic_pointer_cast<FileNode> (pChildIndex->getEntry()))
+					this->RecoverFile(next_folder, file_entry);
 		}
 	}
 }
@@ -280,41 +211,41 @@ void FSViewer::OnTreeViewClicked(QModelIndex modelIndex)
 {
 	if (modelIndex.isValid())
 	{
-		TreeIndex * current_index = static_cast < TreeIndex * >
-			( modelIndex.internalPointer() );
+		TreeIndex * current_index = static_cast <TreeIndex *>
+			(modelIndex.internalPointer());
 
 
 		//IVirtualNode * pVirtualNode = static_cast < IVirtualNode* >
 		//	( modelIndex.internalPointer() );
 		//if (pVirtualNode)
-		if ( NodeEntry node_entry = current_index->getEntry() )
+		if (NodeEntry node_entry = current_index->getEntry())
 		{
-			wstring root_path( current_index->getRootPath() );
+			wstring root_path(current_index->getRootPath());
 
 			if (node_entry->count() == 0)
-			if (node_entry->type() == folder_type)
-			{
-				NodeEntry childNodes;
-				if ( abstract_fs->getFirst( std::tr1::static_pointer_cast<DirectoryNode>(node_entry) , childNodes) )
+				if (node_entry->type() == folder_type)
 				{
-					do 
+					NodeEntry childNodes;
+					if (abstract_fs->getFirst(std::static_pointer_cast<DirectoryNode>(node_entry), childNodes))
 					{
+						do
+						{
 
-					} while (abstract_fs->getNext(childNodes));
-					
-					current_index->resetChilds();
-					tree_model_->update_view(modelIndex);
-					ui.treeView->setExpanded( modelIndex,ui.treeView->isExpanded(modelIndex) );
+						} while (abstract_fs->getNext(childNodes));
 
-					if ( TableIndex * table_index = table_model_->indexByPath(root_path) )
-						table_index->resetChilds();
+						current_index->resetChilds();
+						tree_model_->update_view(modelIndex);
+						ui.treeView->setExpanded(modelIndex, ui.treeView->isExpanded(modelIndex));
 
+						if (TableIndex * table_index = table_model_->indexByPath(root_path))
+							table_index->resetChilds();
+
+					}
 				}
-			}
-			QModelIndex root_index ( table_model_->indexFromPath( root_path ) );
+			QModelIndex root_index(table_model_->indexFromPath(root_path));
 			ui.tableView->setRootIndex(root_index);
 			ui.tableView->resizeColumnsToContents();
-			ui.tableView->setColumnWidth(0,350);
+			ui.tableView->setColumnWidth(0, 350);
 			ui.tableView->resizeRowsToContents();
 		}
 
@@ -325,14 +256,14 @@ void FSViewer::OnTreeViewClicked(QModelIndex modelIndex)
 		//ui.tableView->setColumnWidth(0,350);
 		//ui.tableView->resizeRowsToContents();
 	}
-	
+
 
 }
 void FSViewer::DoubleClickedTableView(QModelIndex modelIndex)
 {
 	if (modelIndex.isValid())
 	{
-		if (TableIndex * current_index = static_cast<TableIndex *> ( modelIndex.internalPointer() ) )
+		if (TableIndex * current_index = static_cast<TableIndex *> (modelIndex.internalPointer()))
 		{
 			wstring rootPath = current_index->getRootPath();
 			QModelIndex treeIndex = tree_model_->indexFromPath(rootPath);
@@ -347,17 +278,17 @@ void FSViewer::DoubleClickedTableView(QModelIndex modelIndex)
 void FSViewer::OnTableContextMenu(const QPoint & point_pos)
 {
 	QModelIndex cell = ui.tableView->indexAt(point_pos);
-	if(cell.isValid())
+	if (cell.isValid())
 	{
 		//QString myid=cell.sibling(cell.row(),0).data().toString();
-		TableIndex *selected_index = static_cast<TableIndex*> ( cell.internalPointer() );
-		if ( selected_index )
+		TableIndex *selected_index = static_cast<TableIndex*> (cell.internalPointer());
+		if (selected_index)
 		{
 			//pContexMenu->addAction("Recover selected", this, SLOT(Recovery(selected_index->getEntry())));
 			if (selected_index->getEntry())
 			{
 				QMenu contextMenu(this);
-				contextMenu.addAction( tr("Восстановить"), this, SLOT( RecoverySelected() ) );
+				contextMenu.addAction(tr("Восстановить"), this, SLOT(RecoverySelected()));
 				contextMenu.exec(ui.tableView->mapToGlobal(point_pos));
 			}
 		}
@@ -366,9 +297,9 @@ void FSViewer::OnTableContextMenu(const QPoint & point_pos)
 void FSViewer::TableViewCheckedFolders(const QString & node_path, Qt::CheckState checkState)
 {
 	QModelIndex currentIndex = tree_model_->indexFromPath(node_path.toStdWString());
-	if ( currentIndex.isValid() )
+	if (currentIndex.isValid())
 	{
-		tree_model_->updateCheckState(currentIndex,checkState);
+		tree_model_->updateCheckState(currentIndex, checkState);
 		tree_model_->update_view(currentIndex);
 	}
 }
@@ -378,13 +309,13 @@ void FSViewer::TableViewParentFolders(Qt::CheckState checkState)
 
 	while (currentIndex.isValid())
 	{
-		if ( TableIndex * tableIndex = toTableIndex(ui.tableView->currentIndex()) )
-		if (TableIndex * parentIndex = tableIndex->parent())
-		{
-			checkState = parentIndex->checked();
-			tree_model_->updateCheckState(currentIndex,checkState);
-			tree_model_->update_view(currentIndex);
-		}
+		if (TableIndex * tableIndex = toTableIndex(ui.tableView->currentIndex()))
+			if (TableIndex * parentIndex = tableIndex->parent())
+			{
+				checkState = parentIndex->checked();
+				tree_model_->updateCheckState(currentIndex, checkState);
+				tree_model_->update_view(currentIndex);
+			}
 		currentIndex = currentIndex.parent();
 	}
 }
@@ -414,9 +345,9 @@ void FSViewer::TreeViewChecked(Qt::CheckState checkState)
 void FSViewer::RecoverySelected()
 {
 	//QString folder_path(QDir::currentPath()); 
-	QString folder_path("D:\\Recovery\\"); 
+	QString folder_path("D:\\Recovery\\");
 	RecoverDialog_->setFolderPath(folder_path);
-	if ( RecoverDialog_->exec() == QDialog::Accepted )
+	if (RecoverDialog_->exec() == QDialog::Accepted)
 	{
 		folder_path = RecoverDialog_->getFolderPath();
 
@@ -430,28 +361,28 @@ void FSViewer::RecoverySelected()
 		//}
 		//else
 		if (selected_index->getEntry()->type() == FileSystem::folder_type)
-			RecoverFolder(folder_path,selected_index);
-		if (FileSystem::FileEntry rec_file = std::tr1::dynamic_pointer_cast <FileNode> ( selected_index->getEntry()))
+			RecoverFolder(folder_path, selected_index);
+		if (FileSystem::FileEntry rec_file = std::dynamic_pointer_cast <FileNode> (selected_index->getEntry()))
 		{
 			qDebug("recovering file...");
-			RecoverFile(folder_path,rec_file);
+			RecoverFile(folder_path, rec_file);
 		}
 	}
 }
 
-void FSViewer::readFolders( TableIndex * FolderIndex )
+void FSViewer::readFolders(TableIndex * FolderIndex)
 {
 	NodeEntry childNodes;
-	if ( abstract_fs->getFirst( std::tr1::static_pointer_cast<DirectoryNode>(FolderIndex->getEntry()) , childNodes) )
+	if (abstract_fs->getFirst(std::static_pointer_cast<DirectoryNode>(FolderIndex->getEntry()), childNodes))
 	{
-		do 
+		do
 		{
 
 		} while (abstract_fs->getNext(childNodes));
 
 		FolderIndex->resetChilds();
-				
-		if ( TreeIndex * tree_index = tree_model_->indexByPath(FolderIndex->getRootPath()) )
+
+		if (TreeIndex * tree_index = tree_model_->indexByPath(FolderIndex->getRootPath()))
 		{
 			tree_index->resetChilds();
 			QModelIndex treeIndex = tree_model_->indexFromPath(FolderIndex->getRootPath());
@@ -461,20 +392,20 @@ void FSViewer::readFolders( TableIndex * FolderIndex )
 
 	}
 }
-void FSViewer::read_and_check( TreeIndex * checkIndex, const Qt::CheckState checkState)
+void FSViewer::read_and_check(TreeIndex * checkIndex, const Qt::CheckState checkState)
 {
-	if ( NodeEntry node_entry = checkIndex->getEntry() )
+	if (NodeEntry node_entry = checkIndex->getEntry())
 	{
-		wstring root_path( checkIndex->getRootPath() );
+		wstring root_path(checkIndex->getRootPath());
 
 		if (node_entry->count() == 0)
 		{
 			if (node_entry->type() == folder_type)
 			{
 				NodeEntry childNodes;
-				if ( abstract_fs->getFirst( std::tr1::static_pointer_cast<DirectoryNode>(node_entry) , childNodes) )
+				if (abstract_fs->getFirst(std::static_pointer_cast<DirectoryNode>(node_entry), childNodes))
 				{
-					do 
+					do
 					{
 
 					} while (abstract_fs->getNext(childNodes));
@@ -482,7 +413,7 @@ void FSViewer::read_and_check( TreeIndex * checkIndex, const Qt::CheckState chec
 					//checkIndex->setChecked(checkState);
 					checkIndex->resetChilds();
 
-					if ( TableIndex * table_index = table_model_->indexByPath(root_path) )
+					if (TableIndex * table_index = table_model_->indexByPath(root_path))
 						table_index->resetChilds();
 
 				}
@@ -499,3 +430,4 @@ TableIndex * FSViewer::toTableIndex(const QModelIndex & tableIndex)
 {
 	return static_cast<TableIndex*> (tableIndex.internalPointer());
 }
+

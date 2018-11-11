@@ -114,9 +114,11 @@ TableIndex * TableIndex::index_node(const wstring & folder_path)
 			return nullptr;
 
 		TableIndex * pIndex = nullptr;
-		auto it = std::find_if( FolderArray_.begin(), 
-								FolderArray_.end() , 
-								std::bind2nd( TableFindByName(), folder_path) );
+		auto it = std::find_if(FolderArray_.begin(),
+			FolderArray_.end(), [&](const TableIndex * iIndex)
+			//std::bind2nd( TableFindByName(), folder_path) );
+		{ return iIndex->getEntry()->name().compare(folder_path) == 0; });
+
 
 		if (it != FolderArray_.end())
 			return *it;
@@ -129,7 +131,9 @@ TableIndex * TableIndex::index_node(const wstring & folder_path)
 	TableIndex * pIndex = nullptr;
 	auto it = std::find_if( FolderArray_.begin(), 
 							FolderArray_.end() , 
-							std::bind2nd( TableFindByName(), subStr) );
+		[&](const TableIndex * iIndex)
+		//std::bind2nd( TableFindByName(), folder_path) );
+	{ return iIndex->getEntry()->name().compare(subStr) == 0; });
 
 	if (it != FolderArray_.end())
 		return (*it)->index_node(folder_path.substr(++firstPos));

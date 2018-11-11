@@ -1,7 +1,7 @@
 #ifndef BASEINDEX_H
 #define BASEINDEX_H
 
-#include "DirectoryTree.h"
+#include "FileSystem/DirectoryTree.h"
 
 using FileSystem::NodeEntry;
 

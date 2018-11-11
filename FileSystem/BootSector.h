@@ -80,11 +80,11 @@ namespace FileSystem
 	};
 #pragma pack ()
 
-	bool FSExport CheckSignature(const BYTE *BootSector);
-	FSType FSExport GetFATType(const fat_boot_sector & BootSector);
+	bool  CheckSignature(const BYTE *BootSector);
+	FSType  GetFATType(const fat_boot_sector & BootSector);
 
 
-	class FSExport IBootSector
+	class  IBootSector
 	{
 	public:
 		IBootSector() {/**/};
@@ -93,7 +93,7 @@ namespace FileSystem
 		virtual ~IBootSector(){/**/};
 	};
 
-	class FSExport Fat16_boot
+	class  Fat16_boot
 		: IBootSector
 	{
 	public:
@@ -109,7 +109,7 @@ namespace FileSystem
 		WORD FatSectors_;
 	};
 
-	class FSExport Fat32_boot
+	class  Fat32_boot
 		: IBootSector
 	{
 	public:
@@ -137,5 +137,5 @@ namespace FileSystem
 		DWORD RootEntries_;
 	};
 
-	typedef std::tr1::shared_ptr<Fat32_boot> FatBootPtr;
+	typedef std::shared_ptr<Fat32_boot> FatBootPtr;
 }

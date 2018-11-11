@@ -1,11 +1,13 @@
 #ifndef FSTABLEMODEL_H
 #define FSTABLEMODEL_H
 
+#include <functional>
+
 #include <QAbstractItemModel>
  #include <QFileIconProvider>
 
 #include "BaseIndex.h"
-#include "AbstractFS.h"
+#include "FileSystem/AbstractFS.h"
 using FileSystem::DirectoryEntry;
 using FileSystem::DirectoryNode;
 using FileSystem::NodeEntry;
@@ -46,7 +48,7 @@ private:
 Qt::CheckState getStateCheckState( const vector< TableIndex* > & arrayChilds, Qt::CheckState checked);
 
 class TableFindByName
-	: public std::binary_function< TableIndex *, wstring , bool >
+	//: public std::binary_function< TableIndex *, wstring , bool >
 {
 public:
 	bool operator() ( const TableIndex * first, const wstring & name) const

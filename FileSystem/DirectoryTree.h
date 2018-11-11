@@ -65,7 +65,7 @@ namespace FileSystem
 
 	enum NodeType{ folder_type, file_type};
 
-	class FSExport EntryTimes
+	class EntryTimes
 	{
 	public:
 		EntryTimes(const WORD data_created, const WORD time_created,
@@ -182,7 +182,7 @@ namespace FileSystem
 		ListClusters::iterator currentInter;
 	};
 
-	class FSExport IVirtualNode
+	class IVirtualNode
 	{
 	public:
 
@@ -204,7 +204,7 @@ namespace FileSystem
 	};
 
 	////////////////////////////////File//////////////////////////////////////
-	class FSExport FileNode
+	class FileNode
 		: public IVirtualNode
 	{
 	public:
@@ -266,7 +266,7 @@ namespace FileSystem
 	NodeEntry findByIndex( const list< NodeEntry > & nodeList, int nIndex);
 
 
-	class FSExport DirectoryNode
+	class DirectoryNode
 		: public IVirtualNode
 	{
 	public:

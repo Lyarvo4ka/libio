@@ -13,7 +13,7 @@ FileSystem::MasterBootRecord::MasterBootRecord(const DWORD offsetMBR)
 }
 FileSystem::MasterBootRecord::~MasterBootRecord()
 {
-	DEBUG_SHOW("Destructor [\"MasterBootRecord\"]...\r\n");	
+	//DEBUG_SHOW("Destructor [\"MasterBootRecord\"]...\r\n");	
 }
 void FileSystem::MasterBootRecord::setOffset( const DWORD offsetMBR)
 {
@@ -42,7 +42,7 @@ bool FileSystem::MasterBootRecord::open(const VirtualReader & virtual_reader)
 	//{
 
 	partition_enty * pPartition = (partition_enty*)  &mbr_data[partition_offset] ;
-	for ( byte iNumber = 1; iNumber < partition_count; ++iNumber)
+	for ( auto iNumber = 1; iNumber < partition_count; ++iNumber)
 	{
 		if ( pPartition->partition_type != partition_types::free )
 		{
@@ -89,7 +89,7 @@ FileSystem::Fat_Table::Fat_Table(const VirtualReader & pVirualReader, const LONG
 }
 FileSystem::Fat_Table::~Fat_Table()
 {
-	DEBUG_SHOW("Destructor [\"Fat_Table\"]...\r\n");	
+//	DEBUG_SHOW("Destructor [\"Fat_Table\"]...\r\n");	
 	if (fat_table_ != NULL)
 	{
 		delete [] fat_table_;
@@ -331,7 +331,7 @@ void FileSystem::FatFileSystem::read_root()
 //}
 void FileSystem::FatFileSystem::read_folder( const DirectoryEntry & head_folder)
 {
-	std::tr1::shared_ptr<Cluster> folderCluster( new Cluster(BootSector_->cluster_size()));
+	std::shared_ptr<Cluster> folderCluster( new Cluster(BootSector_->cluster_size()));
 
 	DWORD currentCluster = 0;
 	if ( head_folder->parent() == NULL)
@@ -370,14 +370,14 @@ void FileSystem::FatFileSystem::read_folder( const DirectoryEntry & head_folder)
 	}
 	DWORD iNumber = 0;
 
-	list<std::tr1::shared_ptr<Cluster> > folderData; 
+	list<std::shared_ptr<Cluster> > folderData; 
 	folderData.push_back( folderCluster );
 	currentCluster = FatTable_->Next_Cluster(currentCluster);
 
 	if ( currentCluster != end_cluster_fat32 )
 		do 
 		{
-			std::tr1::shared_ptr<Cluster> nextCluster( new Cluster(BootSector_->cluster_size()));
+			std::shared_ptr<Cluster> nextCluster( new Cluster(BootSector_->cluster_size()));
 			nextCluster->setNumber(currentCluster);
 			if  ( !ReadCluster(*nextCluster))
 				break;
@@ -629,7 +629,7 @@ bool FileSystem::FatFileSystem::ReadFile( const FileEntry file_entry, BYTE * dat
 			}
 
 			if (reader_->ReadSectors(pReadBuffer,logical_sector,sectorsToRead))
-				DEBUG_SHOW("read ok ");
+				//DEBUG_SHOW("read ok ");
 
 			memcpy(data + bytes_read, pReadBuffer,bytesToRead);
 			bytes_read += bytesToRead;

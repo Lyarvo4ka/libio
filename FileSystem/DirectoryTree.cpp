@@ -109,7 +109,7 @@ FileSystem::FileNode::FileNode(const wchar_t * file_name, const file_size_type f
 }
 FileSystem::FileNode::~FileNode()
 {
-	DEBUG_SHOW("Destructor [\"FileNode\"]...(%s)\r\n",ToString(file_name_).c_str());	
+//	DEBUG_SHOW("Destructor [\"FileNode\"]...(%s)\r\n",ToString(file_name_).c_str());	
 	if (file_times_)
 	{
 		delete file_times_;
@@ -284,7 +284,7 @@ FileSystem::DirectoryNode::DirectoryNode(const wchar_t * Name, const file_size_t
 }
 FileSystem::DirectoryNode::~DirectoryNode()
 {
-	DEBUG_SHOW("Destructor [\"DirectoryNode\"]...(%s)\r\n",ToString(directory_name_).c_str());
+//	DEBUG_SHOW("Destructor [\"DirectoryNode\"]...(%s)\r\n",ToString(directory_name_).c_str());
 	if (folder_times_)
 	{
 		delete folder_times_;
@@ -354,25 +354,27 @@ FileSystem::NodeType FileSystem::DirectoryNode::type() const
 	return folder_type;
 }
 
-void FileSystem::DirectoryNode::add_folder( DirectoryNode * directory)
-{
-	assert(directory != NULL);
-	add_folder( DirectoryEntry(directory) );
-
-}
-void FileSystem::DirectoryNode::add_folder( DirectoryEntry & directory_entry)
+void FileSystem::DirectoryNode::add_folder(DirectoryEntry & directory_entry)
 {
 	assert(directory_entry != NULL);
 
 	directory_entry->setParent(this);
-	DirectoryMap_.insert( DirectoryPair (directory_entry->name() , directory_entry ) );
+	DirectoryMap_.insert(DirectoryPair(directory_entry->name(), directory_entry));
 	//FolderList_.push_back(directory_entry);
+}
+
+void FileSystem::DirectoryNode::add_folder( DirectoryNode * directory)
+{
+	assert(directory != NULL);
+	std::shared_ptr<DirectoryNode> dir_ptr(directory);
+	add_folder(dir_ptr);
+
 }
 void FileSystem::DirectoryNode::add_file(FileNode *file_node)
 {
 	assert(file_node != NULL);
-
-	add_file( FileEntry(file_node) );
+	std::shared_ptr<FileNode> file_ptr(file_node);
+	add_file(file_ptr);
 }
 void FileSystem::DirectoryNode::add_file( FileEntry & file_entry)
 {
