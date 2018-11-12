@@ -100,11 +100,8 @@ FileSystem::Fat_Table::~Fat_Table()
 void FileSystem::Fat_Table::InitTable(const FatBootPtr &  boot_sector)
 {
 	BPS_ = boot_sector->bytes_per_sector();
-
 	table_size_ = boot_sector->sectors_per_fat() * BPS_;
-
 	fat_table_ = new BYTE[table_size_];
-
 	Sector_Array_.resize(boot_sector->sectors_per_fat(),false);
 
 }
@@ -170,6 +167,7 @@ FileSystem::FatFileSystem::~FatFileSystem()
 		 return false;
 
 	 BootSector_ = FatBootPtr( new Fat32_boot(boot_sector) );
+	 BootSector_->InitBoot();
 	 
 	 LONGLONG OffsetToTable = partition->start_sector();
 	 OffsetToTable += BootSector_->reserved_sectors();
@@ -662,13 +660,13 @@ DWORD FileSystem::FatFileSystem::readSizeUsingTable(const FileEntry file_entry)
 	if (File_Handle * pFileHandle = file_entry->getFileHandle())
 	{
 		if (pFileHandle->getSize() == 0)
-			FileSystem::ReadListClusters(pFileHandle, FatTable_, file_entry->cluster());
+			if (file_entry->cluster() < BootSector_->count_cluster())
+				FileSystem::ReadListClusters(pFileHandle, FatTable_, file_entry->cluster());
 
 		auto cluster_list = pFileHandle->getClusterList();
 		for (auto iter = cluster_list->begin(); iter != cluster_list->end(); ++iter)
-		{
 			numClusters += iter->getCount();
-		}
+
 		numClusters *= BootSector_->cluster_size();
 	}
 	return numClusters;
@@ -731,13 +729,9 @@ bool FileSystem::ReadListClusters(File_Handle * pFileHandle, FatTable & fat_tabl
 	pFileHandle->clearList();
 	ClusterEntry clusterEntry(cluster , 0);
 
-	uint64_t partition_size = fat_table->size() * 4096;
-
 	DWORD tempCluster = 0;
 	while (cluster != end_cluster_fat32)
 	{
-		if (cluster >= partition_size)
-			break;
 		tempCluster = clusterEntry.getNumber() + clusterEntry.getCount();
 		if ( tempCluster  == cluster)
 			clusterEntry.inc();

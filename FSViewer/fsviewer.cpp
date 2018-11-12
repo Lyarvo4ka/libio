@@ -24,7 +24,7 @@ FSViewer::FSViewer(QWidget *parent)
 	RecoverDialog_ = new RecoverDialog(this, &RecoverUi_);
 	RecoverUi_.setupUi(RecoverDialog_);
 
-	auto file_ptr = IO::makeFilePtr(LR"(d:\incoming\45356\45356.img )");
+	auto file_ptr = IO::makeFilePtr(LR"(d:\vdisk\1Gb.vhd)");
 	file_ptr->OpenRead();
 	
 	SectorReader sector_reader(new CSectorReader(file_ptr, 512));
@@ -112,28 +112,31 @@ void FSViewer::RecoverFile(const QString & folder_path, const FileSystem::FileEn
 		return;
 	}
 
-	DWORD sector_count = FileSystem::sectorsFromSize(file_entry->size(), 512);
-
-	DWORD bytesRead = 0;
-	file_entry->OpenFile();
-	//readSizeUsingTable
-	auto fat_fs = std::dynamic_pointer_cast<FatFileSystem>(abstract_fs);
-	if (fat_fs)
+	if ((file_entry->size() == 0) || (file_entry->size() == 4096))
 	{
-		auto file_size = fat_fs->readSizeUsingTable(file_entry);
-		BYTE * read_data = new BYTE[file_size];
-
-		if (abstract_fs->ReadFile(file_entry, read_data, file_entry->size(), bytesRead))
+		DWORD bytesRead = 0;
+		file_entry->OpenFile();
+		//readSizeUsingTable
+		auto fat_fs = std::dynamic_pointer_cast<FatFileSystem>(abstract_fs);
+		if (fat_fs)
 		{
-			qDebug("Read ok.");
-		}
-		QString filePath(fileInfo.absoluteFilePath());
-		IO::File target_file(fileInfo.absoluteFilePath().toStdWString());
-		target_file.OpenCreate();
-		target_file.WriteData(read_data, bytesRead);
-		delete read_data;
-	}
+			auto file_size = fat_fs->readSizeUsingTable(file_entry);
+			if (file_size > 0)
+			{
+				BYTE * read_data = new BYTE[file_size];
 
+				if (abstract_fs->ReadFile(file_entry, read_data, file_entry->size(), bytesRead))
+				{
+					qDebug("Read ok.");
+				}
+				QString filePath(fileInfo.absoluteFilePath());
+				IO::File target_file(fileInfo.absoluteFilePath().toStdWString());
+				target_file.OpenCreate();
+				target_file.WriteData(read_data, bytesRead);
+				delete read_data;
+			}
+		}
+	}
 /*
 	QDir currentDir(folder_path);
 
@@ -325,7 +328,7 @@ void FSViewer::OnTableContextMenu(const QPoint & point_pos)
 			if (selected_index->getEntry())
 			{
 				QMenu contextMenu(this);
-				contextMenu.addAction(tr("Восстановить"), this, SLOT(RecoverySelected()));
+				contextMenu.addAction(tr("Recover"), this, SLOT(RecoverySelected()));
 				contextMenu.exec(ui.tableView->mapToGlobal(point_pos));
 			}
 		}

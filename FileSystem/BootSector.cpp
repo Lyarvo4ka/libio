@@ -85,7 +85,7 @@ void FileSystem::Fat32_boot::InitBoot()
 	RootEntries_ = ( (BootSector_.root_entries * 32) + (BootSector_.BytesPerSector - 1) ) / BootSector_.BytesPerSector;
 
 	DataSectors_ =  total_sectors - (BootSector_.reserved_sect + (BootSector_.number_fats * BootSector_.fat_length_large)) + RootEntries_;
-	CountCluster_ = DataSectors_ / BootSector_.BytesPerSector;
+	CountCluster_ = DataSectors_ / BootSector_.sec_per_clus  ;
 }
 string FileSystem::Fat32_boot::TypeName() const
 {
