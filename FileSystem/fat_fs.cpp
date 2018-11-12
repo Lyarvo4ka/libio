@@ -111,6 +111,8 @@ void FileSystem::Fat_Table::InitTable(const FatBootPtr &  boot_sector)
 DWORD FileSystem::Fat_Table::Next_Cluster(DWORD current_cluster)
 {
 	DWORD sector_number = current_cluster*4 / BPS_;
+	if (sector_number >= Sector_Array_.size())
+		return bad_cluster_fat32;
 	if (!Sector_Array_.at(sector_number))
 	{
 		if (!Read_Sector(sector_number))
@@ -573,80 +575,136 @@ bool FileSystem::FatFileSystem::setOffset(FileEntry file_entry, LONGLONG offset)
 }
 bool FileSystem::FatFileSystem::ReadFile( const FileEntry file_entry, BYTE * data, DWORD data_size, DWORD &bytes_read)
 {
-	//assert(file_entry != nullptr);
-	//assert( data != nullptr );
+	////assert(file_entry != nullptr);
+	////assert( data != nullptr );
 
-	//assert ( (data_size % BootSector_->bytes_per_sector()) != 0);
-	bytes_read = 0;
-	DWORD remainingToRead = sectorsFromSize(data_size,BootSector_->bytes_per_sector());
+	////assert ( (data_size % BootSector_->bytes_per_sector()) != 0);
+	//bytes_read = 0;
+	//DWORD remainingToRead = sectorsFromSize(data_size,BootSector_->bytes_per_sector());
 
+	//if (File_Handle * pFileHandle = file_entry->getFileHandle())
+	//{
+	//	if (pFileHandle->getSize() == 0)
+	//		FileSystem::ReadListClusters(pFileHandle,FatTable_,file_entry->cluster());
+
+	//	auto list_cluster = pFileHandle->getClusterList();
+	//	auto clusterIter = list_cluster->begin();
+	//	if ( clusterIter == list_cluster->end() )
+	//		return false;
+	//	LONGLONG currentCluster = 0;
+	//	LONGLONG fileCluster = 0;
+	//	do
+	//	{
+	//		if (pFileHandle->getPosition() >= file_entry->size())
+	//			break;
+
+	//		//fileCluster = pFileHandle->getPosition();
+	//		//fileCluster /= BootSector_->cluster_size();
+
+	//		currentCluster = clusterIter->getNumber() /*+ fileCluster*/;
+
+	//		//	set first current cluster
+	//		//while ( clusterIter != pFileHandle->clusterList_.end() )
+	//		//{
+	//		//	currentCluster = (LONGLONG) (clusterIter->getNumber() + pFileHandle->position_ / BootSector_->cluster_size() );
+	//		//	if ( currentCluster < (clusterIter->getNumber() + clusterIter->getCount()) )
+	//		//		break;
+
+	//		//	++clusterIter;
+	//		//}
+
+	//		// offset in Cluster...
+	//		DWORD sectorPos = pFileHandle->getPosition() % BootSector_->cluster_size();
+	//		LONGLONG logical_sector = clusterSector(currentCluster);
+	//		LONGLONG next_sector = clusterSector(currentCluster + clusterIter->getCount());
+	//		DWORD sectorsToRead = (DWORD)(next_sector - logical_sector);
+	//		logical_sector += partition_entry->start_sector();
+
+	//		// read file
+	//		DWORD bytesToRead = sectorsToRead * BootSector_->bytes_per_sector();
+	//		BYTE *pReadBuffer = new BYTE[bytesToRead];
+
+	//		LONGLONG allToRead = pFileHandle->getPosition() + sectorsToRead * BootSector_->bytes_per_sector();
+	//		if (allToRead > file_entry->size())
+	//		{
+	//			bytesToRead = static_cast<DWORD> (bytesToRead - (allToRead - file_entry->size()));
+	//		}
+
+	//		if (reader_->ReadSectors(pReadBuffer, logical_sector, sectorsToRead))
+	//		{
+	//		}
+	//			//DEBUG_SHOW("read ok ");
+
+	//		memcpy(data + bytes_read, pReadBuffer,bytesToRead);
+	//		bytes_read += bytesToRead;
+
+	//		delete pReadBuffer;
+
+	//		pFileHandle->addPosition(bytesToRead);
+	//		++clusterIter;
+	//		if ( clusterIter == list_cluster->end() )
+	//			break;
+
+
+	//	} while ( bytes_read < data_size );
+	//return true;
+	//}
+	//BYTE * pAlloc_data = nullptr;
+	//DWORD bytes_returned = 0;
+	ReadUsingFatTable(file_entry, data, bytes_read);
+	return true;
+
+return false;
+}
+DWORD FileSystem::FatFileSystem::readSizeUsingTable(const FileEntry file_entry)
+{
+	DWORD numClusters = 0;
 	if (File_Handle * pFileHandle = file_entry->getFileHandle())
 	{
 		if (pFileHandle->getSize() == 0)
-			FileSystem::ReadListClusters(pFileHandle,FatTable_,file_entry->cluster());
+			FileSystem::ReadListClusters(pFileHandle, FatTable_, file_entry->cluster());
 
-		auto list_cluster = pFileHandle->getClusterList();
-		auto clusterIter = list_cluster->begin();
-		if ( clusterIter == list_cluster->end() )
-			return false;
-		LONGLONG currentCluster = 0;
-		LONGLONG fileCluster = 0;
-		do 
+		auto cluster_list = pFileHandle->getClusterList();
+		for (auto iter = cluster_list->begin(); iter != cluster_list->end(); ++iter)
 		{
-			if ( pFileHandle->getPosition() >= file_entry->size() )
-				break;
+			numClusters += iter->getCount();
+		}
+		numClusters *= BootSector_->cluster_size();
+	}
+	return numClusters;
+}
+void FileSystem::FatFileSystem::ReadUsingFatTable(const FileEntry file_entry, BYTE * returned_data, DWORD & bytes_read)
+{
+	if (File_Handle * pFileHandle = file_entry->getFileHandle())
+	{
+		if (pFileHandle->getSize() == 0)
+			FileSystem::ReadListClusters(pFileHandle, FatTable_, file_entry->cluster());
 
-			//fileCluster = pFileHandle->getPosition();
-			//fileCluster /= BootSector_->cluster_size();
 
-			currentCluster = clusterIter->getNumber() /*+ fileCluster*/;
+		LONGLONG currentCluster = 0;
 
-			//	set first current cluster
-			//while ( clusterIter != pFileHandle->clusterList_.end() )
-			//{
-			//	currentCluster = (LONGLONG) (clusterIter->getNumber() + pFileHandle->position_ / BootSector_->cluster_size() );
-			//	if ( currentCluster < (clusterIter->getNumber() + clusterIter->getCount()) )
-			//		break;
 
-			//	++clusterIter;
-			//}
-			
-			// offset in Cluster...
+		DWORD mem_offset = 0;
+
+		uint64_t position = 0;
+		auto cluster_list = pFileHandle->getClusterList();
+		for (auto iter = cluster_list->begin(); iter != cluster_list->end(); ++iter)
+		{
+			currentCluster = iter->getNumber();
 			DWORD sectorPos = pFileHandle->getPosition() % BootSector_->cluster_size();
 			LONGLONG logical_sector = clusterSector(currentCluster);
-			LONGLONG next_sector = clusterSector(currentCluster + clusterIter->getCount());
-			DWORD sectorsToRead = (DWORD) (next_sector - logical_sector) ;
+			LONGLONG next_sector = clusterSector(currentCluster + iter->getCount());
+			DWORD sectorsToRead = (DWORD)(next_sector - logical_sector);
 			logical_sector += partition_entry->start_sector();
 
-				// read file
-			DWORD bytesToRead = sectorsToRead*BootSector_->bytes_per_sector();
-			BYTE *pReadBuffer = new BYTE[bytesToRead];
-
-			LONGLONG allToRead = pFileHandle->getPosition() + sectorsToRead*BootSector_->bytes_per_sector();
-			if ( allToRead > file_entry->size())
-			{
-				bytesToRead = static_cast<DWORD> (bytesToRead - (allToRead - file_entry->size()));
-			}
-
-			if (reader_->ReadSectors(pReadBuffer,logical_sector,sectorsToRead))
-				//DEBUG_SHOW("read ok ");
-
-			memcpy(data + bytes_read, pReadBuffer,bytesToRead);
-			bytes_read += bytesToRead;
-
-			delete pReadBuffer;
-
-			pFileHandle->addPosition(bytesToRead);
-			++clusterIter;
-			if ( clusterIter == list_cluster->end() )
-				break;
+			reader_->ReadSectors(returned_data + mem_offset, logical_sector, sectorsToRead);
+			bytes_read += sectorsToRead*512;
+			mem_offset += (iter->getCount()* BootSector_->cluster_size());
+		}
 
 
-		} while ( bytes_read < data_size );
-	return true;
 	}
 
-return false;
 }
 void FileSystem::appendString(wstring & currentString, msdos_long_dir_entry* pLogDirEntry)
 {
@@ -673,9 +731,13 @@ bool FileSystem::ReadListClusters(File_Handle * pFileHandle, FatTable & fat_tabl
 	pFileHandle->clearList();
 	ClusterEntry clusterEntry(cluster , 0);
 
+	uint64_t partition_size = fat_table->size() * 4096;
+
 	DWORD tempCluster = 0;
 	while (cluster != end_cluster_fat32)
 	{
+		if (cluster >= partition_size)
+			break;
 		tempCluster = clusterEntry.getNumber() + clusterEntry.getCount();
 		if ( tempCluster  == cluster)
 			clusterEntry.inc();

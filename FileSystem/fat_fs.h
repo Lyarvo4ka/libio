@@ -55,11 +55,15 @@ namespace FileSystem
 		void InitTable(const FatBootPtr &);
 		DWORD Next_Cluster(DWORD current_cluster);		//return next cluster from FAT table
 		
+		DWORD size() const
+		{
+			return table_size_;
+		}
 
 		bool Read_Sector(DWORD sector);
 	private:
 		VirtualReader VirtualReader_;
-		DWORD BPS_;
+		DWORD BPS_ = 512;
 		LONGLONG offset_;
 		BYTE * fat_table_;
 		DWORD table_size_;
@@ -97,6 +101,9 @@ namespace FileSystem
 		
 		bool setOffset(FileEntry file_entry, LONGLONG offset);
 		virtual bool ReadFile( const FileEntry file_entry, BYTE * data, DWORD data_size, DWORD &bytes_read);
+		DWORD readSizeUsingTable(const FileEntry file_entry);
+		void ReadUsingFatTable(const FileEntry file_entry, BYTE * returned_data, DWORD & bytes_read);
+
 
 	private:
 		DirectoryEntry current_folder_;

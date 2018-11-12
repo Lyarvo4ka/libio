@@ -34,7 +34,8 @@ static string ToString(const wstring & _String)
 	{
 		strTo.resize(_String.size());
 		//ANSI Cyrillic; Cyrillic (Windows)
-		WideCharToMultiByte(1251, 0, _String.c_str(), -1, &strTo[0], strTo.size(), NULL, NULL);
+		//CP_ACP
+		WideCharToMultiByte(CP_ACP, 0, _String.c_str(), -1, &strTo[0], strTo.size(), NULL, NULL);
 	}
 	return strTo;
 }
@@ -47,7 +48,7 @@ static wstring ToWideString(const string & _String)
 		strTo.resize(_String.size());
 		//ANSI Cyrillic; Cyrillic (Windows)
 		//WideCharToMultiByte(1251, 0, _String.c_str(), -1, &strTo[0], strTo.size(), NULL, NULL);
-		MultiByteToWideChar(1251, 0, _String.c_str(), -1, &strTo[0], strTo.size());
+		MultiByteToWideChar(CP_ACP, 0, _String.c_str(), -1, &strTo[0], strTo.size());
 	}
 	return strTo;
 }

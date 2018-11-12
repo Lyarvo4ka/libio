@@ -67,6 +67,7 @@ bool FileSystem::CSectorReader::ReadSector(BYTE * sector_data, LONGLONG sector_n
 {
 	assert(sector_data != NULL);
 	position_ = (LONGLONG)(sector_number * sector_size_);
+	device_->setPosition(position_);
 	device_->ReadData(sector_data, sector_size_);
 	return true;
 }
@@ -75,6 +76,7 @@ bool FileSystem::CSectorReader::ReadSectors(BYTE * sector_data, LONGLONG sector_
 	assert(sector_data != NULL);
 	position_ = (LONGLONG)(sector_number * sector_size_);
 	DWORD readSize =  count_sectors * sector_size_;
+	device_->setPosition(position_);
 	device_->ReadData(sector_data, readSize);
 	return true;
 }

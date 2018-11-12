@@ -23,8 +23,11 @@ FSViewer::FSViewer(QWidget *parent)
 
 	RecoverDialog_ = new RecoverDialog(this, &RecoverUi_);
 	RecoverUi_.setupUi(RecoverDialog_);
+
+	auto file_ptr = IO::makeFilePtr(LR"(d:\incoming\45356\45356.img )");
+	file_ptr->OpenRead();
 	
-	SectorReader sector_reader(new CSectorReader(nullptr, 512));
+	SectorReader sector_reader(new CSectorReader(file_ptr, 512));
 
 	DirectoryEntry root_folder(new DirectoryNode("root:"));
 
@@ -35,11 +38,11 @@ FSViewer::FSViewer(QWidget *parent)
 
 		if (MBR.open(sector_reader))
 		{
-			if (MBR.count() > 1)
+			if (MBR.count() > 0)
 			{
 
 				abstract_fs = FatFS(new FatFileSystem(sector_reader));
-				if (abstract_fs->mount(MBR.getPartition(1)))
+				if (abstract_fs->mount(MBR.getPartition(0)))
 				{
 					NodeEntry resultEntry;
 
@@ -111,6 +114,40 @@ void FSViewer::RecoverFile(const QString & folder_path, const FileSystem::FileEn
 
 	DWORD sector_count = FileSystem::sectorsFromSize(file_entry->size(), 512);
 
+	DWORD bytesRead = 0;
+	file_entry->OpenFile();
+	//readSizeUsingTable
+	auto fat_fs = std::dynamic_pointer_cast<FatFileSystem>(abstract_fs);
+	if (fat_fs)
+	{
+		auto file_size = fat_fs->readSizeUsingTable(file_entry);
+		BYTE * read_data = new BYTE[file_size];
+
+		if (abstract_fs->ReadFile(file_entry, read_data, file_entry->size(), bytesRead))
+		{
+			qDebug("Read ok.");
+		}
+		QString filePath(fileInfo.absoluteFilePath());
+		IO::File target_file(fileInfo.absoluteFilePath().toStdWString());
+		target_file.OpenCreate();
+		target_file.WriteData(read_data, bytesRead);
+		delete read_data;
+	}
+
+/*
+	QDir currentDir(folder_path);
+
+	QFileInfo fileInfo(currentDir, QString::fromStdWString(file_entry->name()));
+
+
+	if (!currentDir.mkpath(folder_path))
+	{
+		qDebug("Error to create directory...");
+		return;
+	}
+
+	DWORD sector_count = FileSystem::sectorsFromSize(file_entry->size(), 512);
+
 	BYTE * read_data = new BYTE[sector_count * 512];
 	memset(read_data, 0x8F, sector_count * 512);
 	DWORD bytesRead = 0;
@@ -140,7 +177,7 @@ void FSViewer::RecoverFile(const QString & folder_path, const FileSystem::FileEn
 		CloseHandle(hWriteFile);
 	}
 	delete read_data;
-
+	*/
 }
 void FSViewer::RecoverFolder(const QString & folder_path, FileSystem::DirectoryEntry & folder_entry)
 {
