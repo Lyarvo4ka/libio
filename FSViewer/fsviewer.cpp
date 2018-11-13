@@ -24,7 +24,7 @@ FSViewer::FSViewer(QWidget *parent)
 	RecoverDialog_ = new RecoverDialog(this, &RecoverUi_);
 	RecoverUi_.setupUi(RecoverDialog_);
 
-	auto file_ptr = IO::makeFilePtr(LR"(d:\vdisk\1Gb.vhd)");
+	auto file_ptr = IO::makeFilePtr(LR"(d:\incoming\45356\45356.img)");
 	file_ptr->OpenRead();
 	
 	SectorReader sector_reader(new CSectorReader(file_ptr, 512));

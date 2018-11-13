@@ -429,8 +429,9 @@ void FileSystem::FatFileSystem::read_folder( const DirectoryEntry & head_folder)
 					for (BYTE iEntry = 1 ; iEntry < countEntries; ++iEntry)
 					{
 						pLongEntry = (msdos_long_dir_entry*)&pFolderData[current_entry];
-						if (pLongEntry->attr)
-							appendString( node_name , pLongEntry );
+						if (pLongEntry->attr != attr_long_name)
+							break;
+						appendString( node_name , pLongEntry );
 						current_entry += dir_entry_size;
 					}
 
@@ -695,9 +696,12 @@ void FileSystem::FatFileSystem::ReadUsingFatTable(const FileEntry file_entry, BY
 			DWORD sectorsToRead = (DWORD)(next_sector - logical_sector);
 			logical_sector += partition_entry->start_sector();
 
-			reader_->ReadSectors(returned_data + mem_offset, logical_sector, sectorsToRead);
-			bytes_read += sectorsToRead*512;
-			mem_offset += (iter->getCount()* BootSector_->cluster_size());
+			if (logical_sector + sectorsToRead < BootSector_->sectors())
+			{
+				reader_->ReadSectors(returned_data + mem_offset, logical_sector, sectorsToRead);
+				bytes_read += sectorsToRead * 512;
+				mem_offset += (iter->getCount()* BootSector_->cluster_size());
+			}
 		}
 
 
