@@ -72,7 +72,7 @@ namespace IO
 	}
 	void IOEngine::setPostion(uint64_t position)
 	{
-		if (position_ != position)
+		//if (position_ != position)	??????
 		{
 			position_ = position;
 			LARGE_INTEGER liPos = { 0 };

@@ -114,6 +114,9 @@ struct HeaderInfo_t
 
 using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 
+const uint8_t indd_header[] = { 0x06 , 0x06 , 0xED , 0xF5 , 0xD8 , 0x1D , 0x46 , 0xE5 };
+const uint32_t indd_header_size = SIZEOF_ARRAY(indd_header);
+
 //class IOLIBRARY_EXPORT Ext2RawFactory
 //	: public RawFactory
 //{
@@ -271,12 +274,14 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 				return nullptr;
 			header_offset = start_offset;
 			Buffer buffer(default_block_size);
+			uint8_t tmp_buff[default_block_size];
 			uint32_t bytesRead = 0;
 
 			while (header_offset < device_->Size())
 			{
 				device_->setPosition(header_offset);
 				bytesRead = this->device_->ReadData(buffer.data, buffer.data_size);
+ 				memcpy(tmp_buff, buffer.data, buffer.data_size);
 				if (bytesRead == 0)
 				{
 					wprintf_s(L"Error read data FindHeader\n");
@@ -384,7 +389,7 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 					break;
 
 				block_offset = (uint64_t)*pBlockOffset * (uint64_t)block_size_;
-				block_offset += +partition_offset_;
+				block_offset += partition_offset_;
 				if (!copyTo(source, block_offset, target, 0, block_size_))
 					return;
 				++pBlockOffset;
@@ -429,11 +434,7 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			//cdr_header_info->ext = L".cdr";
 			//this->addHeaderInfo(cdr_header_info);
 
-			//auto jpg_header_info = std::make_shared<HeaderInfo_t>();
-			//jpg_header_info->header = Signatures::jpg_header;
-			//jpg_header_info->header_size = Signatures::jpg_header_size;
-			//jpg_header_info->ext = L".jpg";
-			//this->addHeaderInfo(jpg_header_info);
+
 
 			//auto tif_header_info = std::make_shared<HeaderInfo_t>();
 			//tif_header_info->header = Signatures::tif_header;
@@ -485,6 +486,12 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			//ai_header_info->ext = L".ai";
 			//this->addHeaderInfo(ai_header_info);
 
+			auto jpg_header_info = std::make_shared<HeaderInfo_t>();
+			jpg_header_info->header = Signatures::jpg_header;
+			jpg_header_info->header_size = Signatures::jpg_header_size;
+			jpg_header_info->ext = L".jpg";
+			this->addHeaderInfo(jpg_header_info);
+
 			auto office_2007_header_info = std::make_shared<HeaderInfo_t>();
 			office_2007_header_info->header = Signatures::office_2007_header;
 			office_2007_header_info->header_size = Signatures::office_2007_header_size;
@@ -497,14 +504,24 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			office_2003_header_info->ext = L".msdoc";
 			this->addHeaderInfo(office_2003_header_info);
 
-			//auto pdf_header_info = std::make_shared<HeaderInfo_t>();
-			//pdf_header_info->header = Signatures::pdf_header;
-			//pdf_header_info->header_size = Signatures::pdf_header_size;
-			//pdf_header_info->ext = L".pdf";
-			//this->addHeaderInfo(pdf_header_info);
+			auto pdf_header_info = std::make_shared<HeaderInfo_t>();
+			pdf_header_info->header = Signatures::pdf_header;
+			pdf_header_info->header_size = Signatures::pdf_header_size;
+			pdf_header_info->ext = L".pdf";
+			this->addHeaderInfo(pdf_header_info);
+
+			auto indd_header_info = std::make_shared< HeaderInfo_t>();
+			indd_header_info->header = indd_header;
+			indd_header_info->header_size = indd_header_size;
+			indd_header_info->ext = L".indd";
+			this->addHeaderInfo(indd_header_info);
+
+
+
+			uint64_t volume_offset = 3164805 * 512;
 
 			ext2_super_block super_block = { 0 };
-			if (!read_superblock(&super_block, 0))
+			if (!read_superblock(&super_block, volume_offset))
 				return;
 
 			if (isSuperblock(&super_block))
@@ -515,8 +532,8 @@ using HeaderInfoPtr = std::shared_ptr<HeaderInfo_t> ;
 			blocks_count_ = super_block.s_blocks_count;
 			//blocks_count_ = 0xE8A0DAE;
 			// super_block offset = 0x40001000
-			uint64_t offset = 0;
-			partition_offset_ = 0;
+			uint64_t offset = volume_offset;
+			partition_offset_ = volume_offset;
 			uint64_t header_offset = 0;
 			uint64_t tmp_offset = 0;
 			uint32_t counter = 0;

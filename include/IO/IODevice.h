@@ -304,7 +304,7 @@ namespace IO
 		}
 		uint32_t ReadData(ByteArray data, uint32_t read_size) override
 		{
-			assert(!isOpen());
+			assert(isOpen() == true);
 			auto sector_size = physical_drive_->getBytesPerSector();
 
 			if (isMultiple(this->getPosition(), sector_size) && isMultiple(read_size, sector_size))
@@ -314,7 +314,7 @@ namespace IO
 		}
 		uint32_t WriteData(ByteArray data, uint32_t write_size) override
 		{
-			assert(!isOpen());
+			assert(isOpen() == true);
 			return WriteBlock(data, write_size);
 		}
 
@@ -333,7 +333,8 @@ namespace IO
 			assert(read_size >= 0);
 
 			uint32_t bytes_read = 0;
-			if ( auto result = io_engine_->Read(data, read_size, bytes_read); result != Error::IOErrorsType::OK)
+		    auto result = io_engine_->Read(data, read_size, bytes_read); 
+			if (result != Error::IOErrorsType::OK)
 				throw Error::IOErrorException(makeErrorStatus(this , result));
 
 			return bytes_read;
@@ -344,7 +345,8 @@ namespace IO
 			assert(write_size >= 0);
 
 			uint32_t bytes_written = 0;
-			if ( auto result = io_engine_->Write(data,write_size, bytes_written); result != Error::IOErrorsType::OK)
+			auto result = io_engine_->Write(data,write_size, bytes_written); 
+			if (result != Error::IOErrorsType::OK)
 				throw Error::IOErrorException(makeErrorStatus(this , result));
 
 			return bytes_written;
