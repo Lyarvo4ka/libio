@@ -46,6 +46,7 @@ namespace IO
 									  s_mvhd, s_clip, s_trak, s_udta, s_ctab, s_cmov, s_rmra , s_uuid, s_meta };
 
 
+
 #pragma pack(1)
 	struct qt_block_t
 	{
@@ -196,7 +197,18 @@ namespace IO
 	};
 	using QuickTimeList = std::list<QtHandle>;
 
+	void ReadFileName(const path_string file_path)
+	{
+		const uint32_t file_enty_size = 12;
+		const uint8_t entry_buff[file_enty_size + 1];
+		const uint32_t name_end_offset = 0x1C9
 
+		File qtfile(file_path);
+		qtfile.OpenRead();
+
+
+
+	}
 	
 
 	class QuickTimeRaw
