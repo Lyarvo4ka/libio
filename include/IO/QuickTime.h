@@ -146,6 +146,14 @@ namespace IO
 			if (size != 0)
 				setValid();
 		}
+		//QtHandle operator=(const QtHandle & new_handle)
+		//{
+		//	memcpy(&qtBlock_, &new_handle, sizeof(qt_block_t));
+		//}
+		//QtHandle operator=(const QtHandle && new_handle)
+		//{
+		//	memcpy(&qtBlock_, &new_handle, sizeof(qt_block_t));
+		//}
 		qt_block_t * getBlock()
 		{
 			return &qtBlock_;
@@ -197,18 +205,7 @@ namespace IO
 	};
 	using QuickTimeList = std::list<QtHandle>;
 
-	void ReadFileName(const path_string file_path)
-	{
-		const uint32_t file_enty_size = 12;
-		const uint8_t entry_buff[file_enty_size + 1];
-		const uint32_t name_end_offset = 0x1C9
 
-		File qtfile(file_path);
-		qtfile.OpenRead();
-
-
-
-	}
 	
 
 	class QuickTimeRaw
@@ -232,7 +229,7 @@ namespace IO
 		}
 		uint64_t readQtAtom(const uint64_t start_offset, qt_block_t & qt_block)
 		{
-			if ( (start_offset + qt_block_struct_size) >= this->getSize())
+			if ( (start_offset + qt_block_struct_size) > this->getSize())
 				return 0;
 			this->setPosition(start_offset);
 			auto bytes_read = this->ReadData(toByteArray(qt_block), qt_block_struct_size);
@@ -322,7 +319,7 @@ namespace IO
 				this->setPosition(keyword_pos);
 				bytesRead = this->ReadData(data_array.data(), bytesToRead);
 
-				for (uint32_t iSector = 0; iSector < bytesRead; iSector += default_sector_size)
+				for (uint32_t iSector = 0; iSector < bytesRead; ++iSector /*+= default_sector_size*/)
 				{
 					qt_block_t * pQt_block = reinterpret_cast<qt_block_t*>(data_array.data() + iSector);
 					if (cmp_keyword(*pQt_block, keyword_name.c_str()))
@@ -397,6 +394,71 @@ namespace IO
 	};
 
 	const uint8_t mdat_header_start[] = { 0x00, 0x00, 0x00, 0x02, 0x09, 0x10, 0x00, 0x00 };
+
+	bool isDigitOrAlpha(char symbol)
+	{
+		if (isdigit(symbol))
+			return true;
+
+		if (isalpha(symbol))
+			return true;
+
+		if (symbol == '_')
+			return true;
+
+		return false;
+	}
+
+#include<ctype.h>
+
+	std::string ReadFileName(const path_string file_path)
+	{
+		const uint32_t file_enty_size = 18;
+		char entry_buff[file_enty_size + 1];
+		const uint32_t name_end_offset = 0x1D0; // 0x01CA; // 0x1C9; //0x1D0
+
+		const uint32_t end_1024 = 1024;
+
+		auto qtfile = makeFilePtr(file_path);
+		qtfile->OpenRead();
+		QuickTimeRaw qt_raw(qtfile);
+
+		uint64_t offset = 0;
+
+		auto qt_handle = qt_raw.readQtAtom(offset);
+
+
+
+		if (qtfile->Size() > end_1024)
+		{
+			auto start_search = qtfile->Size() - end_1024;
+
+			auto skip_handle = qt_raw.findQtKeyword(start_search , s_skip);
+			if (skip_handle.isValid())
+			{
+				uint64_t skip_offset = skip_handle.offset();
+				uint64_t name_offset = skip_offset - name_end_offset;
+				DataArray name_data(file_enty_size);
+				qtfile->setPosition(name_offset);
+				qtfile->ReadData(name_data);
+
+				ZeroMemory(entry_buff, file_enty_size + 1);
+				memcpy(entry_buff, name_data.data(), file_enty_size);
+				for (auto i = 0; i < file_enty_size; ++i)
+				{
+					if (!isDigitOrAlpha(entry_buff[i]))
+						return "";
+				}
+
+				std::string new_name(entry_buff);
+				return new_name;
+
+			}
+		}
+
+
+		return "";
+	}
 
 
 /*
