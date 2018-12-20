@@ -6,7 +6,10 @@
 
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
+
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 
 bool IO::open_read( HANDLE & handle , const std::string & path)
 {
@@ -253,7 +256,7 @@ DWORD IO::BytesToCopy(LONGLONG current , LONGLONG max_size , DWORD block_size)
 
 std::string IO::get_extension(const std::string & file_name)
 {
-	boost::filesystem::path file_path(file_name);
+	fs::path file_path(file_name);
 	return file_path.extension().generic_string();
 }
 
@@ -312,8 +315,8 @@ std::string IO::add_folder(const std::string & current_dir, std::string new_fold
 {
 	std::string target_folder = current_dir;
 	target_folder = IO::addFolderName(target_folder, new_folder);
-	if (!boost::filesystem::exists(target_folder))
-		boost::filesystem::create_directory(target_folder);
+	if (!fs::exists(target_folder))
+		fs::create_directory(target_folder);
 
 	return target_folder;
 }

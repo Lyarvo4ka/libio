@@ -78,20 +78,20 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			printf( "Error to start acrobat app." );
 			return -1;
 		}
-		if (argc == 2)
+		if (argc == 3)
 		{
 			std::wstring source_folder(argv[1]);
-			verify_pdf_files(source_folder);
+			//verify_pdf_files(source_folder);
 
-		//	std::wstring target_folder(argv[2]);
+			std::wstring target_folder(argv[2]);
 
-			//identify_files(source_folder, target_folder);
+			identify_files(source_folder, target_folder);
 		}
 		else
 		{
 			printf("Error. You entered invalid params.\r\n");
-			IO::path_string str1, str2;
-			identify_pdf(str1, str2,0);
+			//IO::path_string str1, str2;
+			//identify_pdf(str1, str2,0);
 		}
 
 		CoUninitialize();
@@ -205,28 +205,42 @@ void verify_pdf_files(const IO::path_string & folder)
 
 }
 
-void identify_files(const IO::path_string & source_dir, const IO::path_string & target_dir)
+IO::path_string addFolderName(const IO::path_string & current_folder, const IO::path_string & new_folder)
+{
+	auto new_path(IO::addBackSlash(current_folder));
+	new_path.append(new_folder);
+	return new_path;
+
+}
+
+IO::path_string add_folder(const IO::path_string & current_folder, const IO::path_string & new_folder)
+{
+	auto target_folder(addFolderName(current_folder, new_folder));
+	if (!fs::exists(target_folder))
+		fs::create_directory(target_folder);
+
+	return target_folder;
+}
+void identify_files(const IO::path_string & source_folder, IO::path_string & target_folder)
 {
 	IO::path_string bad_dir = L"bad";
 
 	IO::Finder finder;
 	finder.add_extension(L".pdf");
-	finder.FindFiles(source_dir);
+	finder.FindFiles(source_folder);
 	auto file_list = finder.getFiles();
 
 	DWORD counter = 0;
 
 	for (auto cur_file: file_list)
 	{	
-
-
 		fs::path file_path(cur_file);
-		std::string ext = file_path.extension().generic_string();
+		auto ext = file_path.extension().generic_wstring();
 
 		bool bResult = false;
 		IO::path_string target_name;
 
-		if (ext.compare(".pdf") == 0)
+		if (ext.compare(L".pdf") == 0)
 			bResult = identify_pdf(cur_file, target_name, counter);
 		//else
 		//	if (isOffice2007(ext))
@@ -235,20 +249,20 @@ void identify_files(const IO::path_string & source_dir, const IO::path_string & 
 		//		bResult = identify_office2003(source_name, target_name, counter);
 		++counter;
 
-		//std::string target_file_path;
-		//std::string ext_folder = ext.substr(1);
-		//std::string new_folder = (bResult) ? ext_folder : bad_dir;
-		//std::string target_folder = IO::add_folder(target_dir, new_folder);
-		//target_file_path = IO::make_file_path(target_folder, target_name);
+		IO::path_string target_file_path;
+		IO::path_string ext_folder = ext.substr(1);
+		IO::path_string new_folder = (bResult) ? ext_folder : bad_dir;
+		IO::path_string new_target_folder = add_folder(target_folder, new_folder);
+		target_file_path = IO::addBackSlash(new_target_folder) + target_name;
 
-		//try
-		//{
-		//	fs::rename(source_name, target_file_path);
-		//}
-		//catch (const fs::filesystem_error& e)
-		//{
-		//	std::cout << "Error: " << e.what() << std::endl;
-		//}
+		try
+		{
+			fs::rename(cur_file, target_file_path);
+		}
+		catch (const fs::filesystem_error& e)
+		{
+			std::cout << "Error: " << e.what() << std::endl;
+		}
 
 	}
 }
@@ -259,28 +273,30 @@ bool identify_pdf(const IO::path_string & file_name, IO::path_string & new_filen
 {
 	COleException e;
 	PdfDocument pdfDoc;
-/*
-	std::string ext = IO::get_extension(file_name);
-	new_filename = IO::numberToString(counter) + ext;
+
+	fs::path file_path(file_name);
+	auto ext = file_path.extension().generic_wstring();
+	new_filename = IO::toNumberString(counter) + ext;
+
 	if (pdfDoc.CreateDocument(e))
 	{
 		if (pdfDoc.Open(file_name))
 		{ 
 			auto docInfo = pdfDoc.getInfo();
 			DateString data_string;
-			CStringA targe_name = IO::numberToString(counter).c_str();
+			CString targe_name = IO::toNumberString(counter).c_str();
 
 			CString dataToParse = (!docInfo.ModDate.IsEmpty()) ? docInfo.ModDate : docInfo.CreationDate;
 			if (!dataToParse.IsEmpty())
 				if (ParseDateString(dataToParse, data_string))
 				{
-					targe_name = data_string.YEAR + "-" +
-						data_string.MONTH + "-" +
-						data_string.DAY + "-" +
-						data_string.HOUR + "-" +
-						data_string.MINUTES + "-" +
-						data_string.SECONDS + "-" +
-						IO::numberToString(counter).c_str();
+					targe_name = data_string.YEAR + L"-" +
+						data_string.MONTH + L"-" +
+						data_string.DAY + L"-" +
+						data_string.HOUR + L"-" +
+						data_string.MINUTES + L"-" +
+						data_string.SECONDS + L"-" +
+						IO::toNumberString(counter).c_str();
 				}
 			new_filename = targe_name.GetString() + ext;
 
@@ -291,6 +307,6 @@ bool identify_pdf(const IO::path_string & file_name, IO::path_string & new_filen
 	}
 	else
 		printf("Error to create pdf document application\r\n");
-		*/
+
 	return false;
 }
