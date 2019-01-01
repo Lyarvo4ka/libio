@@ -9,6 +9,8 @@
 
 #include <afxdisp.h>
 
+#include "IO/Analyzer.h"
+
 BOOL LIBPDF_API isAcrobatInstalled( COleException &e );
 
 const CString sAutor = L"Autor";
@@ -33,15 +35,17 @@ struct LIBPDF_API DocInfo
 	CString ModDate;
 };
 
-struct LIBPDF_API DateString
-{
-	CString YEAR;
-	CString MONTH;
-	CString DAY;
-	CString HOUR;
-	CString MINUTES;
-	CString SECONDS;
-};
+//struct LIBPDF_API DateString
+//{
+//	CString YEAR;
+//	CString MONTH;
+//	CString DAY;
+//	CString HOUR;
+//	CString MINUTES;
+//	CString SECONDS;
+//};
+
+using DateString = IO::DateType<CString>;
 
 void LIBPDF_API PdfStringToTime( const CString & pdf_string , DateString & date_string );
 bool LIBPDF_API ParseDateString( const CString & date_string , DateString & parsed_date );
@@ -55,11 +59,28 @@ public:
 	void DestroyDocument();
 	BOOL Open( const std::wstring & pdf_file );
 	void Close();
+	BOOL Save(const std::wstring & filePath);
 	//CStringA getInfo( const CStringA & info_keyword );
 	DocInfo getInfo( );
 
 private:
 	CAcroPDDoc *  m_pAcroPdDoc;
+	CAcroTime * m_pAcroTime;
+};
+
+
+class PDFAnalyzer
+	: public IO::Analyzer
+{
+	PdfDocument pdfDoc_;
+
+public:
+	void analyze(const IO::path_string & filePath) override;
+
+	bool Open(const IO::path_string & filePath);
+	void Close();
+	bool Save(const IO::path_string & filePath);
+
 };
 
 

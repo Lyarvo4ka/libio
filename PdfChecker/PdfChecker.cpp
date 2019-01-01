@@ -9,6 +9,7 @@
 namespace fs = std::experimental::filesystem;
 
 #include "IO/Finder.h"
+#include "IO/Analyzer.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -290,12 +291,12 @@ bool identify_pdf(const IO::path_string & file_name, IO::path_string & new_filen
 			if (!dataToParse.IsEmpty())
 				if (ParseDateString(dataToParse, data_string))
 				{
-					targe_name = data_string.YEAR + L"-" +
-						data_string.MONTH + L"-" +
-						data_string.DAY + L"-" +
-						data_string.HOUR + L"-" +
-						data_string.MINUTES + L"-" +
-						data_string.SECONDS + L"-" +
+					targe_name = data_string.year + L"-" +
+						data_string.month + L"-" +
+						data_string.day + L"-" +
+						data_string.hour + L"-" +
+						data_string.min + L"-" +
+						data_string.sec + L"-" +
 						IO::toNumberString(counter).c_str();
 				}
 			new_filename = targe_name.GetString() + ext;
