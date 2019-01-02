@@ -55,41 +55,43 @@ bool ParseDateString( const CString & date_string , DateString & parsed_date)
 
 
 PdfDocument::PdfDocument( )
-	: m_pAcroPdDoc( nullptr )
 {
 
 }
 
 PdfDocument::~PdfDocument()
 {
+	this->Close();
 	DestroyDocument();
 }
 
 BOOL PdfDocument::CreateDocument( COleException & e )
 {
-	m_pAcroPdDoc = new CAcroPDDoc( );
-	return m_pAcroPdDoc->CreateDispatch( L"AcroExch.PDDoc", &e );
+	if (isCreated())
+		DestroyDocument();
+
+	pAcroPdDoc_ = std::make_unique< CAcroPDDoc >( );
+	bCreated_ = pAcroPdDoc_->CreateDispatch( L"AcroExch.PDDoc", &e );
+	return bCreated_;
 }
 
 void PdfDocument::DestroyDocument()
 {
-	this->Close();
-	if ( m_pAcroPdDoc )
-	{
-		m_pAcroPdDoc->ReleaseDispatch();
-		delete m_pAcroPdDoc;
-		m_pAcroPdDoc = nullptr;
-	}
+	if (pAcroPdDoc_)
+		pAcroPdDoc_->ReleaseDispatch();
 }
 
 BOOL PdfDocument::Open( const std::wstring & pdf_file )
 {
 	COleException ex;
-	if (!m_pAcroPdDoc)
-		if (BOOL bOpened = CreateDocument(ex); bOpened == FALSE)
+	if (!isCreated())
+	{
+		CreateDocument(ex);
+		if (!isCreated())
 			return FALSE;
+	}
 
-	if( m_pAcroPdDoc->Open( pdf_file.c_str() ) == PDF_OK ) {
+	if( pAcroPdDoc_->Open( pdf_file.c_str() ) == PDF_OK ) {
 		return TRUE;
 	}
 	return FALSE;
@@ -97,13 +99,24 @@ BOOL PdfDocument::Open( const std::wstring & pdf_file )
 
 void PdfDocument::Close()
 {
-	if ( m_pAcroPdDoc )
-		m_pAcroPdDoc->Close();
+	if (isOpened)
+		pAcroPdDoc_->Close();
+}
+
+BOOL PdfDocument::isOpened() const
+{
+	return bOpened_;
+}
+
+BOOL PdfDocument::isCreated() const
+{
+	return bCreated_;
 }
 
 BOOL PdfDocument::Save(const std::wstring & filePath)
 {
-	if (m_pAcroPdDoc->Save(PDSaveFull, filePath.c_str()) == PDF_OK)
+	if (isOpened)
+	if (pAcroPdDoc_->Save(PDSaveFull, filePath.c_str()) == PDF_OK)
 		return TRUE;
 	return FALSE;
 }
@@ -111,16 +124,16 @@ BOOL PdfDocument::Save(const std::wstring & filePath)
 DocInfo PdfDocument::getInfo( )
 {
 	DocInfo docInfo;
-	if ( m_pAcroPdDoc )
+	if ( pAcroPdDoc_ )
 	{
-		docInfo.Author = m_pAcroPdDoc->GetInfo( sAutor );
-		docInfo.CreationDate = m_pAcroPdDoc->GetInfo( sCreationDate );
-		docInfo.Creator = m_pAcroPdDoc->GetInfo( sCreator );
-		docInfo.Producer = m_pAcroPdDoc->GetInfo( sProducer );
-		docInfo.Title = m_pAcroPdDoc->GetInfo( sTitle );
-		docInfo.Subject = m_pAcroPdDoc->GetInfo( sSubject );
-		docInfo.Keywords = m_pAcroPdDoc->GetInfo( sKeywords );
-		docInfo.ModDate = m_pAcroPdDoc->GetInfo( sModDate );
+		docInfo.Author = pAcroPdDoc_->GetInfo( sAutor );
+		docInfo.CreationDate = pAcroPdDoc_->GetInfo( sCreationDate );
+		docInfo.Creator = pAcroPdDoc_->GetInfo( sCreator );
+		docInfo.Producer = pAcroPdDoc_->GetInfo( sProducer );
+		docInfo.Title = pAcroPdDoc_->GetInfo( sTitle );
+		docInfo.Subject = pAcroPdDoc_->GetInfo( sSubject );
+		docInfo.Keywords = pAcroPdDoc_->GetInfo( sKeywords );
+		docInfo.ModDate = pAcroPdDoc_->GetInfo( sModDate );
 	}
 	return docInfo;
 }
@@ -169,8 +182,12 @@ void PDFAnalyzer::analyze(const IO::path_string & filePath)
 
 	*/
 }
+bool PDFAnalyzer::test(const IO::path_string & filePath)
+{
 
-bool PDFAnalyzer::Open(const IO::path_string & filePath)
+}
+
+bool PDFAnalyzer::open(const IO::path_string & filePath)
 {
 	COleException e;
 
@@ -182,12 +199,12 @@ bool PDFAnalyzer::Open(const IO::path_string & filePath)
 	return false;
 }
 
-void PDFAnalyzer::Close()
+void PDFAnalyzer::close()
 {
 	pdfDoc_.DestroyDocument();
 }
 
-bool PDFAnalyzer::Save(const IO::path_string & filePath)
+bool PDFAnalyzer::save(const IO::path_string & filePath)
 {
 
 

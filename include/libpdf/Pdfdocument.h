@@ -10,6 +10,8 @@
 #include <afxdisp.h>
 
 #include "IO/Analyzer.h"
+#include <memory>
+
 
 BOOL LIBPDF_API isAcrobatInstalled( COleException &e );
 
@@ -59,13 +61,16 @@ public:
 	void DestroyDocument();
 	BOOL Open( const std::wstring & pdf_file );
 	void Close();
+	BOOL isOpened() const;
+	BOOL isCreated() const;
 	BOOL Save(const std::wstring & filePath);
-	//CStringA getInfo( const CStringA & info_keyword );
 	DocInfo getInfo( );
 
 private:
-	CAcroPDDoc *  m_pAcroPdDoc;
-	CAcroTime * m_pAcroTime;
+	BOOL bOpened_ = FALSE;
+	BOOL bCreated_ = FALSE;
+	std::unique_ptr<CAcroPDDoc>  pAcroPdDoc_;
+	//CAcroTime * m_pAcroTime;
 };
 
 
@@ -76,10 +81,10 @@ class PDFAnalyzer
 
 public:
 	void analyze(const IO::path_string & filePath) override;
-
-	bool Open(const IO::path_string & filePath);
-	void Close();
-	bool Save(const IO::path_string & filePath);
+	bool test(const IO::path_string & filePath);
+	bool open(const IO::path_string & filePath);
+	void close();
+	bool save(const IO::path_string & filePath);
 
 };
 
