@@ -283,26 +283,31 @@ bool identify_pdf(const IO::path_string & file_name, IO::path_string & new_filen
 	{
 		if (pdfDoc.Open(file_name))
 		{ 
-			auto docInfo = pdfDoc.getInfo();
-			DateString data_string;
-			CString targe_name = IO::toNumberString(counter).c_str();
+			auto tmp_file = LR"(d:\test_folder\pdf\result\tmp.pdf)";
+			auto bSuccess = pdfDoc.Save(tmp_file);
+			if (bSuccess)
+			{
+				auto docInfo = pdfDoc.getInfo();
+				DateString data_string;
+				CString targe_name = IO::toNumberString(counter).c_str();
 
-			CString dataToParse = (!docInfo.ModDate.IsEmpty()) ? docInfo.ModDate : docInfo.CreationDate;
-			if (!dataToParse.IsEmpty())
-				if (ParseDateString(dataToParse, data_string))
-				{
-					targe_name = data_string.year + L"-" +
-						data_string.month + L"-" +
-						data_string.day + L"-" +
-						data_string.hour + L"-" +
-						data_string.min + L"-" +
-						data_string.sec + L"-" +
-						IO::toNumberString(counter).c_str();
-				}
-			new_filename = targe_name.GetString() + ext;
+				CString dataToParse = (!docInfo.ModDate.IsEmpty()) ? docInfo.ModDate : docInfo.CreationDate;
+				if (!dataToParse.IsEmpty())
+					if (ParseDateString(dataToParse, data_string))
+					{
+						targe_name = data_string.year + L"-" +
+							data_string.month + L"-" +
+							data_string.day + L"-" +
+							data_string.hour + L"-" +
+							data_string.min + L"-" +
+							data_string.sec + L"-" +
+							IO::toNumberString(counter).c_str();
+					}
+				new_filename = targe_name.GetString() + ext;
 
-			pdfDoc.DestroyDocument();
-			return true;
+				pdfDoc.DestroyDocument();
+				return true;
+			}
 		}
 
 	}

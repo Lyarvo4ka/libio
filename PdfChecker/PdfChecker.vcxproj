@@ -196,12 +196,6 @@
     <ProjectReference Include="..\..\src\IOLibrary\IOLibrary.vcxproj">
       <Project>{c0525921-31e3-4e1a-b7b6-4ea88d4de419}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\libpdf\libpdf.vcxproj">
-      <Project>{5e05a079-7111-4ccc-89e3-cd5cc0788963}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\src\IOLibrary\IOLibrary.vcxproj">
-      <Project>{c0525921-31e3-4e1a-b7b6-4ea88d4de419}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\src\IO\libio.vcxproj">
       <Project>{a3400ee0-87c5-4fcc-a551-359cdea8c97e}</Project>
     </ProjectReference>
