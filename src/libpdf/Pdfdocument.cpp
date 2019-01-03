@@ -86,8 +86,7 @@ BOOL PdfDocument::Open( const std::wstring & pdf_file )
 	COleException ex;
 	if (!isCreated())
 	{
-		CreateDocument(ex);
-		if (!isCreated())
+		if (!CreateDocument(ex) )
 			return FALSE;
 	}
 
@@ -141,6 +140,16 @@ DocInfo PdfDocument::getInfo( )
 
 void PDFAnalyzer::analyze(const IO::path_string & filePath)
 {
+	COleException ex;
+	if (pdfDoc_.CreateDocument(ex))
+		if (pdfDoc_.Open(filePath))
+		{
+			// 1 Save to temp file to detect file coruption
+			// 2. try to get datetime
+		}
+
+	
+
 	/*
 	COleException e;
 	PdfDocument pdfDoc;
