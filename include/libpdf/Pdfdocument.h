@@ -37,16 +37,6 @@ struct LIBPDF_API DocInfo
 	CString ModDate;
 };
 
-//struct LIBPDF_API DateString
-//{
-//	CString YEAR;
-//	CString MONTH;
-//	CString DAY;
-//	CString HOUR;
-//	CString MINUTES;
-//	CString SECONDS;
-//};
-
 using DateString = IO::DateType<CString>;
 
 void LIBPDF_API PdfStringToTime( const CString & pdf_string , DateString & date_string );

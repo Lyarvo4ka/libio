@@ -1,9 +1,12 @@
 #ifndef SIGNATURE_TEST
 #define SIGNATURE_TEST
 
-#include "Finder.h"
+#include "IO/constants.h"
 
-void Signture_Testing( const std::string & folder);
+namespace IO
+{
+	void Signture_Testing(const path_string & folder);
+}
 
 
 

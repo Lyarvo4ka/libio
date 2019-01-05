@@ -1,73 +1,64 @@
-#include "IO\SignatureTest.h"
-#include "IO\constants.h"
+#include "IO/SignatureTest.h"
+#include "IO/Finder.h"
 
-#include "boost/filesystem.hpp"
-#include "IO\constants.h"
-
-void Signture_Testing(const std::string & folder)
+namespace IO
 {
-	
-	//FileFinder finder;
-	//stringlist extList = {"*.*"};
-	//finder.FindFiles(folder, extList);
-	//auto file_list = finder.getFileNames();
-
-	//BYTE buff[SECTOR_SIZE];
-	//DWORD bytesRead = 0;
-
-	//bool bResult = false;
-
-	//auto fileIter = file_list.begin();
-	//while (fileIter != file_list.end())
-	//{
-	//	std::string file_name = *fileIter;
-	//	HANDLE hFile = INVALID_HANDLE_VALUE;
-	//	if (!IO::open_read(hFile, file_name))
-	//	{
-	//		printf("Error to open file: %s", file_name.c_str());
-	//		return;
-	//	}
-	//	
-	//	bResult = IO::read_block(hFile, buff, SECTOR_SIZE, bytesRead);
-	//	CloseHandle(hFile);
-	//	if (!bResult && ( bytesRead == 0 ) )
-	//	{
-	//		printf("Error read file.%s" , file_name.c_str());
-	//		break;
-	//	}
 
 
-	//	bool isGoodHeader = false;
-	//	for (DWORD iByte = 0; iByte < bytesRead; ++iByte)
-	//		if ( buff[iByte] != 0x00 )
-	//		{
-	//			isGoodHeader = true;
-	//			break;
-	//		}
+	bool testTiffSignature(const IO::path_string & filePath)
+	{
+		const uint8_t tif_4949[] = { 0x49, 0x49 };
+		const uint8_t tif_4D4D[] = { 0x4D, 0x4D };
+		const uint32_t tif_sing_size = 2;
 
-	//	if (!isGoodHeader)
-	//	{
-	//		try
-	//		{
-	//			boost::filesystem::remove(file_name);
-	//		}
-	//		catch (const boost::filesystem::filesystem_error& e)
-	//		{
-	//			auto error_str = e.what();
-	//			printf("Error remove file %s. \r\n", file_name.c_str() );
-	//		}
-	//	}
+		IO::File tiff_file(filePath);
+		tiff_file.OpenRead();
+
+		DataArray buff(tif_sing_size);
+
+		if (tiff_file.Size() < tif_sing_size)
+			return false;
+		
+		tiff_file.ReadData(buff);
+
+		if (memcmp(buff.data(), tif_4949, tif_sing_size) != 0)
+			if (memcmp(buff.data(), tif_4D4D, tif_sing_size) != 0)
+				return false;
+
+		return true;
+	}
+
+	void Signture_Testing(const path_string & folder)
+	{
+		Finder finder;
+		finder.add_extension(L".tif");
+
+		finder.FindFiles(folder);
+		auto fileList = finder.getFiles();
+
+		for (auto & theFile : fileList)
+		{
+			try {
+				std::wcout << theFile;
+				//IO::testHeaderToBadSectorKeyword(theFile);
+				if (!testTiffSignature(theFile))
+					fs::rename(theFile, theFile + L".bad_file");
+
+				std::cout << std::endl;
+			}
+			catch (IO::Error::IOErrorException & ex)
+			{
+				const char* text = ex.what();
+				std::cout << " Cougth exception " << text;
+
+			}
+			catch (fs::filesystem_error ex)
+			{
+				const char* text = ex.what();
+				std::cout << " Cougth exception " << text;
+			}
 
 
-		//if (!isGoodHeader)
-		//{
-		//	boost::filesystem::rename(file_name, file_name + ".bad_file");
-		//}
-		//else
-		//{
-		//	if (memcmp(buff, Signatures::bad_sector_header, SIZEOF_ARRAY(Signatures::bad_sector_header)) == 0)
-		//		boost::filesystem::rename(file_name, file_name + ".bad_file");
-		//}
-//		++fileIter;
-//	}
+		}
+	}
 }

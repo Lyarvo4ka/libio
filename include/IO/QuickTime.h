@@ -395,7 +395,7 @@ namespace IO
 
 	const uint8_t mdat_header_start[] = { 0x00, 0x00, 0x00, 0x02, 0x09, 0x10, 0x00, 0x00 };
 
-	bool isDigitOrAlpha(char symbol)
+	inline bool isDigitOrAlpha(char symbol)
 	{
 		if (isdigit(symbol))
 			return true;
@@ -411,7 +411,7 @@ namespace IO
 
 #include<ctype.h>
 
-	std::string ReadFileName(const path_string file_path)
+	inline std::string ReadFileName(const path_string file_path)
 	{
 		const uint32_t file_enty_size = 18;
 		char entry_buff[file_enty_size + 1];
