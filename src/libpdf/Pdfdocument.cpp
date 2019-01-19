@@ -91,6 +91,7 @@ BOOL PdfDocument::Open( const std::wstring & pdf_file )
 	}
 
 	if( pAcroPdDoc_->Open( pdf_file.c_str() ) == PDF_OK ) {
+		bOpened_ = TRUE;
 		return TRUE;
 	}
 	return FALSE;
@@ -98,7 +99,7 @@ BOOL PdfDocument::Open( const std::wstring & pdf_file )
 
 void PdfDocument::Close()
 {
-	if (isOpened)
+	if (isOpened())
 		pAcroPdDoc_->Close();
 }
 
@@ -114,9 +115,12 @@ BOOL PdfDocument::isCreated() const
 
 BOOL PdfDocument::Save(const std::wstring & filePath)
 {
-	if (isOpened)
-	if (pAcroPdDoc_->Save(PDSaveFull, filePath.c_str()) == PDF_OK)
-		return TRUE;
+	if (isOpened())
+	{
+		auto res = pAcroPdDoc_->Save(PDSaveFull, filePath.c_str());
+		if (res == PDF_OK)
+			return TRUE;
+	}
 	return FALSE;
 }
 
@@ -193,6 +197,16 @@ void PDFAnalyzer::analyze(const IO::path_string & filePath)
 }
 bool PDFAnalyzer::test(const IO::path_string & filePath)
 {
+	if (!open(filePath))
+		return false;
+
+	IO::path_string tmp_filename = LR"(c:\tmp.pdf)";
+	if (!pdfDoc_.Save(tmp_filename))
+		return false;
+
+	close();
+
+	return true;
 
 }
 
@@ -210,6 +224,7 @@ bool PDFAnalyzer::open(const IO::path_string & filePath)
 
 void PDFAnalyzer::close()
 {
+	pdfDoc_.Close();
 	pdfDoc_.DestroyDocument();
 }
 

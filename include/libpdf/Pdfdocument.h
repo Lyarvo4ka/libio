@@ -64,7 +64,7 @@ private:
 };
 
 
-class PDFAnalyzer
+class LIBPDF_API PDFAnalyzer
 	: public IO::Analyzer
 {
 	PdfDocument pdfDoc_;

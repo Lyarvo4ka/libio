@@ -79,21 +79,25 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			printf( "Error to start acrobat app." );
 			return -1;
 		}
-		if (argc == 3)
+		if (argc == 2)
 		{
 			std::wstring source_folder(argv[1]);
-			//verify_pdf_files(source_folder);
+			verify_pdf_files(source_folder);
+		}else if (argc == 3)
+			{
+				std::wstring source_folder(argv[1]);
+				//verify_pdf_files(source_folder);
 
-			std::wstring target_folder(argv[2]);
+				std::wstring target_folder(argv[2]);
 
-			identify_files(source_folder, target_folder);
-		}
-		else
-		{
-			printf("Error. You entered invalid params.\r\n");
-			//IO::path_string str1, str2;
-			//identify_pdf(str1, str2,0);
-		}
+				identify_files(source_folder, target_folder);
+			}
+			else
+			{
+				printf("Error. You entered invalid params.\r\n");
+				//IO::path_string str1, str2;
+				//identify_pdf(str1, str2,0);
+			}
 
 		CoUninitialize();
 
@@ -186,14 +190,18 @@ void verify_pdf_files(const IO::path_string & folder)
 	Finder finder;
 	finder.add_extension(L".pdf");
 	finder.FindFiles(folder);
-	finder.printAll();
+	//finder.printAll();
 
 	auto listFiles = finder.getFiles();
 
 	for (auto the_file : listFiles)
-	{
-		auto add_name = (open_pdf_file(the_file)) ? add_good_name : add_bad_name;
-
+	{ 
+		path_string add_name = add_bad_name;
+		PDFAnalyzer pdfAnalyzer;
+		if (pdfAnalyzer.test(the_file))
+			add_name = add_good_name;
+		 
+		pdfAnalyzer.close();
 		try
 		{
 			fs::rename(the_file, the_file + add_name);
