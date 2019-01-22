@@ -55,10 +55,12 @@ public:
 	BOOL isCreated() const;
 	BOOL Save(const std::wstring & filePath);
 	DocInfo getInfo( );
+	long getNumPages() const;
 
 private:
 	BOOL bOpened_ = FALSE;
 	BOOL bCreated_ = FALSE;
+	long numPages_ = -1;
 	std::unique_ptr<CAcroPDDoc>  pAcroPdDoc_;
 	//CAcroTime * m_pAcroTime;
 };

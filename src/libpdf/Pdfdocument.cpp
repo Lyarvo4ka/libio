@@ -3,6 +3,9 @@
 #include "Pdfdocument.h"
 //#include <boost/lexical_cast.hpp>
 
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 
 #define PDF_OK -1
 
@@ -78,7 +81,10 @@ BOOL PdfDocument::CreateDocument( COleException & e )
 void PdfDocument::DestroyDocument()
 {
 	if (pAcroPdDoc_)
+	{
+		//pAcroPdDoc_->
 		pAcroPdDoc_->ReleaseDispatch();
+	}
 }
 
 BOOL PdfDocument::Open( const std::wstring & pdf_file )
@@ -92,6 +98,8 @@ BOOL PdfDocument::Open( const std::wstring & pdf_file )
 
 	if( pAcroPdDoc_->Open( pdf_file.c_str() ) == PDF_OK ) {
 		bOpened_ = TRUE;
+
+		numPages_ = pAcroPdDoc_->GetNumPages();
 		return TRUE;
 	}
 	return FALSE;
@@ -139,6 +147,11 @@ DocInfo PdfDocument::getInfo( )
 		docInfo.ModDate = pAcroPdDoc_->GetInfo( sModDate );
 	}
 	return docInfo;
+}
+
+long PdfDocument::getNumPages() const
+{
+	return numPages_;
 }
 
 
@@ -200,13 +213,27 @@ bool PDFAnalyzer::test(const IO::path_string & filePath)
 	if (!open(filePath))
 		return false;
 
+	bool bResult = false;
+
+	auto numPages = pdfDoc_.getNumPages();
+
 	IO::path_string tmp_filename = LR"(c:\tmp.pdf)";
-	if (!pdfDoc_.Save(tmp_filename))
-		return false;
+	if (pdfDoc_.Save(tmp_filename))
+		bResult = true;
 
 	close();
+	// Remove temp_file.
 
-	return true;
+	try 
+	{
+		fs::remove(tmp_filename);
+	}
+	catch (fs::filesystem_error & ex)
+	{
+		std::cout << "Can't remove temp file " << ex.what();
+	}
+
+	return bResult;
 
 }
 

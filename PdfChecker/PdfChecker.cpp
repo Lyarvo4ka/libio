@@ -103,6 +103,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 
 		}
+		printf("\r\n\r\n\r\nFinished");
 	}
 	else
 	{
@@ -196,12 +197,18 @@ void verify_pdf_files(const IO::path_string & folder)
 
 	for (auto the_file : listFiles)
 	{ 
+		std::wcout << the_file << L" ";
 		path_string add_name = add_bad_name;
 		PDFAnalyzer pdfAnalyzer;
-		if (pdfAnalyzer.test(the_file))
+		if (pdfAnalyzer.test(the_file)) 
+		{
+			std::wcout << L"-- OK" << std::endl;
 			add_name = add_good_name;
+		}
+		else
+			std::wcout << L"-- BAD" << std::endl;
 		 
-		pdfAnalyzer.close();
+
 		try
 		{
 			fs::rename(the_file, the_file + add_name);
@@ -211,7 +218,7 @@ void verify_pdf_files(const IO::path_string & folder)
 			std::cout << "Error: " << e.what() << std::endl;
 		}
 	}
-
+	//std::wcout << std::endl;
 }
 
 IO::path_string addFolderName(const IO::path_string & current_folder, const IO::path_string & new_folder)
