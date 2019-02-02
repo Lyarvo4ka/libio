@@ -381,9 +381,17 @@ namespace IO
 
 				if (memcmp(buff, nulls_sign, nulls_sing_size) == 0)
 				{
-					fs::rename(file_name, file_name + L".bad_file");
+					try
+					{
+						fs::rename(file_name, file_name + L".bad_file");
+					}
+					catch (fs::filesystem_error ex)
+					{
+						std::cout << "Rename exception " << ex.what() << std::endl;
+					}
 				}
 			}
+
 
 		}
 

@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libiotest", "testing\libiotest\libiotest.vcxproj", "{BB1C8FD4-B4D9-46EC-B115-20323FF8742A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testHeaderToBadSector", "ConsoleApplication1\ConsoleApplication1.vcxproj", "{DE9C7C5B-B4D7-4BC4-9FC6-860093C7DBE1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testHeaderToNulls", "ConsoleApplication1\ConsoleApplication1.vcxproj", "{DE9C7C5B-B4D7-4BC4-9FC6-860093C7DBE1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libio", "src\IO\libio.vcxproj", "{A3400EE0-87C5-4FCC-A551-359CDEA8C97E}"
 EndProject
@@ -30,6 +30,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpdf", "src\libpdf\libpdf.vcxproj", "{5E05A079-7111-4CCC-89E3-CD5CC0788963}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PdfCheckerConsole", "PdfChecker\PdfChecker.vcxproj", "{25E7C402-13A6-4865-87A0-37675EABA997}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DataBases", "DataBases\DataBases.vcxproj", "{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -107,6 +109,12 @@ Global
 		{25E7C402-13A6-4865-87A0-37675EABA997}.Release|x64.ActiveCfg = Release|x64
 		{25E7C402-13A6-4865-87A0-37675EABA997}.Release|x86.ActiveCfg = Release|Win32
 		{25E7C402-13A6-4865-87A0-37675EABA997}.Release|x86.Build.0 = Release|Win32
+		{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819}.Debug|x64.ActiveCfg = Debug|x64
+		{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819}.Debug|x64.Build.0 = Debug|x64
+		{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819}.Debug|x86.ActiveCfg = Debug|x64
+		{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819}.Release|x64.ActiveCfg = Release|x64
+		{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819}.Release|x64.Build.0 = Release|x64
+		{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,6 +130,7 @@ Global
 		{C1870A94-FC6E-4386-AE70-9257E9E3360C} = {595EE49B-FE2E-4BBB-BB4A-166985AF1EBB}
 		{5E05A079-7111-4CCC-89E3-CD5CC0788963} = {595EE49B-FE2E-4BBB-BB4A-166985AF1EBB}
 		{25E7C402-13A6-4865-87A0-37675EABA997} = {CB9F758D-004D-455B-83D9-D3492B36834F}
+		{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819} = {CB9F758D-004D-455B-83D9-D3492B36834F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {935FD6FC-7F54-4EE1-AE27-4389056DF421}
