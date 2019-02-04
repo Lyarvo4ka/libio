@@ -99,33 +99,35 @@ int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
 
-	QSqlDatabase db;
-	db = QSqlDatabase::addDatabase("QODBC");
+	//QSqlDatabase db;
+	//db = QSqlDatabase::addDatabase("QODBC");
 
-	QString connectString = "Driver={SQL Server};"; // Driver can also be {SQL Server Native Client 11.0}
-	connectString.append("WIN-BD5OT7T92EA\\MSSQL_2008;");   // Hostname,SQL-Server Instance
-	connectString.append("Database=UTP;");  // Schema
-	connectString.append("Uid=sa;");           // User
-	connectString.append("Pwd=Admin123;");     // Pass
-	db.setDatabaseName(connectString);
+	////QString connectString = "Driver={SQL Server};"; // Driver can also be {SQL Server Native Client 11.0}
+	////connectString.append("WIN-BD5OT7T92EA\\MSSQL_2008;");   // Hostname,SQL-Server Instance
+	////connectString.append("Database=UTP_rec2;");  // Schema
+	////connectString.append("UID=sa;");           // User
+	////connectString.append("PWD=Admin123;");     // Pass
+	////db.setDatabaseName(connectString);
 
-	bool bOK = db.open();
-	if (bOK)
-	{
-		qDebug() << "UTP Connect OK";
-	}
-	else
-		qDebug() << "Error" << db.lastError().text();
+	//db.setDatabaseName("(DRIVER={SQL Server Native Client 10.0};SERVER=127.0.0.1\\MSSQL2008;DATABASE=test;Uid=sa;Password=Admin123;");
 
-
-	//MSSQLDB sourceDB;
-	//if (!sourceDB.connect("WIN-BD5OT7T92EA\\MSSQL_2008", "UTP", "sa", "Admin123"))
+	//bool bOK = db.open();
+	//if (bOK)
 	//{
-	//	auto errText = sourceDB.lastError().text().toStdWString();
-	//	qDebug() << sourceDB.lastError().text();
+	//	qDebug() << "UTP Connect OK";
 	//}
 	//else
-	//	qDebug() << "UTP Connect OK";
+	//	qDebug() << "Error" << db.lastError().text();
+
+
+	MSSQLDB sourceDB;
+	if (!sourceDB.connect("WIN-BD5OT7T92EA\MSSQL_2008", "UTP_rec2", "sa", "Admin123"))
+	{
+		auto errText = sourceDB.lastError().text().toStdWString();
+		qDebug() << sourceDB.lastError().text();
+	}
+	else
+		qDebug() << "UTP Connect OK";
 
 	//MSSQLDB targetDB;
 	//if (!targetDB.connect("WIN-BD5OT7T92EA\\MSSQL_2008", "UTP_new", "sa", "Admin123"))
