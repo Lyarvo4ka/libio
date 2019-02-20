@@ -68,9 +68,6 @@
     <ClInclude Include="..\..\include\IO\calcRaid5Parity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\IO\cdw_raw.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\IO\ChangeHeader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -240,6 +237,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\IO\analyzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\IO\RawCDW.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

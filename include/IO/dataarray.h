@@ -8,8 +8,8 @@ namespace IO
 {
 	class DataArray
 	{
-		ByteArray data_;
-		uint32_t size_;
+		ByteArray data_ = nullptr;
+		uint32_t size_ = 0;
 	public:
 		using Ptr = std::unique_ptr<DataArray>;
 
@@ -64,12 +64,17 @@ namespace IO
 		{
 			return data_;
 		}
+		bool isValid() const
+		{
+			return (size_ != 0);
+		}
 		void resize(const uint32_t new_size)
 		{
 			if (size_ != new_size)
 			{
 				clear();
-				data_ = new uint8_t[new_size];
+				if (new_size > 0)
+					data_ = new uint8_t[new_size];
 			}
 		}
 		void clear()
@@ -79,6 +84,7 @@ namespace IO
 				delete[] data_;
 				data_ = nullptr;
 			}
+			size_ = 0;
 
 		}
 		static bool compareData(const DataArray & left, const DataArray & right)

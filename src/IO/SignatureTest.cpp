@@ -28,6 +28,32 @@ namespace IO
 		return true;
 	}
 
+
+	bool testCdrSignature(const IO::path_string & filePath)
+	{
+		const uint8_t cdr_header1[] = { 0x52 , 0x49 , 0x46 , 0x46 };
+		const uint8_t cdr_header2[] = { 0x50 , 0x4B , 0x03 , 0x04 };
+		const uint32_t cdr_header1_2_size = SIZEOF_ARRAY(cdr_header1);
+
+
+		IO::File cdr_file(filePath);
+		cdr_file.OpenRead();
+
+		DataArray buff(cdr_header1_2_size);
+
+		if (cdr_file.Size() < cdr_header1_2_size)
+			return false;
+
+		cdr_file.ReadData(buff);
+
+		if (memcmp(buff.data(), cdr_header1, cdr_header1_2_size) != 0)
+			if (memcmp(buff.data(), cdr_header2, cdr_header1_2_size) != 0)
+				return false;
+
+		return true;
+
+	}
+
 	void Signture_Testing(const path_string & folder)
 	{
 		Finder finder;

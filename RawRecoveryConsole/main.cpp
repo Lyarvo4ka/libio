@@ -32,6 +32,7 @@
 #include "IO\ZoomH6Raw.h"
 #include "IO\RawPLN.h"
 #include "IO\GoPro.h"
+#include "IO\RawCDW.h"
 
 
 const int param_count = 6;
@@ -90,7 +91,10 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 
 	//factory_manager.Register("r3d", std::make_unique<IO::StandartRawFactory>());
 	//factory_manager.Register("ZOOMHandyRecorder", std::make_unique<IO::RawZOOMHandyRecorder>());
-	factory_manager.Register("imd", std::make_unique<IO::RawIMDFactory>());
+	
+	//factory_manager.Register("imd", std::make_unique<IO::RawIMDFactory>());
+	factory_manager.Register("cdw", std::make_unique<IO::RawCWDFactory>());
+
 	//factory_manager.Register("Canon80D", std::make_unique<IO::Canon80D_FragmentRawFactory>());
 
 
@@ -164,7 +168,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 		//QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
-		QString json_file = "imd.json";
+		QString json_file = "cdw.json";
 		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{
@@ -242,7 +246,7 @@ int main(int argc, char *argv[])
 				
 				if (raw_algorithm->Specify(header_offset))
 				{
-					auto target_file = IO::offsetToPath(target_folder, header_offset, file_struct->getExtension(), 512);
+					auto target_file = IO::offsetToPath(target_folder, header_offset, file_struct->getExtension(), default_sector_size);
 					auto dst_file = IO::makeFilePtr(target_file);
 					if (dst_file->Open(IO::OpenMode::Create))
 					{
@@ -250,7 +254,7 @@ int main(int argc, char *argv[])
 						
 						if ( target_size == 0)
 						{
-							qInfo() << "Error to save file. Exit." ;
+							qInfo() << "Error to save file." ;
 							//break;
 
 						}

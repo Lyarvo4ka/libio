@@ -206,7 +206,6 @@ namespace IO
 	using QuickTimeList = std::list<QtHandle>;
 
 
-	
 
 	class QuickTimeRaw
 		: public StandartRaw
@@ -227,6 +226,22 @@ namespace IO
 		virtual ~QuickTimeRaw()
 		{
 		}
+
+		DataArray readFtypData(const QtHandle & ftyp_handle)
+		{
+			if (ftyp_handle.isValid())
+			if (ftyp_handle.size() > qt_block_struct_size)
+			{
+				auto ftypdata_size = ftyp_handle.size() - qt_block_struct_size;
+				DataArray ftyp_data(ftypdata_size);
+				this->setPosition(ftyp_handle.offset() + qt_block_struct_size);
+				this->ReadData(ftyp_data);
+				return ftyp_data;
+			}
+			return DataArray(0);
+		}
+
+
 		uint64_t readQtAtom(const uint64_t start_offset, qt_block_t & qt_block)
 		{
 			if ( (start_offset + qt_block_struct_size) > this->getSize())

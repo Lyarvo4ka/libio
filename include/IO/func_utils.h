@@ -3,6 +3,68 @@
 #include "IODevice.h"
 namespace IO
 {
+	void joinDataWithService(const path_string & dataFilename, const path_string & serviceFilename, const path_string & targetFilename)
+	{
+		File dataFile(dataFilename);
+		dataFile.OpenRead();
+		File serviceFile(serviceFilename);
+		serviceFile.OpenRead();
+		File targetFile(targetFilename);
+		targetFile.OpenCreate();
+
+		const uint32_t data_size = 8192;
+		const uint32_t data_page_size = 1024;
+		const uint32_t numPages = data_size / data_page_size;
+		const uint32_t service_size = 1024;
+		const uint32_t sa_size = 106;
+		const uint32_t target_size = 9216;
+
+		uint64_t data_offset = 0;
+		uint64_t service_offset = 0;
+		DataArray data(data_size);
+		DataArray service_data(service_size);
+
+		DataArray page_data(target_size);
+		
+		while (true)
+		{
+			if (data_offset >= dataFile.Size())
+				break;
+			if (service_offset >= serviceFile.Size())
+				break;
+
+			dataFile.setPosition(data_offset);
+			dataFile.ReadData(data);
+
+			serviceFile.setPosition(service_offset);
+			serviceFile.ReadData(service_data);
+
+			memset(page_data.data(), 0xFF, page_data.size());
+
+			for (uint32_t iPage = 0; iPage < numPages; ++iPage)
+			{
+				memcpy(page_data.data() + iPage * (data_page_size + sa_size), data.data() + iPage * data_page_size, data_page_size);
+
+				memcpy(page_data.data() + data_page_size + iPage * (data_page_size + sa_size), service_data.data() + iPage * sa_size, sa_size);
+
+
+
+			}
+			memcpy(page_data.data() + numPages *(data_page_size + sa_size), service_data.data() + sa_size * numPages, service_size - sa_size * numPages);
+
+			targetFile.WriteData(page_data.data(), page_data.size());
+
+
+			data_offset += data_size;
+			service_offset += service_size;
+
+		}
+
+
+
+	}
+
+
 	/*
 	This function compare each sector with marker signature "bad sector" and if found it then set file size
 	*/

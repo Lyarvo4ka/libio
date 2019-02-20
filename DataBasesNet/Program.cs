@@ -36,6 +36,11 @@ namespace DataBasesNet
             connection_ = new SqlConnection(connectionString); 
         }
 
+        public void Open()
+        {
+            connection_.Open();
+        }
+
         public bool TestTable(SqlConnection connection , string tableName)
         {
             bool testResult = false;
@@ -173,7 +178,7 @@ namespace DataBasesNet
 
             List<ColumnType> listColumType = new List<ColumnType> { };
             SqlConnection connection;
-            string connetionString = "Data Source=WIN-BD5OT7T92EA\\MSSQL_2008;Initial Catalog=" + dbName + "; User ID=sa;Password=Admin123";
+            string connetionString = "Data Source=WIN-2AAD50GME1V\\MSSQL_2012;Initial Catalog=" + dbName + "; User ID=sa;Password=Admin123";
             connection = new SqlConnection(connetionString);
             DataTable schemaTable;
             SqlCommand cmd = new SqlCommand();
@@ -301,23 +306,41 @@ namespace DataBasesNet
 
         static void Main(string[] args)
         {
-            string[] Tables = System.IO.File.ReadAllLines(@"tableToUpdate.txt");
+            //string[] Tables = System.IO.File.ReadAllLines(@"tableToUpdate.txt");
+
+            //foreach (var tableName in Tables)
+            //{
+
+            //    SqlDataBases sql_bases = new SqlDataBases();
+            //    var col_types = sql_bases.GetTableColunmType("utp_new", tableName);
+
+            //    SqlDataBases sql_updater = new SqlDataBases();
+            //    //Data Source=WIN-BD5OT7T92EA\\MSSQL_2008;Initial Catalog=utp_new;User ID=sa;Password=Admin123";
+            //    var connString = sql_bases.CreateConnectionString("WIN-BD5OT7T92EA\\MSSQL_2008", "utp_new", "sa", "Admin123");
+            //    sql_updater.CreateConnection(connString);
+
+            //    sql_updater.UpdateNullsIfExist(col_types, tableName);
+
+            //}
+
+            //d:\PaboTa\45601\isd.tables 
+            string[] Tables = System.IO.File.ReadAllLines(@"d:\PaboTa\45601\isd.tables");
+            string database_name = "ISD";
+            //string table_name = "_UsersWorkHistory";
 
             foreach (var tableName in Tables)
             {
-
                 SqlDataBases sql_bases = new SqlDataBases();
-                var col_types = sql_bases.GetTableColunmType("utp_new", tableName);
+
+                //var allTables = sql_bases.GetAllTables()
+
+                var col_types = sql_bases.GetTableColunmType(database_name, tableName);
 
                 SqlDataBases sql_updater = new SqlDataBases();
-                //Data Source=WIN-BD5OT7T92EA\\MSSQL_2008;Initial Catalog=utp_new;User ID=sa;Password=Admin123";
-                var connString = sql_bases.CreateConnectionString("WIN-BD5OT7T92EA\\MSSQL_2008", "utp_new", "sa", "Admin123");
+                var connString = sql_bases.CreateConnectionString("WIN-2AAD50GME1V\\MSSQL_2012", database_name, "sa", "Admin123");
                 sql_updater.CreateConnection(connString);
-
                 sql_updater.UpdateNullsIfExist(col_types, tableName);
-
             }
-
 
             Console.ReadLine();
         }

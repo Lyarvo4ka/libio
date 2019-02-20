@@ -40,7 +40,7 @@
     <ClInclude Include="..\..\include\IO\analyzer.h" />
     <ClInclude Include="..\..\include\IO\BlockNumber.h" />
     <ClInclude Include="..\..\include\IO\calcRaid5Parity.h" />
-    <ClInclude Include="..\..\include\IO\cdw_raw.h" />
+    <ClInclude Include="..\..\include\IO\RawCDW.h" />
     <ClInclude Include="..\..\include\IO\ChangeHeader.h" />
     <ClInclude Include="..\..\include\IO\constants.h" />
     <ClInclude Include="..\..\include\IO\dataarray.h" />
