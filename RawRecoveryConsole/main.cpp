@@ -72,7 +72,7 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
 	//initKeysFactoryManager(factory_manager);
 	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
-	//initVideoFactoryManager(factory_manager);
+	initVideoFactoryManager(factory_manager);
 	//initAudioFactoryManager(factory_manager);
 	//factory_manager.Register("go_pro", std::make_unique<IO::GoProRawFactory>());
 
@@ -93,7 +93,7 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 	//factory_manager.Register("ZOOMHandyRecorder", std::make_unique<IO::RawZOOMHandyRecorder>());
 	
 	//factory_manager.Register("imd", std::make_unique<IO::RawIMDFactory>());
-	factory_manager.Register("cdw", std::make_unique<IO::RawCWDFactory>());
+	//factory_manager.Register("cdw", std::make_unique<IO::RawCWDFactory>());
 
 	//factory_manager.Register("Canon80D", std::make_unique<IO::Canon80D_FragmentRawFactory>());
 
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 		//QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
-		QString json_file = "cdw.json";
+		QString json_file = "video.json";
 		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{

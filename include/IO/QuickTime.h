@@ -60,9 +60,9 @@ namespace IO
 	{
 		return reinterpret_cast<ByteArray>(&qtBlock);
 	}
-	inline ByteArray toByteArray(uint64_t value64bit)
+	inline ByteArray toByteArray(uint64_t & value64bit)
 	{
-		return reinterpret_cast<ByteArray>(value64bit);
+		return reinterpret_cast<ByteArray>(&value64bit);
 	}
 	const uint32_t qt_block_struct_size = sizeof(qt_block_t);
 
@@ -370,9 +370,20 @@ namespace IO
 			
 			auto sizeKeywords = readAllQtAtoms(start_offset, keywordsList_);
 			if (isPresentMainKeywords(keywordsList_))
+			//if (isPresentMDAT(keywordsList_))
 			{
 				sizeToWrite_ = sizeKeywords;
 				return true;
+			}
+			return false;
+		}
+
+		bool isPresentMDAT(const QuickTimeList & keywordsList_)
+		{
+			for (auto & refQtHandle : keywordsList_)
+			{
+				if (memcmp(refQtHandle.block_type(), s_mdat, qt_keyword_size) == 0)
+					return true;
 			}
 			return false;
 		}
