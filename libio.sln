@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libiotest", "testing\libiotest\libiotest.vcxproj", "{BB1C8FD4-B4D9-46EC-B115-20323FF8742A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testHeaderToNulls", "ConsoleApplication1\ConsoleApplication1.vcxproj", "{DE9C7C5B-B4D7-4BC4-9FC6-860093C7DBE1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testHederQt", "ConsoleApplication1\ConsoleApplication1.vcxproj", "{DE9C7C5B-B4D7-4BC4-9FC6-860093C7DBE1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libio", "src\IO\libio.vcxproj", "{A3400EE0-87C5-4FCC-A551-359CDEA8C97E}"
 EndProject
@@ -34,6 +34,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DataBases", "DataBases\DataBases.vcxproj", "{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataBasesNet", "DataBasesNet\DataBasesNet.csproj", "{2A7ECBD5-0393-4DD1-A03C-9BBF84E0FAF2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libraw", "libraw\libraw.vcxproj", "{F50C1F59-5403-40FE-AC32-57A141BACBCF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +155,16 @@ Global
 		{2A7ECBD5-0393-4DD1-A03C-9BBF84E0FAF2}.Release|x64.Build.0 = Release|Any CPU
 		{2A7ECBD5-0393-4DD1-A03C-9BBF84E0FAF2}.Release|x86.ActiveCfg = Release|Any CPU
 		{2A7ECBD5-0393-4DD1-A03C-9BBF84E0FAF2}.Release|x86.Build.0 = Release|Any CPU
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Debug|x64.ActiveCfg = Debug|x64
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Debug|x64.Build.0 = Debug|x64
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Debug|x86.ActiveCfg = Debug|Win32
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Debug|x86.Build.0 = Debug|Win32
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Release|Any CPU.ActiveCfg = Release|Win32
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Release|x64.ActiveCfg = Release|x64
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Release|x64.Build.0 = Release|x64
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Release|x86.ActiveCfg = Release|Win32
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -170,6 +182,7 @@ Global
 		{25E7C402-13A6-4865-87A0-37675EABA997} = {CB9F758D-004D-455B-83D9-D3492B36834F}
 		{9DBE6636-B2EC-4E2F-AD76-A590C3BF0819} = {CB9F758D-004D-455B-83D9-D3492B36834F}
 		{2A7ECBD5-0393-4DD1-A03C-9BBF84E0FAF2} = {CB9F758D-004D-455B-83D9-D3492B36834F}
+		{F50C1F59-5403-40FE-AC32-57A141BACBCF} = {595EE49B-FE2E-4BBB-BB4A-166985AF1EBB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {935FD6FC-7F54-4EE1-AE27-4389056DF421}
