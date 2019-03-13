@@ -93,6 +93,11 @@ namespace IO
 
 	using HeaderArray = std::vector<SignatureOffset::Ptr>;
 
+
+	// RAWFile
+	// RAWHandle
+	// RAWDescription
+	// RAWType
 	class FileStruct
 	{
 		HeaderArray headers_;
