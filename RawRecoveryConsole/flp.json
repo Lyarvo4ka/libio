@@ -1,0 +1,13 @@
+{
+	"flp":{
+        "header":
+        [
+          {
+          "hexdata":"464C6864",
+          "offset": 0
+          }
+        ]
+    },
+		"extension":".flp",
+		 "maxfilesize": 4294967296
+}

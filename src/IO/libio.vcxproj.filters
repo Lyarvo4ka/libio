@@ -242,5 +242,8 @@
     <ClInclude Include="..\..\include\IO\RawCDW.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\IO\FlpRaw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

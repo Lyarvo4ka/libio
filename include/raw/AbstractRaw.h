@@ -4,7 +4,6 @@
 #include "IO/IODevice.h"
 #include <memory>
 
-#include "utility.h"
 #include "dataarray.h"
 
 namespace IO

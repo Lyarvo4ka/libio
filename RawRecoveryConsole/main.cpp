@@ -33,6 +33,7 @@
 #include "IO\RawPLN.h"
 #include "IO\GoPro.h"
 #include "IO\RawCDW.h"
+#include "IO\FlpRaw.h"
 
 
 const int param_count = 6;
@@ -70,9 +71,13 @@ void initKeysFactoryManager(IO::RawFactoryManager & factory_manager)
 
 void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
+	//initVideoFactoryManager(factory_manager);
+
+	factory_manager.Register("flp", std::make_unique<IO::RawFLPFactory>());
+
+
 	//initKeysFactoryManager(factory_manager);
 	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
-	initVideoFactoryManager(factory_manager);
 	//initAudioFactoryManager(factory_manager);
 	//factory_manager.Register("go_pro", std::make_unique<IO::GoProRawFactory>());
 
@@ -168,7 +173,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 		//QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
-		QString json_file = "video.json";
+		QString json_file = "flp.json";
 		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{
