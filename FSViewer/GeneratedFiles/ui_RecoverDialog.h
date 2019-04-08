@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'RecoverDialog.ui'
 **
-** Created by: Qt User Interface Compiler version 5.11.0
+** Created by: Qt User Interface Compiler version 5.12.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -39,29 +39,29 @@ public:
     void setupUi(QDialog *RecoverDialog)
     {
         if (RecoverDialog->objectName().isEmpty())
-            RecoverDialog->setObjectName(QStringLiteral("RecoverDialog"));
+            RecoverDialog->setObjectName(QString::fromUtf8("RecoverDialog"));
         RecoverDialog->setWindowModality(Qt::WindowModal);
         RecoverDialog->resize(611, 148);
         RecoverDialog->setSizeGripEnabled(false);
         RecoverDialog->setModal(true);
         verticalLayout_2 = new QVBoxLayout(RecoverDialog);
-        verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
+        verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         verticalLayout = new QVBoxLayout();
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         folderText = new QLabel(RecoverDialog);
-        folderText->setObjectName(QStringLiteral("folderText"));
+        folderText->setObjectName(QString::fromUtf8("folderText"));
 
         verticalLayout->addWidget(folderText);
 
         horizontalLayout = new QHBoxLayout();
-        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         folderPathEdit = new QLineEdit(RecoverDialog);
-        folderPathEdit->setObjectName(QStringLiteral("folderPathEdit"));
+        folderPathEdit->setObjectName(QString::fromUtf8("folderPathEdit"));
 
         horizontalLayout->addWidget(folderPathEdit);
 
         openButton = new QPushButton(RecoverDialog);
-        openButton->setObjectName(QStringLiteral("openButton"));
+        openButton->setObjectName(QString::fromUtf8("openButton"));
 
         horizontalLayout->addWidget(openButton);
 
@@ -80,18 +80,18 @@ public:
         hboxLayout->setSpacing(6);
 #endif
         hboxLayout->setContentsMargins(0, 0, 0, 0);
-        hboxLayout->setObjectName(QStringLiteral("hboxLayout"));
+        hboxLayout->setObjectName(QString::fromUtf8("hboxLayout"));
         spacerItem = new QSpacerItem(131, 31, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         hboxLayout->addItem(spacerItem);
 
         okButton = new QPushButton(RecoverDialog);
-        okButton->setObjectName(QStringLiteral("okButton"));
+        okButton->setObjectName(QString::fromUtf8("okButton"));
 
         hboxLayout->addWidget(okButton);
 
         cancelButton = new QPushButton(RecoverDialog);
-        cancelButton->setObjectName(QStringLiteral("cancelButton"));
+        cancelButton->setObjectName(QString::fromUtf8("cancelButton"));
 
         hboxLayout->addWidget(cancelButton);
 

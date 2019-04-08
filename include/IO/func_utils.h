@@ -14,9 +14,9 @@ namespace IO
 
 		const uint32_t data_size = 8192;
 		const uint32_t data_page_size = 1024;
-		const uint32_t numPages = data_size / data_page_size;
-		const uint32_t service_size = 1024;
+		const uint32_t service_size = 176;
 		const uint32_t sa_size = 106;
+		const uint32_t numPages = data_size / data_page_size ;
 		const uint32_t target_size = 9216;
 
 		uint64_t data_offset = 0;
@@ -25,6 +25,8 @@ namespace IO
 		DataArray service_data(service_size);
 
 		DataArray page_data(target_size);
+
+		const uint32_t sa_end_offset = 9040;
 		
 		while (true)
 		{
@@ -39,18 +41,17 @@ namespace IO
 			serviceFile.setPosition(service_offset);
 			serviceFile.ReadData(service_data);
 
-			memset(page_data.data(), 0xFF, page_data.size());
+			memset(page_data.data(), 0x00, page_data.size());
 
 			for (uint32_t iPage = 0; iPage < numPages; ++iPage)
 			{
 				memcpy(page_data.data() + iPage * (data_page_size + sa_size), data.data() + iPage * data_page_size, data_page_size);
 
-				memcpy(page_data.data() + data_page_size + iPage * (data_page_size + sa_size), service_data.data() + iPage * sa_size, sa_size);
-
-
+				//memcpy(page_data.data() + data_page_size + iPage * (data_page_size + sa_size), service_data.data() + iPage * sa_size, sa_size);
 
 			}
-			memcpy(page_data.data() + numPages *(data_page_size + sa_size), service_data.data() + sa_size * numPages, service_size - sa_size * numPages);
+			//memcpy(page_data.data() + numPages *(data_page_size + sa_size), service_data.data() + sa_size * numPages, service_size - sa_size * numPages);
+			memcpy(page_data.data() + sa_end_offset, service_data.data(), service_data.size());
 
 			targetFile.WriteData(page_data.data(), page_data.size());
 

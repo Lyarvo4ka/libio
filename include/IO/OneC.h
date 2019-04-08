@@ -8,10 +8,14 @@
 
 namespace IO
 {
+	constexpr std::string_view ObjectHeaderStr = {0x31 , 0x43 , 0x44 , 0x42 , 0x4F , 0x42 , 0x56 , 0x38}//"1CDBOBV8";
+	// const char[] ObjectHeader = {0x31 , 0x43 , 0x44 , 0x42 , 0x4F , 0x42 , 0x56 , 0x38};
+	// const uin32_t ObjectHeaderSize = SIZEOF_ARRAY(ObjectHeader);
+
 	//namespace 
 	struct Header_1CD
 	{
-		char sig[8]; // сигнатура “1CDBMSV8” 
+		char sig[8]; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ1CDBMSV8пїЅ 
 		char ver1; 
 		char ver2; 
 		char ver3; 
@@ -23,9 +27,9 @@ namespace IO
 	const uint32_t max_object_blocks = 1018;
 	struct Object{
 
-	char sig[8]; // сигнатура “1CDBOBV8”
+	char sig[8]; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ1CDBOBV8пїЅ
 
-	int length; // длина содержимого объекта
+	int length; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
 	int version1;
 

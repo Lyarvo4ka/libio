@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'FSViewer.ui'
 **
-** Created by: Qt User Interface Compiler version 5.11.0
+** Created by: Qt User Interface Compiler version 5.12.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -50,16 +50,16 @@ public:
     void setupUi(QMainWindow *FSViewerClass)
     {
         if (FSViewerClass->objectName().isEmpty())
-            FSViewerClass->setObjectName(QStringLiteral("FSViewerClass"));
+            FSViewerClass->setObjectName(QString::fromUtf8("FSViewerClass"));
         FSViewerClass->resize(1039, 809);
         centralWidget = new QWidget(FSViewerClass);
-        centralWidget->setObjectName(QStringLiteral("centralWidget"));
+        centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         horizontalLayout = new QHBoxLayout(centralWidget);
         horizontalLayout->setSpacing(6);
         horizontalLayout->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         splitter = new QSplitter(centralWidget);
-        splitter->setObjectName(QStringLiteral("splitter"));
+        splitter->setObjectName(QString::fromUtf8("splitter"));
         QSizePolicy sizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -67,14 +67,14 @@ public:
         splitter->setSizePolicy(sizePolicy);
         splitter->setOrientation(Qt::Horizontal);
         widget = new QWidget(splitter);
-        widget->setObjectName(QStringLiteral("widget"));
+        widget->setObjectName(QString::fromUtf8("widget"));
         verticalLayout = new QVBoxLayout(widget);
         verticalLayout->setSpacing(6);
         verticalLayout->setContentsMargins(11, 11, 11, 11);
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         verticalLayout->setContentsMargins(0, 0, 0, 0);
         label = new QLabel(widget);
-        label->setObjectName(QStringLiteral("label"));
+        label->setObjectName(QString::fromUtf8("label"));
         QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::Preferred);
         sizePolicy1.setHorizontalStretch(0);
         sizePolicy1.setVerticalStretch(0);
@@ -86,7 +86,7 @@ public:
         verticalLayout->addWidget(label);
 
         treeView = new QTreeView(widget);
-        treeView->setObjectName(QStringLiteral("treeView"));
+        treeView->setObjectName(QString::fromUtf8("treeView"));
         QSizePolicy sizePolicy2(QSizePolicy::Minimum, QSizePolicy::Expanding);
         sizePolicy2.setHorizontalStretch(0);
         sizePolicy2.setVerticalStretch(0);
@@ -107,14 +107,14 @@ public:
 
         splitter->addWidget(widget);
         widget1 = new QWidget(splitter);
-        widget1->setObjectName(QStringLiteral("widget1"));
+        widget1->setObjectName(QString::fromUtf8("widget1"));
         verticalLayout_2 = new QVBoxLayout(widget1);
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
+        verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         verticalLayout_2->setContentsMargins(0, 0, 0, 0);
         label_2 = new QLabel(widget1);
-        label_2->setObjectName(QStringLiteral("label_2"));
+        label_2->setObjectName(QString::fromUtf8("label_2"));
         QSizePolicy sizePolicy3(QSizePolicy::Expanding, QSizePolicy::Preferred);
         sizePolicy3.setHorizontalStretch(0);
         sizePolicy3.setVerticalStretch(0);
@@ -124,7 +124,7 @@ public:
         verticalLayout_2->addWidget(label_2);
 
         tableView = new QTableView(widget1);
-        tableView->setObjectName(QStringLiteral("tableView"));
+        tableView->setObjectName(QString::fromUtf8("tableView"));
         QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Expanding);
         sizePolicy4.setHorizontalStretch(0);
         sizePolicy4.setVerticalStretch(0);
@@ -154,16 +154,16 @@ public:
 
         FSViewerClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(FSViewerClass);
-        menuBar->setObjectName(QStringLiteral("menuBar"));
+        menuBar->setObjectName(QString::fromUtf8("menuBar"));
         menuBar->setGeometry(QRect(0, 0, 1039, 20));
         menu = new QMenu(menuBar);
-        menu->setObjectName(QStringLiteral("menu"));
+        menu->setObjectName(QString::fromUtf8("menu"));
         FSViewerClass->setMenuBar(menuBar);
         mainToolBar = new QToolBar(FSViewerClass);
-        mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
+        mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));
         FSViewerClass->addToolBar(Qt::TopToolBarArea, mainToolBar);
         statusBar = new QStatusBar(FSViewerClass);
-        statusBar->setObjectName(QStringLiteral("statusBar"));
+        statusBar->setObjectName(QString::fromUtf8("statusBar"));
         FSViewerClass->setStatusBar(statusBar);
 
         menuBar->addAction(menu->menuAction());
