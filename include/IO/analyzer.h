@@ -32,12 +32,23 @@ namespace IO
 
 	const uint32_t RGB_pixelSize = 3;
 
+#pragma pack( push, 1)
 	struct Pixel
 	{
-		uint8_t R;
-		uint8_t G;
-		uint8_t B;
+		int8_t R;
+		int8_t G;
+		int8_t B;
+
+		Pixel opertor -(const Pixel & val1 , const Pixel & val2 )
+		{
+			Pixel result;
+			result.R = val1.R - val2.R;
+			resutl.G = val1.G - val2.G;
+			result.B = val1.B - val2.B;
+			return result;
+		}
 	};
+#pragma pack(pop)
 
 	class TiffAnalyzer
 		: public Analyzer
@@ -63,6 +74,8 @@ namespace IO
 
 			int delta_mid = 0;
 			const uint32_t lastLine = (height -1)* lineSize + nLine * numBits;
+
+			//Pixel * pCurrent = (Pixel *)tiff)data.data();
 
 			int8_t * pCur = (int8_t *)(tiff_data.data() + lastLine);
 			for (uint32_t iHeight = 1; iHeight < height - 1; ++iHeight)
