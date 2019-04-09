@@ -39,12 +39,12 @@ namespace IO
 		int8_t G;
 		int8_t B;
 
-		Pixel opertor -(const Pixel & val1 , const Pixel & val2 )
+		Pixel operator -(const Pixel & rigth )
 		{
 			Pixel result;
-			result.R = val1.R - val2.R;
-			resutl.G = val1.G - val2.G;
-			result.B = val1.B - val2.B;
+			result.R = this->R - rigth.R;
+			result.G = this->G - rigth.G;
+			result.B = this->B - rigth.B;
 			return result;
 		}
 	};
@@ -165,11 +165,21 @@ namespace IO
 			bm_header.bfSize = sizeof(BITMAPFILEHEADER) + bfh.biSize + buff_size;
 
 			IO::File bmp_file(L"1.bmp");
-			bmp_file.OpenCreate();
-			bmp_file.WriteData((IO::ByteArray)&bm_header, sizeof(BITMAPFILEHEADER));
-			bmp_file.WriteData((IO::ByteArray)&bfh, bfh.biSize);
-			bmp_file.WriteData(write_buff.data(), write_buff.size());
-			bmp_file.Close();
+			//try {
+				bmp_file.OpenCreate();
+			//}
+			//catch (const Error::IOErrorException & ex)
+			//{
+			//	std::cout << ex.what();
+			//	return;
+			//}
+
+
+
+			//bmp_file.WriteData((IO::ByteArray)&bm_header, sizeof(BITMAPFILEHEADER));
+			//bmp_file.WriteData((IO::ByteArray)&bfh, bfh.biSize);
+			//bmp_file.WriteData(write_buff.data(), write_buff.size());
+			//bmp_file.Close();
 
 
 			AnalyzeTiffData(write_buff, width, height , 0);

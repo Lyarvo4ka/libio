@@ -132,7 +132,10 @@ namespace IO
 			}
 
 			if (result != Error::IOErrorsType::OK)
-				throw Error::IOErrorException(makeErrorStatus(this,result));
+			{
+				Error::IOErrorException error_exception(makeErrorStatus(this, result));
+				throw error_exception;
+			}
 
 
 			auto error_status = readFileSize(size_);
