@@ -1,0 +1,14 @@
+{
+  "DjiDrone":
+  { 
+		"header":
+          [
+            {
+                "textdata":"ftyp",
+                "offset": 4
+            }            
+            
+          ],
+          "extension": ".MOV"
+	}
+}

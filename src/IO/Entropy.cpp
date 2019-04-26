@@ -93,10 +93,17 @@ namespace IO
 
 		while (true)
 		{
-			bytesRead = src_file.ReadData(data_array);
-			if (bytesRead == 0)
+			try {
+				bResult = true;
+				bytesRead = src_file.ReadData(data_array);
+			}
+			catch (Error::IOErrorException ex)
+			{
+				std::cout << "Cougth exception" << ex.what() << std::endl;
+				bResult = false;
+			}
+			if (!bResult)
 				break;
-
 			entropy = calcEntropy(data_array.data(), bytesRead);
 			std::string write_string(boost::lexical_cast<std::string>(entropy));
 			write_string.append("\r\n");
@@ -127,22 +134,34 @@ namespace IO
 		bool bResult = false;
 		DWORD cluster_number = 0;
 
+
+
 		while (true)
 		{
-			bytesRead = src_file.ReadData(data_array);
-			if (bytesRead == 0)
-				break;
-			number_nulls = 0;
-			for (uint32_t i = 0; i < bytesRead; ++i)
-			{
-				if (data_array.data()[i] == 0)
-					++number_nulls;
+			try {
+				bResult = true;
+				bytesRead = src_file.ReadData(data_array);
 			}
-			std::string write_string(boost::lexical_cast<std::string>(number_nulls));
-			write_string.append("\r\n");
+			catch (Error::IOErrorException ex)
+			{
+				std::cout << "Cougth exception" << ex.what() << std::endl;
+				bResult = false;
+			}
+			if (!bResult)
+				break;
 
-			entrory_file.WriteData((IO::ByteArray)write_string.data(),(DWORD) write_string.size());
-			++cluster_number;
+				number_nulls = 0;
+				for (uint32_t i = 0; i < bytesRead; ++i)
+				{
+					if (data_array.data()[i] == 0)
+						++number_nulls;
+				}
+				std::string write_string(boost::lexical_cast<std::string>(number_nulls));
+				write_string.append("\r\n");
+
+				entrory_file.WriteData((IO::ByteArray)write_string.data(), (DWORD)write_string.size());
+				++cluster_number;
+			
 		}
 		return true;
 	}

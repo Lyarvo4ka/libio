@@ -34,6 +34,7 @@
 #include "IO\GoPro.h"
 #include "IO\RawCDW.h"
 #include "IO\FlpRaw.h"
+#include "IO/djidrone.h"
 
 
 const int param_count = 6;
@@ -73,7 +74,8 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
 	//initVideoFactoryManager(factory_manager);
 
-	factory_manager.Register("flp", std::make_unique<IO::RawFLPFactory>());
+	//factory_manager.Register("flp", std::make_unique<IO::RawFLPFactory>());
+	factory_manager.Register("DjiDrone", std::make_unique<DjiDroneRawFactory>());
 
 
 	//initKeysFactoryManager(factory_manager);
@@ -173,7 +175,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 		//QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
-		QString json_file = "flp.json";
+		QString json_file = "DjiDrone.json";
 		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{

@@ -245,5 +245,8 @@
     <ClInclude Include="..\..\include\IO\FlpRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\IO\djidrone.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

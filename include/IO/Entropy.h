@@ -21,7 +21,7 @@ namespace IO
 
 	double calcEntropy( BYTE * data, DWORD size );
 	bool calcEntropyForFile(const std::string & file_name, DWORD block_size);
-	bool calcNullsForFile(const std::string & file_name, DWORD block_size);
+	bool calcNullsForFile(const path_string & file_name, DWORD block_size);
 	bool calcEntropyForFile(const path_string & file_name, DWORD block_size);
 	void calcEntropyForFolder(const std::string & folder, DWORD block_size);// not implemented
 	void calcEntropyForFolder(const path_string & folder, DWORD block_size);
