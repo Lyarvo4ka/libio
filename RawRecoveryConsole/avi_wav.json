@@ -1,6 +1,7 @@
 {
   "avi": {
     "algorithmName": "RIFF",
+    "category":"video",
     "header": [
       {
         "hexdata": "52494646",
@@ -17,6 +18,7 @@
   },
   "wav": {
     "algorithmName": "RIFF",
+    "category":"video",
     "header": [
       {
         "hexdata": "52494646",

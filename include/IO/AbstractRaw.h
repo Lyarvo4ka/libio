@@ -98,10 +98,13 @@ namespace IO
 	// RAWHandle
 	// RAWDescription
 	// RAWType
+	//class RAWDescriptor
 	class FileStruct
 	{
 		HeaderArray headers_;
 		std::string formatName_;
+		std::string algorithmName_;
+		std::string category_;
 		path_string extension_;
 		DataArray::Ptr footer_;
 		uint32_t footerTailEndSize_ = 0;
@@ -119,6 +122,14 @@ namespace IO
 		std::string getName() const
 		{
 			return formatName_;
+		}
+		void setAlgorithmName(const std::string & algorithmName )
+		{
+			algorithmName_ = algorithmName;
+		}
+		std::string getAlgorithmName() const 
+		{
+			return algorithmName_;
 		}
 		std::size_t headersCount() const
 		{
