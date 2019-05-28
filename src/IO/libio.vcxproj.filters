@@ -248,5 +248,8 @@
     <ClInclude Include="..\..\include\IO\djidrone.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\IO\Raw7z.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
