@@ -35,6 +35,7 @@
 #include "IO\RawCDW.h"
 #include "IO\FlpRaw.h"
 #include "IO/djidrone.h"
+#include "IO/Raw7z.h"
 
 
 const int param_count = 6;
@@ -72,6 +73,7 @@ void initKeysFactoryManager(IO::RawFactoryManager & factory_manager)
 
 void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
+	factory_manager.Register("7z", std::make_unique<IO::Raw7zFactory>());
 	//initVideoFactoryManager(factory_manager);
 
 	//factory_manager.Register("flp", std::make_unique<IO::RawFLPFactory>());
@@ -79,7 +81,7 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 
 
 	//initKeysFactoryManager(factory_manager);
-	factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
+	//factory_manager.Register("qt_fragment", std::make_unique<IO::QTFragmentRawFactory>());
 	//initAudioFactoryManager(factory_manager);
 	//factory_manager.Register("go_pro", std::make_unique<IO::GoProRawFactory>());
 
@@ -175,7 +177,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 		//QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
-		QString json_file = "qt_fragment.json";
+		QString json_file = "7z.json";
 		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{

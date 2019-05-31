@@ -1,0 +1,15 @@
+{
+	"7z":{
+		"algorithmName" : "7z",
+		"category":"archive",
+		"header":
+		[
+			{
+			"hexdata":"377ABCAF271C",
+			"offset": 0
+			}
+		],
+		"extension":".7z"
+	}
+	
+}

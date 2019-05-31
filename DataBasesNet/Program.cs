@@ -328,7 +328,8 @@ namespace DataBasesNet
             string database_name = "ISD";
             //string table_name = "_UsersWorkHistory";
 
-            foreach (var tableName in Tables)
+            var tableName = ""
+           // foreach (var tableName in Tables)
             {
                 SqlDataBases sql_bases = new SqlDataBases();
 
