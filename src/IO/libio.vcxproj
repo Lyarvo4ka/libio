@@ -42,6 +42,7 @@
     <ClInclude Include="..\..\include\IO\calcRaid5Parity.h" />
     <ClInclude Include="..\..\include\IO\djidrone.h" />
     <ClInclude Include="..\..\include\IO\FlpRaw.h" />
+    <ClInclude Include="..\..\include\IO\prproj.h" />
     <ClInclude Include="..\..\include\IO\Raw7z.h" />
     <ClInclude Include="..\..\include\IO\RawCDW.h" />
     <ClInclude Include="..\..\include\IO\ChangeHeader.h" />

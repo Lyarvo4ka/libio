@@ -101,7 +101,7 @@ public:
 		HANDLE hAudio00 = INVALID_HANDLE_VALUE;
 		HANDLE hAudio01 = INVALID_HANDLE_VALUE;
 
-		boost::filesystem::path path(file_path);
+		fs::path path(file_path);
 		std::string source_name = path.filename().generic_string();
 
 		std::string video_file = IO::make_file_path(target_folder, source_name + ".mxf");

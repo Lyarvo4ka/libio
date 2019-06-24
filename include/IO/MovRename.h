@@ -67,7 +67,7 @@ public:
 
 				std::string new_name = folder + "\\" + dateStr+ ".mov";
 
-				boost::filesystem::rename( raw_name , new_name );
+				fs::rename( raw_name , new_name );
 
 				int k = 1;
 				k = 2;

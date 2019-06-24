@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-#include <boost\filesystem.hpp>
+//#include <boost\filesystem.hpp>
 
 
 
@@ -981,7 +981,7 @@ namespace IO
 			const path_string threeGF_ext = L".3gf";
 
 
-			boost::filesystem::path target_path(target_file.getFileName());
+			fs::path target_path(target_file.getFileName());
 			auto onlyFileName = target_path.stem();
 			auto folderPath = target_path.parent_path();
 			auto gpsFileName = addBackSlash(folderPath.generic_wstring()) + onlyFileName.generic_wstring() + gps_ext;

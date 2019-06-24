@@ -36,6 +36,7 @@
 #include "IO\FlpRaw.h"
 #include "IO/djidrone.h"
 #include "IO/Raw7z.h"
+#include "IO/prproj.h"
 
 
 const int param_count = 6;
@@ -73,7 +74,8 @@ void initKeysFactoryManager(IO::RawFactoryManager & factory_manager)
 
 void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
-	factory_manager.Register("7z", std::make_unique<IO::Raw7zFactory>());
+	//factory_manager.Register("7z", std::make_unique<IO::Raw7zFactory>());
+	factory_manager.Register("prproj" , std::make_unique<IO::RawAdobePremireFactory>());
 	//initVideoFactoryManager(factory_manager);
 
 	//factory_manager.Register("flp", std::make_unique<IO::RawFLPFactory>());
@@ -111,7 +113,10 @@ void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 
 #include "zlib.h"
 
+constexpr uint8_t enc_val = 0x8a;
+constexpr uint8_t chiper = 0x59;
 
+constexpr uint8_t res_val = enc_val - chiper;
 
 int main(int argc, char *argv[])
 {
@@ -177,7 +182,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 		//QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
-		QString json_file = "7z.json";
+		QString json_file = "prproj.json";
 		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{
@@ -284,7 +289,7 @@ int main(int argc, char *argv[])
 						{
 							// remove file
 							IO::path_string new_fileName = target_file + L".bad_file";
-							boost::filesystem::rename(target_file, new_fileName);
+							fs::rename(target_file, new_fileName);
 							qInfo() << "Renamed to .bad_file";
 							//{
 							//	qInfo() << "File" << target_file.c_str() << "was removed." << endl;

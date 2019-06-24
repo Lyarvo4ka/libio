@@ -129,7 +129,7 @@ namespace IO
 
 
 			auto stereoFileName = target_file.getFileName();
-			boost::filesystem::path mono_path(target_file.getFileName());
+			fs::path mono_path(target_file.getFileName());
 			auto folder = mono_path.parent_path();
 			auto file = mono_path.stem();
 			auto monoFileName = addBackSlash(folder.wstring()) + file.wstring() + L"_Tr1" + L".wav";

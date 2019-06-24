@@ -20,6 +20,12 @@ namespace fs = std::experimental::filesystem;
 
 namespace IO
 {
+	inline IO::path_string  getFileNameFromPath(const IO::path_string  & fullFileName)
+	{
+		fs::path filePath(fullFileName);
+		return filePath.filename().generic_wstring();
+	}
+
 	inline int NotNullPosFromEnd(const ByteArray data, const uint32_t size)
 	{
 		int pos = size - 1;

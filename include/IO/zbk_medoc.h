@@ -134,9 +134,9 @@ namespace IO
 			auto new_file_name = dst_folder + wStrDate + L"_"+ wCounter + L".zbk";
 			try
 			{
-				boost::filesystem::rename(src_file, new_file_name);
+				fs::rename(src_file, new_file_name);
 			}
-			catch (const boost::filesystem::filesystem_error& e)
+			catch (const fs::filesystem_error& e)
 			{
 				std::cout << "Error: " << e.what() << std::endl;
 			}

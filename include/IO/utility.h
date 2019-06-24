@@ -2,7 +2,7 @@
 
 #include "constants.h"
 #include "IODevice.h"
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <locale>
@@ -10,8 +10,13 @@
 #include <iostream>
 //#include <boost\variant\variant.hpp>
 
+#include <experimental/filesystem>
+
+namespace fs = std::experimental::filesystem;
+
 namespace IO
 {
+
 
 
 	inline path_string toWString(const std::string & oneByteString)
@@ -79,7 +84,7 @@ namespace IO
 
 	inline path_string getExtension(const path_string & file_name)
 	{
-		boost::filesystem::path file_path(file_name);	// can crash ????
+		fs::path file_path(file_name);	// can crash ????
 		return file_path.extension().generic_wstring();
 	}
 
@@ -126,14 +131,14 @@ namespace IO
 	}
 	inline path_string offsetToPath(const path_string & folder, const uint64_t byte_offset, const path_string & extension, uint32_t sector_size = 512)
 	{
-		return addBackSlash(folder) + toHexString(byte_offset / sector_size) + extension;
+		return addBackSlash(folder) + toHexString(byte_offset/* / sector_size*/) + extension;
 	}
 
 	inline bool createDirectory(const path_string & folder, const path_string & new_folder, path_string & result_folder)
 	{
 		result_folder = addBackSlash(folder) + new_folder;
-		if (!boost::filesystem::exists(result_folder))
-			return boost::filesystem::create_directory(result_folder);
+		if (!fs::exists(result_folder))
+			return fs::create_directory(result_folder);
 	}
 
 	inline std::string getDateFromSystemtime(const SYSTEMTIME & system_time)
@@ -350,7 +355,7 @@ namespace IO
 	// path ....img016937500.bin
 	inline uint64_t fileNameToOffset(const IO::path_string & filePath, uint32_t skip_size = 3)
 	{
-		boost::filesystem::path src_path(filePath);
+		fs::path src_path(filePath);
 		//auto folder_path = src_path.parent_path().generic_string();
 		auto only_name_path = src_path.stem().generic_string();
 		//auto ext = src_path.extension().generic_string();

@@ -178,7 +178,7 @@ namespace DataBasesNet
 
             List<ColumnType> listColumType = new List<ColumnType> { };
             SqlConnection connection;
-            string connetionString = "Data Source=WIN-2AAD50GME1V\\MSSQL_2012;Initial Catalog=" + dbName + "; User ID=sa;Password=Admin123";
+            string connetionString = "Data Source=CVI-PROG\\MSSQL2008;Initial Catalog=" + dbName + "; User ID=sa;Password=Admin123";
             connection = new SqlConnection(connetionString);
             DataTable schemaTable;
             SqlCommand cmd = new SqlCommand();
@@ -324,12 +324,12 @@ namespace DataBasesNet
             //}
 
             //d:\PaboTa\45601\isd.tables 
-            string[] Tables = System.IO.File.ReadAllLines(@"d:\PaboTa\45601\isd.tables");
-            string database_name = "ISD";
+            string[] Tables = System.IO.File.ReadAllLines(@"g:\tables\astra83_new_const.tables ");
+            string database_name = "Astra83_new";
             //string table_name = "_UsersWorkHistory";
 
-            var tableName = ""
-           // foreach (var tableName in Tables)
+           // var tableName = "_CommonSettings";
+            foreach (var tableName in Tables)
             {
                 SqlDataBases sql_bases = new SqlDataBases();
 
@@ -338,11 +338,12 @@ namespace DataBasesNet
                 var col_types = sql_bases.GetTableColunmType(database_name, tableName);
 
                 SqlDataBases sql_updater = new SqlDataBases();
-                var connString = sql_bases.CreateConnectionString("WIN-2AAD50GME1V\\MSSQL_2012", database_name, "sa", "Admin123");
+                var connString = sql_bases.CreateConnectionString("CVI-PROG\\MSSQL2008", database_name, "sa", "Admin123");
                 sql_updater.CreateConnection(connString);
                 sql_updater.UpdateNullsIfExist(col_types, tableName);
             }
 
+            Console.WriteLine("\nFininshed");
             Console.ReadLine();
         }
 
