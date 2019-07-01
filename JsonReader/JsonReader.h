@@ -231,5 +231,6 @@ IO::FileStruct::Ptr toFileStruct(const JsonFileStruct & jsonFileStruct)
 	file_struct->setExtension(jsonFileStruct.extension.toStdWString());
 	file_struct->setMaxFileSize(jsonFileStruct.maxfilesize);
 	file_struct->setMinFileSize(jsonFileStruct.minfilesize);
+	file_struct->setAlgorithmName(jsonFileStruct.algorithmName.toStdString());
 	return file_struct;
 }

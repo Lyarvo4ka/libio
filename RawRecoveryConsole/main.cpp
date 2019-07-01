@@ -74,8 +74,10 @@ void initKeysFactoryManager(IO::RawFactoryManager & factory_manager)
 
 void initFactoryMananger(IO::RawFactoryManager & factory_manager)
 {
+	factory_manager.Register("Canon4FileFragmentRaw", std::make_unique<Canon4FileFragmentRawFactory>());
+	//Canon4FileFragmentRaw
 	//factory_manager.Register("7z", std::make_unique<IO::Raw7zFactory>());
-	factory_manager.Register("prproj" , std::make_unique<IO::RawAdobePremireFactory>());
+	//factory_manager.Register("prproj" , std::make_unique<IO::RawAdobePremireFactory>());
 	//initVideoFactoryManager(factory_manager);
 
 	//factory_manager.Register("flp", std::make_unique<IO::RawFLPFactory>());
@@ -182,7 +184,7 @@ int main(int argc, char *argv[])
 		QList<JsonFileStruct> listFileStruct;
 
 		//QString json_file = R"(d:\develop\libio\RawRecoveryConsole\base\video\video.json)";
-		QString json_file = "prproj.json";
+		QString json_file = "Canon4FileFragment.json";
 		QFile file(json_file);
 		if (!file.open(QIODevice::ReadOnly))
 		{
@@ -238,7 +240,7 @@ int main(int argc, char *argv[])
 
 			
 
- 			auto raw_factory = factory_manager.Lookup(file_struct->getName());
+ 			auto raw_factory = factory_manager.Lookup(file_struct->getAlgorithmName());
 			IO::RawAlgorithm * raw_algorithm = nullptr;
 			if (!raw_factory)
 			{

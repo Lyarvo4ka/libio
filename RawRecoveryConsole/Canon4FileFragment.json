@@ -1,0 +1,14 @@
+{
+  "quicktime": {
+    "algorithmName": "Canon4FileFragmentRaw",
+    "category": "video",
+
+    "header": [
+      {
+        "textdata": "ftyp",
+        "offset": 4
+      }
+    ],
+    "extension": ".mov"
+  }
+}

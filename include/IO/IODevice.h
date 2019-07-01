@@ -196,7 +196,10 @@ namespace IO
 			uint32_t bytes_written = 0;
 			auto result = io_engine_->Write(data, write_size, bytes_written);
 			if (result == Error::IOErrorsType::OK)
+			{
+				size_ += bytes_written;
 				return bytes_written;
+			}
 
 			//	//ERROR_DISK_FULL
 			throw Error::IOErrorException(makeErrorStatus(this , result));

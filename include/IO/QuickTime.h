@@ -1118,15 +1118,13 @@ namespace IO
 
 
 	/*
-		�������������� ����������������� ����� ������ (QuickTime). � ������ ���� ��������� ����������("moov"), ����� ��� ����� ����� ("mdat").
-		� ��������� ���� ������ ������ �����. �� ����� ������� ����� ��������� ������ "mdat".
-		����� ����� "mdat" � ����� ��������.
+
 	*/
-	class Canon80D_FragmentRaw
+	class Canon4FileFragmentRaw
 		: public QuickTimeRaw
 	{
 	public:
-		Canon80D_FragmentRaw(IODevicePtr device)
+		Canon4FileFragmentRaw(IODevicePtr device)
 			: QuickTimeRaw(device)
 		{
 
@@ -1135,7 +1133,7 @@ namespace IO
 		{
 			const uint32_t fullFileSizeOffset = 2214;
 
-			// 1. ������ header.
+			// 1. Read ftyp header.
 			qt_block_t qtBlock = qt_block_t();
 			setPosition(start_offset);
 			ReadData((IO::ByteArray)&qtBlock, qt_block_struct_size);
@@ -1149,11 +1147,12 @@ namespace IO
 
 			uint64_t offset = start_offset;
 			offset += header_size;
-			// 2. ������ ��������� ������ ���� moov
+			// 2. Read moov 
 			ZeroMemory(&qtBlock, qt_block_struct_size);
 			setPosition(offset);
 			ReadData((IO::ByteArray)&qtBlock, qt_block_struct_size);
-			if (!isQuickTime(qtBlock)||(memcmp(qtBlock.block_type , s_moov, qt_keyword_size) != 0 ))
+			if (!isQuickTimeKeyword(qtBlock , s_moov))
+			//if (!isQuickTime(qtBlock)||(memcmp(qtBlock.block_type , s_moov, qt_keyword_size) != 0 ))
 			{
 				wprintf(L"Error wrong moov.\n");
 				return 0;
@@ -1162,18 +1161,16 @@ namespace IO
 			uint32_t moov_size = qtBlock.block_size;
 			toBE32(moov_size);
 
-			// 3. ������ ������ ������ �����.
+			// 3. Read size of file in internal information.
 			uint32_t full_size = 0;
 			offset = start_offset;
 			offset += fullFileSizeOffset;
 			setPosition(offset);
 			ReadData((IO::ByteArray) & full_size, 4);
-
+			if (full_size > this->getSize())
+				return 0;
 
 			uint32_t mdat_size = full_size - moov_size - header_size;
-
-			int l = 0;
-			l = 1;
 
 			qt_block_t mdat_cmp;
 			mdat_cmp.block_size = mdat_size;
@@ -1187,14 +1184,16 @@ namespace IO
 			//uint64_t search_end = mdat_start + GB_4;
 			//if (search_end > getSize())
 			//	search_end = getSize();
-			uint32_t bytes_read = 0;
+
+
+			qt_block_t * pQtData = nullptr;
+
 			while (mdat_start <= getSize())
 			{
 				setPosition(mdat_start);
 				//setPosition(0x7000000);
-				bytes_read = ReadData(buffer.data(), buffer.size());
-				if (bytes_read == 0)
-					return 0;
+				ReadData(buffer.data(), buffer.size());
+
 
 				for (uint32_t iSector = 0; iSector < buffer.size(); iSector += default_sector_size)
 				{
@@ -1228,13 +1227,13 @@ namespace IO
 		}
 	};
 
-	class Canon80D_FragmentRawFactory
+	class Canon4FileFragmentRawFactory
 		: public RawFactory
 	{
 	public:
 		RawAlgorithm * createRawAlgorithm(IODevicePtr device) override
 		{
-			return new Canon80D_FragmentRaw(device);
+			return new Canon4FileFragmentRaw(device);
 		}
 	};
 
