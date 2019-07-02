@@ -1134,32 +1134,17 @@ namespace IO
 			const uint32_t fullFileSizeOffset = 2214;
 
 			// 1. Read ftyp header.
-			qt_block_t qtBlock = qt_block_t();
-			setPosition(start_offset);
-			ReadData((IO::ByteArray)&qtBlock, qt_block_struct_size);
-			if (!isQuickTime(qtBlock))
-			{
-				wprintf(L"Error wrong qt_header.\n");
-				return 0;
-			}
-			uint32_t header_size = qtBlock.block_size;
-			toBE32(header_size);
-
 			uint64_t offset = start_offset;
-			offset += header_size;
-			// 2. Read moov 
-			ZeroMemory(&qtBlock, qt_block_struct_size);
-			setPosition(offset);
-			ReadData((IO::ByteArray)&qtBlock, qt_block_struct_size);
-			if (!isQuickTimeKeyword(qtBlock , s_moov))
-			//if (!isQuickTime(qtBlock)||(memcmp(qtBlock.block_type , s_moov, qt_keyword_size) != 0 ))
-			{
-				wprintf(L"Error wrong moov.\n");
+			auto ftyp_handle = this->readQtAtom(offset);
+			if (!ftyp_handle.isValid() || !ftyp_handle.compareKeyword(s_ftyp))
 				return 0;
-			}
 
-			uint32_t moov_size = qtBlock.block_size;
-			toBE32(moov_size);
+			// 2. Read moov 
+
+			auto moov_handle = this->readQtAtom(offset + ftyp_handle.size());
+			if (!moov_handle.isValid() || !moov_handle.compareKeyword(s_moov))
+				return 0;
+
 
 			// 3. Read size of file in internal information.
 			uint32_t full_size = 0;
@@ -1169,40 +1154,37 @@ namespace IO
 			ReadData((IO::ByteArray) & full_size, 4);
 			if (full_size > this->getSize())
 				return 0;
+			auto header_size = moov_handle.size() + ftyp_handle.size();
+			if (header_size >= full_size)
+				return 0;
 
-			uint32_t mdat_size = full_size - moov_size - header_size;
+			uint32_t mdat_size = full_size - header_size;
 
-			qt_block_t mdat_cmp;
-			mdat_cmp.block_size = mdat_size;
-			toBE32(mdat_cmp.block_size);
-			memcpy(mdat_cmp.block_type, s_mdat, qt_keyword_size);
+			qt_block_t expected_mdat;
+			expected_mdat.block_size = mdat_size;
+			toBE32(expected_mdat.block_size);
+			memcpy(expected_mdat.block_type, s_mdat, qt_keyword_size);
 
 			DataArray buffer(getBlockSize());
 
-			//const uint32_t GB_4 = UINT32_MAX;
 			uint64_t mdat_start = start_offset;
-			//uint64_t search_end = mdat_start + GB_4;
-			//if (search_end > getSize())
-			//	search_end = getSize();
-
-
 			qt_block_t * pQtData = nullptr;
 
 			while (mdat_start <= getSize())
 			{
 				setPosition(mdat_start);
-				//setPosition(0x7000000);
 				ReadData(buffer.data(), buffer.size());
 
 
 				for (uint32_t iSector = 0; iSector < buffer.size(); iSector += default_sector_size)
 				{
-					memcpy(&qtBlock, buffer.data() + iSector, qt_block_struct_size);
-					if (memcmp(&qtBlock, &mdat_cmp, qt_block_struct_size) == 0)
+					//memcpy(&qtBlock, buffer.data() + iSector, qt_block_struct_size);
+					pQtData = (qt_block_t *)(buffer.data() + iSector);
+					if (memcmp(pQtData, &expected_mdat, qt_block_struct_size) == 0)
 					{
 						uint64_t mdat_offset = mdat_start + iSector;
-						appendToFile(target_file, start_offset, header_size + moov_size);
-						uint32_t write_size = mdat_cmp.block_size;
+						appendToFile(target_file, start_offset, header_size);
+						uint32_t write_size = expected_mdat.block_size;
 						toBE32(write_size);
 						return appendToFile(target_file, mdat_offset, write_size);
 
@@ -1211,7 +1193,7 @@ namespace IO
 				mdat_start += buffer.size();
 				
 			}
-
+			
 
 
 			return 0;
