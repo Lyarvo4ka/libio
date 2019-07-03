@@ -19,7 +19,7 @@ void FileSystem::MasterBootRecord::setOffset( const DWORD offsetMBR)
 {
 	mbr_offset_ = offsetMBR;
 }
-bool FileSystem::MasterBootRecord::open(const VirtualReader & virtual_reader)
+bool FileSystem::MasterBootRecord::open( const VirtualReader & virtual_reader)
 {
 	//if (!virtual_reader->isReady())
 	//	return false;

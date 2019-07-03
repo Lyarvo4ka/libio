@@ -52,6 +52,160 @@ const std::string offset_str = "-offset";
 
 #include <memory>
 
+
+
+///
+#include "../FileSystem/fat_fs.h"
+
+class Canon4FileFragmentRaw
+	: public QuickTimeRaw
+{
+public:
+	Canon4FileFragmentRaw(IODevicePtr device)
+		: QuickTimeRaw(device)
+	{
+
+	}
+	uint64_t SaveRawFile(File & target_file, const uint64_t start_offset) override
+	{
+		constexpr DWORD boot_offset = 4194304;
+		constexpr DWORD root_offset = 8388608;
+		constexpr uint32_t  offset_calc = boot_offset + root_offset;
+		
+		DWORD start_cluster = ( start_offset - boot_offset - root_offset) / 32768 + 2;
+
+
+		const IO::path_string image_filename = LR"(d:\PaboTa\46560\46560.bin)";
+		auto file_ptr = IO::makeFilePtr(image_filename);
+		file_ptr->OpenRead();
+
+		FileSystem::SectorReader reader = std::make_shared<FileSystem::CSectorReader>(file_ptr, 512);
+
+		FileSystem::MasterBootRecord mbr;
+		if (!mbr.open(reader))
+			return 0;
+
+		auto part1 = mbr.getPartition(0);
+		//part1->
+		FileSystem::FatFileSystem fatFS(reader);
+		fatFS.mount(part1);
+
+		FileSystem::FileEntry fileEntry = std::make_shared< FileSystem::FileNode >();
+		fileEntry->setCluster(start_cluster);
+		fileEntry->OpenFile();
+		DWORD bytesRead = 0;
+		const uint32_t four_gb = 0xFFFFFFFF;
+		BYTE * pMEM = new BYTE[four_gb];
+		memset(pMEM, 0xFF, four_gb);
+		fatFS.ReadUsingFatTable(fileEntry, pMEM, bytesRead);
+
+		uint32_t bytes_written = 0;
+		if (bytesRead > 0)
+			bytes_written = target_file.WriteData(pMEM, bytesRead);
+		//target_file.Close();
+		//uint32_t mem_offset = 0;
+		//while (mem_offset < bytesRead)
+		//{
+
+		//}
+
+
+		delete[] pMEM;
+
+		return bytes_written;
+	}
+	//uint64_t SaveRawFile(File & target_file, const uint64_t start_offset) override
+	//{
+	//	const uint32_t fullFileSizeOffset = 2214;
+
+	//	// 1. Read ftyp header.
+	//	uint64_t offset = start_offset;
+	//	auto ftyp_handle = this->readQtAtom(offset);
+	//	if (!ftyp_handle.isValid() || !ftyp_handle.compareKeyword(s_ftyp))
+	//		return 0;
+
+	//	// 2. Read moov 
+
+	//	auto moov_handle = this->readQtAtom(offset + ftyp_handle.size());
+	//	if (!moov_handle.isValid() || !moov_handle.compareKeyword(s_moov))
+	//		return 0;
+
+
+	//	// 3. Read size of file in internal information.
+	//	uint32_t full_size = 0;
+	//	offset = start_offset;
+	//	offset += fullFileSizeOffset;
+	//	setPosition(offset);
+	//	ReadData((IO::ByteArray) & full_size, 4);
+	//	if (full_size > this->getSize())
+	//		return 0;
+	//	auto header_size = moov_handle.size() + ftyp_handle.size();
+	//	if (header_size >= full_size)
+	//		return 0;
+
+	//	uint32_t mdat_size = full_size - header_size;
+
+	//	qt_block_t expected_mdat;
+	//	expected_mdat.block_size = mdat_size;
+	//	toBE32(expected_mdat.block_size);
+	//	memcpy(expected_mdat.block_type, s_mdat, qt_keyword_size);
+
+	//	DataArray buffer(getBlockSize());
+
+	//	uint64_t mdat_start = 0;
+	//	qt_block_t * pQtData = nullptr;
+
+	//	while (mdat_start <= getSize())
+	//	{
+	//		setPosition(mdat_start);
+	//		ReadData(buffer.data(), buffer.size());
+
+
+	//		for (uint32_t iSector = 0; iSector < buffer.size(); iSector += default_sector_size)
+	//		{
+	//			//memcpy(&qtBlock, buffer.data() + iSector, qt_block_struct_size);
+	//			pQtData = (qt_block_t *)(buffer.data() + iSector);
+	//			if (memcmp(pQtData, &expected_mdat, qt_block_struct_size) == 0)
+	//			{
+	//				uint64_t mdat_offset = mdat_start + iSector;
+	//				appendToFile(target_file, start_offset, header_size);
+	//				uint32_t write_size = expected_mdat.block_size;
+	//				toBE32(write_size);
+	//				return appendToFile(target_file, mdat_offset, write_size);
+
+	//			}
+	//		}
+	//		mdat_start += buffer.size();
+	//		
+	//	}
+	//	
+
+
+	//	return 0;
+	//}
+	bool Specify(const uint64_t start_offset) override
+	{
+		return true;
+	}
+
+	bool Verify(const IO::path_string & file_path) override
+	{
+		return true;
+	}
+};
+
+class Canon4FileFragmentRawFactory
+	: public RawFactory
+{
+public:
+	RawAlgorithm * createRawAlgorithm(IODevicePtr device) override
+	{
+		return new Canon4FileFragmentRaw(device);
+	}
+};
+
+///
+
 void initVideoFactoryManager(IO::RawFactoryManager & factory_manager)
 {
 	factory_manager.Register("mts", std::make_unique<IO::RawMTSFactory>());

@@ -90,6 +90,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FileSystem\FileSystem.vcxproj">
+      <Project>{c1870a94-fc6e-4386-ae70-9257e9e3360c}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\JsonReader\JsonReader.vcxproj">
       <Project>{6e837a5f-bd95-4036-a04d-c4b0f8733705}</Project>
     </ProjectReference>

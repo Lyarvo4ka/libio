@@ -24,7 +24,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ConsoleApplication1</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-    <ProjectName>decrypt_files</ProjectName>
+    <ProjectName>RecovetUseFAT</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -172,6 +172,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FileSystem\FileSystem.vcxproj">
+      <Project>{c1870a94-fc6e-4386-ae70-9257e9e3360c}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\src\IO\libio.vcxproj">
       <Project>{a3400ee0-87c5-4fcc-a551-359cdea8c97e}</Project>
     </ProjectReference>
